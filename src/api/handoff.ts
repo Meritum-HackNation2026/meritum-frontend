@@ -6,6 +6,7 @@ type Answer = { data?: ApiSchemas['Handoff'] | undefined; response: Response }
 
 // Trust boundary: a case number counts only from an answer that saved the case (ADR-22); a 503
 // carries escalation "recommended" without one, and anything else without a number is no case.
+// message_key is ignored on purpose: the card writes the text, so created and updated read the same.
 function outcomeOf({ data, response }: Answer): HandoffOutcome {
   const caseId = data?.escalation.case_id
   const isSaved = response.ok && data?.escalation.state !== 'recommended'
