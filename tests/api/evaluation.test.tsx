@@ -34,6 +34,7 @@ test('unknown metrics and non-numbers are dropped, never shown', async (t) => {
 for (const [name, body, status] of [
   ['404 (no finished run yet)', { detail: 'not found' }, 404],
   ['a summary without a date', { ...summary, finished_at: 3 }, 200],
+  ['a date that does not parse', { ...summary, finished_at: 'wczoraj' }, 200],
   ['a reproduction link that is not https', { ...summary, bundle_url: 'javascript:alert(1)' }, 200],
   ['a body that is not an object', 'nope', 200],
 ] as const) {
@@ -42,6 +43,13 @@ for (const [name, body, status] of [
     assert.equal(await apiLatestRunSource.latestRun(), null)
   })
 }
+
+test('the request gives up after a timeout', async (t) => {
+  const fetch = fakeApi(t, summary)
+  await apiLatestRunSource.latestRun()
+  const init = fetch.mock.calls[0]?.arguments[1] as RequestInit | undefined
+  assert.ok(init?.signal instanceof AbortSignal)
+})
 
 test('a network failure means no finished run', async (t) => {
   t.mock.method(globalThis, 'fetch', () => Promise.reject(new TypeError('offline')))

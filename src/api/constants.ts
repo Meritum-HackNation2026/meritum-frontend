@@ -16,6 +16,14 @@ export const CHECKS_ENDPOINT = '/api/v1/checks'
 export const LATEST_RUN_ENDPOINT = '/api/v1/eval/runs/latest'
 
 /**
+ * How long the page waits for the last-run summary before showing it has no run; the route
+ * loader holds the page until then.
+ *
+ * @feature US-ZRD-12, F-29
+ */
+export const LATEST_RUN_TIMEOUT_MS = 5000
+
+/**
  * Header carrying the random browser session id; the same name in the backend and the extension.
  *
  * @feature US-SPR-01, F-21

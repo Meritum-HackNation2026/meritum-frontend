@@ -29,7 +29,7 @@ export const METRIC_FRACTION_DIGITS = 2
 
 /**
  * Metrics the page can name, in the order of `method.metrics.names` in copy/pl.json; any
- * other metric from the API is dropped.
+ * other metric from the API is dropped. The cast only undoes Object.keys widening to string[].
  *
  * @feature US-ZRD-12, F-29
  */

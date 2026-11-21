@@ -36,6 +36,9 @@ test('/jak-dziala shows the metrics of the last run from the API', async (t) => 
   await screen.findByRole('heading', { level: 1, name: pl.result.how_it_works })
   assert.ok(await screen.findByText(pl.method.metrics.names.macro_f1))
   assert.ok(screen.getByText('0,71'))
+  const link = screen.getByRole('link', { name: pl.method.metrics.reproduce })
+  assert.equal(link.getAttribute('href'), 'https://example.org/evals')
+  assert.equal(screen.getAllByText((_, el) => el?.tagName === 'TIME').length, 1)
   assert.equal(screen.queryAllByText(pl.method.metrics.no_run).length, 0)
 })
 

@@ -33,14 +33,16 @@ export function RunMetrics({ run }: { run: EvalRunSummary | null }) {
         </time>
         {afterDate}
       </p>
-      <dl className="divide-y rounded-lg border">
-        {measured.map(([key, value]) => (
-          <div key={key} className="flex justify-between gap-4 px-3 py-2">
-            <dt>{names[key]}</dt>
-            <dd className="font-mono">{number.format(value)}</dd>
-          </div>
-        ))}
-      </dl>
+      {measured.length > 0 && (
+        <dl className="divide-y rounded-lg border">
+          {measured.map(([key, value]) => (
+            <div key={key} className="flex justify-between gap-4 px-3 py-2">
+              <dt>{names[key]}</dt>
+              <dd className="font-mono">{number.format(value)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <p>
         <a href={run.bundle_url} className="underline underline-offset-3">
           {text.reproduce}
