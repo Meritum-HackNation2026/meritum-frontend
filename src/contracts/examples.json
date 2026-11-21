@@ -1,6 +1,7 @@
 {
   "$comment": "Contract fixtures, not demo answers. Fragments are verbatim from the Constitution of the Republic of Poland (Dz.U. 1997 nr 78 poz. 483).",
   "CheckRequest": { "channel": "web", "text": "Prezydent w Polsce może rządzić trzy kadencje, a językiem urzędowym jest polski." },
+  "CheckRequest.discord": { "channel": "discord", "audio_id": "a_01", "channel_user_id": "100000000000000001" },
   "CheckResult.done": {
     "check_id": "c_01",
     "status": "done",
@@ -64,9 +65,41 @@
     ],
     "escalation": { "state": "created", "case_id": "#S-1" }
   },
+  "CheckResult.claim_review": {
+    "check_id": "c_04",
+    "status": "done",
+    "corpus_version": "2026-11-21.1",
+    "transcript": "Prezydent w Polsce może rządzić trzy kadencje.",
+    "limitations": ["Nie przeszukaliśmy obrazów: nagranie nie zawiera zdjęć."],
+    "limitation_codes": ["image_search_not_run"],
+    "claims": [
+      {
+        "claim": "Prezydent w Polsce może sprawować urząd przez trzy kadencje.",
+        "claim_date": "2026-11-21", "claim_date_source": "today",
+        "verdict": "false",
+        "strength": { "level": "weak", "premises": { "independent_sources": 1, "primary_sources": 0, "agreement": "consistent" } },
+        "claim_review_premises": [
+          {
+            "publisher": "Demagog", "publisher_id": "demagog", "signatory_of": ["ifcn", "efcsn"],
+            "rating": "Fałsz", "title": "Czy prezydent może rządzić trzy kadencje? Sprawdzamy (fikstura)",
+            "reviewed_at": "2026-11-01T00:00:00+01:00", "url": "https://demagog.org.pl/wypowiedzi/fikstura-trzy-kadencje/",
+            "fetched_at": "2026-11-21T12:00:00+01:00", "stance": "refutes"
+          }
+        ],
+        "explanation": "Fact-checker z sieci IFCN ocenił to twierdzenie jako fałszywe. Konstytucja pozwala na dwie kadencje.",
+        "would_change_verdict": ["needs_primary_source"],
+        "incident": {
+          "database": "fact_check", "incident_id": "demagog-fikstura-1", "matched_on": "content",
+          "match_basis": ["title", "topic", "date"], "title": "Czy prezydent może rządzić trzy kadencje?",
+          "date": "2026-11-01T00:00:00+01:00", "url": "https://demagog.org.pl/wypowiedzi/fikstura-trzy-kadencje/", "similarity": 0.92
+        }
+      }
+    ]
+  },
   "CheckResult.failure": {
     "check_id": "c_03",
     "status": "technical_failure",
+    "failure_code": "web_search_unavailable",
     "corpus_version": "2026-11-21.1",
     "message": "Nie udało się przeszukać źródeł: usługa wyszukiwania nie odpowiada. To nie jest ocena treści. Spróbuj za kilka minut."
   },
@@ -111,7 +144,7 @@
   },
   "ModeratorCase": {
     "id": "#S-1", "state": "open", "reasons": ["insufficient_evidence", "high_risk"],
-    "high_risk_topic": "bezpieczeństwo publiczne", "high_risk_classified_by": "model",
+    "high_risk_topic": "bezpieczeństwo publiczne", "high_risk_classified_by": "embeddings",
     "summary": "Wyłączenie bankomatów w Gdańsku: brak publikacji w zatwierdzonych źródłach.",
     "claims": [{ "claim": "Wczoraj w Gdańsku wyłączono wszystkie bankomaty.", "check_ids": ["c_02"] }], "first_seen": "2026-11-21T14:02:24+01:00", "last_seen": "2026-11-21T14:02:24+01:00"
   },

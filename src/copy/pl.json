@@ -238,7 +238,7 @@
     },
     "similar": "{count} podobnych pytań",
     "high_risk_by": {
-      "model": "temat rozpoznał model według listy administratora",
+      "embeddings": "temat rozpoznany po podobieństwie do listy administratora",
       "keywords": "temat rozpoznany po słowach kluczowych"
     },
     "role": {
