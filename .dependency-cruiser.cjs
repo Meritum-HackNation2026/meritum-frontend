@@ -14,9 +14,9 @@ const repo = {
     '^src/components/',
     '^src/api/',
     '(^|/)factory\\.tsx?$',
-    // The check form view (React) is UI wiring of the checks domain; its .ts files stay
-    // framework-free (meritum-frontend#14).
-    '^src/checks/_check-page\\.tsx$',
+    // The check views (React: form, progress) are UI wiring of the checks domain; its .ts
+    // files stay framework-free (meritum-frontend#14, #17).
+    '^src/checks/_[^/]+\\.tsx$',
   ],
   frameworks: ['react', 'react-dom', '@tanstack', 'radix-ui'],
   excluded: ['^src/routeTree\\.gen\\.ts$'], // generated

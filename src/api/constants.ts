@@ -25,3 +25,10 @@ export const SESSION_STORAGE_KEY = 'meritum.session'
  * @feature US-SPR-01, F-01
  */
 export const HTTP_TOO_MANY_REQUESTS = 429
+
+/**
+ * The five step statuses of `AnalysisStep` in the contract; a streamed event with any other is dropped.
+ *
+ * @feature US-SPR-02, F-09
+ */
+export const STEP_STATUSES: readonly string[] = ['pending', 'active', 'done', 'skipped', 'failed']

@@ -18,3 +18,10 @@ export const MIN_TEXT_CHARS = 3
  * @feature US-SPR-01, F-01
  */
 export const MAX_TEXT_CHARS = 4000
+
+/**
+ * The step after which a streamed answer may show verdicts (ADR-20): citations are verified.
+ *
+ * @feature US-SPR-02, F-09
+ */
+export const VERIFY_STEP = 'verify_citations'

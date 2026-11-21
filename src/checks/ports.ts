@@ -1,11 +1,18 @@
-import type { CheckRequest } from '@/contracts/meritum'
+import type { AnalysisStatus, CheckRequest } from '@/contracts/meritum'
 
 /**
- * What the API said about a sent check: accepted, or the `errors` key of copy/pl.json to show.
+ * Why the API refused a check: the `errors` key of copy/pl.json to show under the field.
  *
  * @feature US-SPR-01, F-01
  */
-export type SendOutcome = 'accepted' | 'rate_limited' | 'busy' | 'offline'
+type SendError = 'rate_limited' | 'busy' | 'offline'
+
+/**
+ * What the API said about a sent check: accepted with its id, or a refusal to show.
+ *
+ * @feature US-SPR-01, US-SPR-02, F-01, F-09
+ */
+export type SendOutcome = { checkId: string } | SendError
 
 /**
  * Sends a validated check to the verification API.
@@ -20,4 +27,25 @@ export interface CheckSender {
    * @returns The outcome to show next to the form.
    */
   send(request: CheckRequest): Promise<SendOutcome>
+}
+
+/**
+ * Streams the progress of a running check (`AnalysisStatus` events) until it ends.
+ *
+ * @feature US-SPR-02, F-09
+ */
+export interface ProgressSource {
+  /**
+   * Starts listening to one check; never throws.
+   *
+   * @param checkId - The id from the accepted check.
+   * @param onStatus - Called with every status, the last one carrying the result.
+   * @param onClosed - Called once when the stream ends or the connection breaks.
+   * @returns Stops listening and closes the connection.
+   */
+  watch(
+    checkId: string,
+    onStatus: (status: AnalysisStatus) => void,
+    onClosed: () => void,
+  ): () => void
 }
