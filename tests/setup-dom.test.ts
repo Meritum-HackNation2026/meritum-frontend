@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process'
 import { test } from 'node:test'
 
 const lateDomError = /window is not defined/
+const childTimeoutMs = 30_000
 
 test('a commit outside act at the end of a file does not outlive the DOM', () => {
   // Without this the child reports to this runner instead of exiting with its own status.
@@ -23,8 +24,12 @@ test('a commit outside act at the end of a file does not outlive the DOM', () =>
       '--test',
       'tests/fixtures/late-commit.fixture.tsx',
     ],
-    { encoding: 'utf8', env: { ...env, TSX_TSCONFIG_PATH: 'tsconfig.test.json' } },
+    {
+      encoding: 'utf8',
+      env: { ...env, TSX_TSCONFIG_PATH: 'tsconfig.test.json' },
+      timeout: childTimeoutMs,
+    },
   )
   assert.doesNotMatch(run.stdout, lateDomError)
-  assert.equal(run.status, 0)
+  assert.equal(run.status, 0, run.stdout + run.stderr)
 })
