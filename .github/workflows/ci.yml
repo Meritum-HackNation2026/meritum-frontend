@@ -30,7 +30,7 @@ jobs:
       - run: npm install --global "$(node -p "require('./package.json').packageManager")"
       - run: pnpm install --frozen-lockfile --prefer-offline
       - run: pnpm biome ci --reporter=github --error-on-warnings .
-      - run: pnpm test # tests/architecture: JSDoc @feature, constants, 250 lines
+      - run: pnpm test # tests/architecture (JSDoc @feature, constants, 250 lines), sums of the pnpm sync copies
       - run: pnpm depcruise # import boundaries (.dependency-cruiser.cjs)
       - run: pnpm knip # dead code and unused dependencies
       - run: pnpm build # tsc -b (strict) + vite build

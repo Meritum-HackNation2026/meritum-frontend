@@ -1,7 +1,5 @@
-/* Copy of design-system/tokens/meritum.css (the design system is the source; refresh
-   with: cp ../design-system/tokens/meritum.css src/styles/meritum.css and keep this header). */
 /*
-  Meritum — obywatelski radar dezinformacji oraz scamu
+  Meritum, obywatelski radar dezinformacji
   Design tokens for Tailwind CSS v4 + shadcn/ui. Paste into your app's global CSS
   (after `@import "tailwindcss";`). Dark mode: add class `dark` (shadcn) or
   `data-theme="dark"` on <html>.
