@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { type ProgressSource, ResultPage, type ResultReader } from '@/checks'
+import { type ProgressSource, type ReadOutcome, ResultPage, type ResultReader } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, AnalysisStep } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
@@ -231,14 +231,12 @@ test('a stream that drops while the check still runs keeps the page reading unti
 
 test('a check still in the queue when the stream drops keeps the page reading until the result', async () => {
   const fake = fakeSource()
-  const queued = {
+  const queued: ReadOutcome = {
     status: { check_id: 'c_01', steps: [{ code: 'receive', status: 'done' }] },
-  } as const
-  const answers = [queued, queued, { status: { check_id: 'c_01', steps: recorded.steps, result } }]
-  let call = 0
-  const later: ResultReader = {
-    read: () => Promise.resolve(answers[Math.min(call++, 2)] ?? queued),
   }
+  const answers: ReadOutcome[] = [queued, queued, { status: { ...recorded, result } }]
+  let call = 0
+  const later: ResultReader = { read: () => Promise.resolve(answers[call++] ?? queued) }
   render(<ResultPage checkId="c_01" reader={later} progress={fake.source} pollMs={20} />)
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.receive)
