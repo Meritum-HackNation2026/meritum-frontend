@@ -19,6 +19,9 @@ const repo = {
     '^src/checks/_[^/]+\\.tsx$',
     // The bell, inbox and toasts (React, Sonner) are UI wiring of notifications (meritum-frontend#19).
     '^src/notifications/_notifications\\.tsx$',
+    // The "Jak działa Meritum" page views (React) are UI wiring of the evidence domain
+    // (meritum-frontend#20); its .ts files stay framework-free.
+    '^src/evidence/_[^/]+\\.tsx$',
   ],
   frameworks: ['react', 'react-dom', '@tanstack', 'radix-ui', 'sonner'],
   excluded: ['^src/routeTree\\.gen\\.ts$'], // generated

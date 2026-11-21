@@ -28,6 +28,7 @@ Obecne wyjątki:
 - `src/routeTree.gen.ts` (generowany), `src/components/ui/` (shadcn), `src/styles/meritum.css`, `src/components/meritum/`, `src/contracts/` i `src/copy/` (kopie z `pnpm sync`: JSDoc z `@feature` trzeba dodać w design systemie) są poza testami architektury, Biome i knipem (`src/copy/` to sam JSON, knip go nie czyta); dependency-cruiser traktuje `src/contracts/` i `src/copy/` jak wspólne foldery (`notDomains`), nie domeny;
 - `src/api/` to klient HTTP backendu, czyli adapter: może używać TanStack Query;
 - widoki domeny w React (`src/checks/_*.tsx`: formularz `_check-page.tsx` i pasek postępu `_check-progress.tsx`) to okablowanie UI: mogą importować Reacta; pliki `.ts` w `src/checks/` dalej nie mogą;
+- widoki strony „Jak działa Meritum” (`src/evidence/_*.tsx`) to okablowanie UI domeny `evidence`: mogą importować Reacta; pliki `.ts` tej domeny dalej nie mogą;
 - `performance/noBarrelFile` jest wyłączone dla `src/lib/utils.ts` (alias `cn` z shadcn) i `src/*/index.ts` (publiczne API domeny);
 - knip pomija zależności komponentów shadcn (`class-variance-authority`, `lucide-react`, `radix-ui`) i `@swc/core` (parser dependency-cruisera); `pnpm-workspace.yaml` nie pozwala `@swc/core` ani `esbuild` (używa go `tsx` w `pnpm test`) uruchamiać skryptu instalacyjnego (binarki przychodzą z pakietów platformy).
 
