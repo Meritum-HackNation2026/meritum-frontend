@@ -48,6 +48,7 @@ export interface ProgressSource {
     onStatus: (status: AnalysisStatus) => void,
     onClosed: () => void,
   ): () => void
+}
 
 /**
  * What GET /api/v1/checks/{id} said: the check's steps (with `result` once it finished), an

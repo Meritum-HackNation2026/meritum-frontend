@@ -7,16 +7,23 @@ import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { apiCheckSender } from '@/api'
-import { CheckPage, type ProgressSource } from '@/checks'
+import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
 
 const uuid = /^[0-9a-f-]{36}$/
-const idle: ProgressSource = { watch: () => () => undefined }
 
 function fakeApi(t: TestContext, status = 202) {
   return t.mock.method(globalThis, 'fetch', () =>
     Promise.resolve(new Response(JSON.stringify({ check_id: 'c_01' }), { status })),
   )
+}
+
+/** Renders the form and records the check ids it hands on after the API accepted them. */
+function renderPage(): string[] {
+  const opened: string[] = []
+  const onAccepted = opened.push.bind(opened)
+  render(<CheckPage sender={apiCheckSender} onAccepted={onAccepted} />)
+  return opened
 }
 
 function typeAndCheck(value: string) {
@@ -31,7 +38,7 @@ for (const [input, message] of [
 ] as const) {
   test(`"${input.slice(0, 30)}" shows a Polish message under the field and sends nothing`, (t) => {
     const fetch = fakeApi(t)
-    render(<CheckPage sender={apiCheckSender} progress={idle} />)
+    renderPage()
     typeAndCheck(input)
     assert.equal(screen.getByRole('alert').textContent, message)
     assert.equal(fetch.mock.callCount(), 0)
@@ -40,7 +47,7 @@ for (const [input, message] of [
 
 test('the message stays until the text changes', (t) => {
   fakeApi(t)
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  renderPage()
   typeAndCheck('ab')
   fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
   assert.equal(screen.queryAllByRole('alert').length, 1)
@@ -51,9 +58,9 @@ test('the message stays until the text changes', (t) => {
 test('1200 characters go to POST /api/v1/checks as a web CheckRequest with the session id', async (t) => {
   const fetch = fakeApi(t)
   const text = 'Od stycznia nie zapłacisz w sklepie gotówką. '.repeat(30).slice(0, 1200)
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  const opened = renderPage()
   typeAndCheck(text)
-  await screen.findByText(pl.analysis.title)
+  await waitFor(() => assert.deepEqual(opened, ['c_01']))
   const [url, init] = fetch.mock.calls[0]?.arguments ?? []
   const headers = new Headers(init?.headers)
   assert.equal(url, '/api/v1/checks')
@@ -65,9 +72,9 @@ test('1200 characters go to POST /api/v1/checks as a web CheckRequest with the s
 
 test('a full https link goes to the API as a url', async (t) => {
   const fetch = fakeApi(t)
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  const opened = renderPage()
   typeAndCheck('https://example.com/artykul')
-  await screen.findByText(pl.analysis.title)
+  await waitFor(() => assert.deepEqual(opened, ['c_01']))
   const body = String(fetch.mock.calls[0]?.arguments[1]?.body)
   assert.deepEqual(JSON.parse(body), { channel: 'web', url: 'https://example.com/artykul' })
 })
@@ -77,18 +84,18 @@ test('blocked sessionStorage still sends a session id', async (t) => {
   t.mock.method(Storage.prototype, 'getItem', () => {
     throw new DOMException('blocked', 'SecurityError')
   })
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  const opened = renderPage()
   typeAndCheck('Od stycznia nie zapłacisz w sklepie gotówką')
-  await screen.findByText(pl.analysis.title)
+  await waitFor(() => assert.deepEqual(opened, ['c_01']))
   const headers = new Headers(fetch.mock.calls[0]?.arguments[1]?.headers)
   assert.match(headers.get('X-Meritum-Session') ?? '', uuid)
 })
 
 test('the session id stays the same for every check in the tab', async (t) => {
   const fetch = fakeApi(t)
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  const opened = renderPage()
   typeAndCheck('Pierwsze twierdzenie')
-  await screen.findByText(pl.analysis.title)
+  await waitFor(() => assert.deepEqual(opened, ['c_01']))
   typeAndCheck('Drugie twierdzenie')
   await waitFor(() => assert.equal(fetch.mock.callCount(), 2))
   const sessions = fetch.mock.calls.map((call) =>
@@ -99,7 +106,7 @@ test('the session id stays the same for every check in the tab', async (t) => {
 
 test('HTTP 429 shows the rate-limit message under the field, not a verdict', async (t) => {
   fakeApi(t, 429)
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  const opened = renderPage()
   typeAndCheck('Od stycznia nie zapłacisz w sklepie gotówką')
   const alert = await screen.findByRole('alert')
   assert.equal(alert.textContent, pl.errors.rate_limited)
@@ -108,12 +115,12 @@ test('HTTP 429 shows the rate-limit message under the field, not a verdict', asy
     verdicts.some((word) => screen.queryAllByText(word).length > 0),
     false,
   )
-  assert.equal(screen.queryAllByText(pl.analysis.title).length, 0)
+  assert.deepEqual(opened, [])
 })
 
 test('a failed connection shows the offline message', async (t) => {
   t.mock.method(globalThis, 'fetch', () => Promise.reject(new TypeError('Failed to fetch')))
-  render(<CheckPage sender={apiCheckSender} progress={idle} />)
+  renderPage()
   typeAndCheck('Od stycznia nie zapłacisz w sklepie gotówką')
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
 })

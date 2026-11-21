@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { render, screen, waitFor } from '@testing-library/react'
 import { apiResultReader } from '@/api'
-import { ResultPage } from '@/checks'
+import { type ProgressSource, ResultPage } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
@@ -22,6 +22,9 @@ const running: AnalysisStatus = {
   ],
 }
 const finished: AnalysisStatus = { ...running, result: done }
+
+/** A progress stream that never reports, so only the API read drives the page. */
+const idle: ProgressSource = { watch: () => () => undefined }
 
 type Answer = AnalysisStatus | number | 'network down'
 
@@ -43,7 +46,7 @@ async function stopped(fetch: { mock: { callCount(): number } }) {
 }
 
 function renderPage(checkId = 'c_01', pollMs = 1) {
-  render(<ResultPage checkId={checkId} reader={apiResultReader} pollMs={pollMs} />)
+  render(<ResultPage checkId={checkId} reader={apiResultReader} progress={idle} pollMs={pollMs} />)
 }
 
 test('the page reads GET /api/v1/checks/{id} and shows the result card', async (t) => {

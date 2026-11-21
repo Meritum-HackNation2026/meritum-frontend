@@ -1,20 +1,22 @@
 /**
- * The progress strip of an accepted check, driven by recorded `AnalysisStatus` events through
- * a fake progress source behind the public API of `src/checks`.
+ * The progress strip on the result page, driven by recorded `AnalysisStatus` events through a
+ * fake progress source behind the public API of `src/checks`; the API read never has a result.
  *
  * @feature US-SPR-02, F-09
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { CheckPage, type CheckSender, type ProgressSource } from '@/checks'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import { type ProgressSource, ResultPage, type ResultReader } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, AnalysisStep } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
 
-const accepted: CheckSender = { send: () => Promise.resolve({ checkId: 'c_01' }) }
 const recorded = examples.AnalysisStatus as AnalysisStatus
 const result = examples['CheckResult.done'] as NonNullable<AnalysisStatus['result']>
+const running: ResultReader = {
+  read: () => Promise.resolve({ status: { check_id: 'c_01', steps: recorded.steps } }),
+}
 
 function fakeSource() {
   const calls = { watched: [] as string[], stopped: 0 }
@@ -39,13 +41,13 @@ function fakeSource() {
 }
 
 async function startCheck(fake: ReturnType<typeof fakeSource>) {
-  const page = render(<CheckPage sender={accepted} progress={fake.source} />)
-  fireEvent.change(screen.getByLabelText(pl.form.input_label), {
-    target: { value: 'Od stycznia nie zapłacisz w sklepie gotówką' },
-  })
-  fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
+  const page = render(
+    <ResultPage checkId="c_01" reader={running} progress={fake.source} pollMs={60_000} />,
+  )
   // the subscription starts in an effect, which may run after the strip first renders
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
+  // the first API read has rendered, so nothing is left running after the test
+  await screen.findByText(pl.analysis.steps.search_corpus)
   return page
 }
 
@@ -65,7 +67,7 @@ function withVerify(status: AnalysisStep['status']): AnalysisStatus {
   }
 }
 
-test('an accepted check subscribes to the progress of its id', async () => {
+test('the result page subscribes to the progress of its check id', async () => {
   const fake = fakeSource()
   await startCheck(fake)
   assert.deepEqual(fake.calls.watched, ['c_01'])
@@ -107,13 +109,12 @@ test('verdicts show when verify_citations is skipped, as in the backend rule', a
   assert.deepEqual(shownVerdicts().sort(), [pl.verdict.confirmed, pl.verdict.false].sort())
 })
 
-test('a failed verify_citations keeps the verdicts hidden and ends with a message', async () => {
+test('a failed verify_citations keeps the verdicts hidden', async () => {
   const fake = fakeSource()
   await startCheck(fake)
   fake.emit(withVerify('failed'))
   fake.end()
   assert.deepEqual(shownVerdicts(), [])
-  assert.equal(screen.getByRole('alert').textContent, pl.status_hint.technical_failure)
 })
 
 test('the result is announced in a polite live region', async () => {
@@ -121,18 +122,18 @@ test('the result is announced in a polite live region', async () => {
   await startCheck(fake)
   fake.emit(withVerify('done'))
   fake.end()
-  const card = screen.getByRole('region', { name: 'Meritum: wynik sprawdzenia' })
-  assert.equal(card.closest('[aria-live]')?.getAttribute('aria-live'), 'polite')
+  const badge = screen.getByText(pl.verdict.false)
+  assert.equal(badge.closest('[aria-live]')?.getAttribute('aria-live'), 'polite')
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
 
-test('a stream that ends without a result shows a message, not a verdict', async () => {
+test('a stream that ends without a result shows no verdict and keeps the steps', async () => {
   const fake = fakeSource()
   await startCheck(fake)
   fake.emit(withVerify('active'))
   fake.end()
-  assert.equal(screen.getByRole('alert').textContent, pl.status_hint.technical_failure)
   assert.deepEqual(shownVerdicts(), [])
+  assert.ok(screen.getByText(pl.analysis.steps.verify_citations))
 })
 
 test('a result without verdicts shows at once and ends without a message', async () => {

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { apiResultReader } from '@/api'
+import { apiProgressSource, apiResultReader } from '@/api'
 import { ResultPage } from '@/checks'
 
 /**
@@ -12,5 +12,12 @@ export const Route = createFileRoute('/sprawdzenie/$checkId')({ component: Resul
 
 function Result() {
   const { checkId } = Route.useParams()
-  return <ResultPage key={checkId} checkId={checkId} reader={apiResultReader} />
+  return (
+    <ResultPage
+      key={checkId}
+      checkId={checkId}
+      reader={apiResultReader}
+      progress={apiProgressSource}
+    />
+  )
 }
