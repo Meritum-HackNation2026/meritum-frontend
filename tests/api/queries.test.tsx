@@ -25,12 +25,19 @@ const useSelection = create<{ picked: string | null; pick: (id: string) => void 
 const features = tableFeatures({})
 const column = createColumnHelper<typeof features, Case>()
 const columns = column.columns([
-  column.accessor('summary', {}),
+  // a button, so the moderator can pick a case with the keyboard too
+  column.accessor('summary', {
+    cell: (cell) => (
+      <button type="button" value={cell.row.original.id} onClick={pickCase}>
+        {cell.getValue()}
+      </button>
+    ),
+  }),
   column.accessor('distinct_askers', {}),
 ])
 const noCases: Case[] = []
-const pickRow = (event: MouseEvent<HTMLTableRowElement>) =>
-  useSelection.getState().pick(event.currentTarget.id)
+const pickCase = (event: MouseEvent<HTMLButtonElement>) =>
+  useSelection.getState().pick(event.currentTarget.value)
 
 function CasesTable() {
   const { data } = meritumQueries.useQuery('get', '/api/v1/moderation/cases')
@@ -39,7 +46,7 @@ function CasesTable() {
     <table>
       <tbody>
         {table.getRowModel().rows.map((row) => (
-          <tr key={row.id} id={row.original.id} onClick={pickRow}>
+          <tr key={row.id}>
             {row.getAllCells().map((cell) => (
               <td key={cell.id}>
                 <table.FlexRender cell={cell} />
@@ -78,7 +85,7 @@ test('the typed hook reads the cases into table rows and a click picks one', asy
       <CasesTable />
     </QueryClientProvider>,
   )
-  fireEvent.click(await screen.findByText(openCase.summary))
+  fireEvent.click(await screen.findByRole('button', { name: openCase.summary }))
   assert.equal(screen.getByText('7').tagName, 'TD')
   assert.equal(useSelection.getState().picked, 'case_01')
   assert.equal(requestPath(fetch.mock.calls[0]?.arguments[0]), '/api/v1/moderation/cases')

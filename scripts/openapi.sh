@@ -16,7 +16,7 @@ if [ "${1:-}" != "--types-only" ]; then
   stage=$(mktemp -d)
   trap 'rm -rf "$stage"' EXIT
   gh repo clone Meritum-HackNation2026/meritum-backend "$stage/backend" -- --quiet
-  git -C "$stage/backend" checkout --quiet "$ref"
+  git -C "$stage/backend" checkout --quiet "$ref" --
   (cd "$stage/backend" && uv run --quiet python -c '
 import json, sys
 from meritum_backend.main import create_app

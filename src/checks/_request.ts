@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { CheckRequest } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
-import { MAX_TEXT_CHARS, MAX_URL_CHARS, MIN_TEXT_CHARS } from './constants'
+import { MAX_TEXT_CHARS, MAX_URL_CHARS, MIN_TEXT_CHARS, URL_PROTOCOLS } from './constants'
 
 /**
  * An `errors` key of copy/pl.json: the message shown under the field.
@@ -17,12 +17,13 @@ const text = z
   .min(MIN_TEXT_CHARS, 'empty' satisfies ErrorKey)
   .max(MAX_TEXT_CHARS, 'too_long' satisfies ErrorKey)
 const url = z
-  .url({ protocol: /^https?$/, error: 'invalid_url' satisfies ErrorKey })
+  .url({ protocol: URL_PROTOCOLS, error: 'invalid_url' satisfies ErrorKey })
   .max(MAX_URL_CHARS, 'url_too_long' satisfies ErrorKey)
 
 /**
  * Checks a request from the form before it goes to the API, with the limits of the contract:
- * text of 3 to 4000 characters, or a full http(s) link of at most 2083 characters.
+ * text of `MIN_TEXT_CHARS` to `MAX_TEXT_CHARS` characters, or a full http(s) link of at most
+ * `MAX_URL_CHARS` characters.
  *
  * @param request - The request the form built.
  * @returns The request with its text trimmed, or the `errors` key that refuses it.

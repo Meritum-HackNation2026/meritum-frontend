@@ -48,12 +48,13 @@ Zapytanie z formularza sprawdza przed wysłaniem schemat [zod](https://zod.dev/)
 
 Komponentu szukamy w tej kolejności i bierzemy z pierwszego źródła, które go ma:
 
-1. darmowe bloki [shadcnblocks](https://www.shadcnblocks.com) (`@shadcnblocks/<nazwa>`), nigdy bloki Pro ani klucz licencyjny (repozytorium jest publiczne),
-2. [ReUI](https://reui.io) (`@reui/<nazwa>`),
-3. [Origin UI](https://coss.com/origin) (`@originui/<nazwa>`),
-4. zwykły [shadcn/ui](https://ui.shadcn.com) (`pnpm dlx shadcn@latest add <nazwa>`).
+1. komponenty Meritum w `src/components/meritum/` (kopie z design systemu, np. `CheckForm`, `ResultCard`),
+2. darmowe bloki [shadcnblocks](https://www.shadcnblocks.com) (`@shadcnblocks/<nazwa>`), nigdy bloki Pro ani klucz licencyjny (repozytorium jest publiczne),
+3. [ReUI](https://reui.io) (`@reui/<nazwa>`),
+4. [Origin UI](https://coss.com/origin) (`@originui/<nazwa>`),
+5. zwykły [shadcn/ui](https://ui.shadcn.com) (`pnpm dlx shadcn@latest add <nazwa>`).
 
-Rejestry są w `components.json` (`registries`), więc wystarczy `pnpm dlx shadcn@latest add @reui/<nazwa>`. Wygląd i teksty zawsze pochodzą z design systemu Meritum: blok po dodaniu przechodzi na tokeny, kroje i teksty z `copy/pl.json`.
+Rejestry są w `components.json` (`registries`), więc wystarczy `pnpm dlx shadcn@latest add @reui/<nazwa>`. Wygląd i teksty zawsze pochodzą z design systemu Meritum: blok po dodaniu przechodzi na tokeny, kroje i teksty z `copy/pl.json`. Blok z rejestru to kod z cudzego serwera: jego diff przeglądamy jak każdy inny kod.
 
 ## Testy komponentów
 

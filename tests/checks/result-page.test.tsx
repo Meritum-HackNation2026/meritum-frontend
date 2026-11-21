@@ -129,6 +129,13 @@ test('an answer whose result is not an object is treated as a busy API', async (
   await stopped(fetch)
 })
 
+test('an answer without steps is treated as a busy API, as the contract needs one step', async (t) => {
+  const fetch = fakeApi(t, { ...running, steps: [] } as unknown as AnalysisStatus)
+  renderPage()
+  assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
+  await stopped(fetch)
+})
+
 test('a check that never finishes ends with the technical failure line after the last read', async (t) => {
   const fetch = fakeApi(t, running)
   render(
