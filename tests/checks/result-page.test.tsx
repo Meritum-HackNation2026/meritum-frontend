@@ -12,7 +12,7 @@ import { type ProgressSource, ResultPage } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
-import { requestPath } from '../fetch-request'
+import { requestPath, sentRequest } from '../fetch-request'
 
 const done = examples['CheckResult.done'] as CheckResult
 const running: AnalysisStatus = {
@@ -54,7 +54,7 @@ test('the page reads GET /api/v1/checks/{id} and shows the result card', async (
   const fetch = fakeApi(t, finished)
   renderPage()
   assert.ok(await screen.findByText(pl.verdict.false))
-  assert.equal(requestPath(fetch.mock.calls[0]?.arguments[0]), '/api/v1/checks/c_01')
+  assert.equal(requestPath(sentRequest(fetch.mock.calls[0]?.arguments[0])), '/api/v1/checks/c_01')
 })
 
 test('the result is inside a polite aria-live region that exists before it arrives', async (t) => {
@@ -110,7 +110,7 @@ test('the check id is encoded into the path', async (t) => {
   const fetch = fakeApi(t, finished)
   renderPage('a/b')
   await screen.findByText(pl.verdict.false)
-  assert.equal(requestPath(fetch.mock.calls[0]?.arguments[0]), '/api/v1/checks/a%2Fb')
+  assert.equal(requestPath(sentRequest(fetch.mock.calls[0]?.arguments[0])), '/api/v1/checks/a%2Fb')
 })
 
 test('after five failed reads in a row the page stops asking', async (t) => {

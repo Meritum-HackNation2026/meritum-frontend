@@ -21,6 +21,18 @@ export const fetchClient = createFetchClient<paths>({
 export const meritumQueries = createQueryClient(fetchClient)
 
 /**
+ * What a thrown `fetchClient` call means for the page: `fetch` rejects with a TypeError when
+ * the API is unreachable, and an unreadable JSON body is a SyntaxError.
+ *
+ * @param error - What the call threw.
+ * @returns `busy` for an unreadable answer, `offline` otherwise.
+ * @feature US-SPR-01, F-01
+ */
+export function failureOf(error: unknown): 'busy' | 'offline' {
+  return error instanceof SyntaxError ? 'busy' : 'offline'
+}
+
+/**
  * Models of meritum-backend by their OpenAPI name, e.g. `ApiSchemas['ModeratorCase']`.
  *
  * @feature none (infrastructure)

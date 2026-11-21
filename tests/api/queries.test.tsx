@@ -25,8 +25,8 @@ const useSelection = create<{ picked: string | null; pick: (id: string) => void 
 const features = tableFeatures({})
 const column = createColumnHelper<typeof features, Case>()
 const columns = column.columns([
-  column.accessor('summary', { header: 'Sprawa' }),
-  column.accessor('distinct_askers', { header: 'Pytających' }),
+  column.accessor('summary', {}),
+  column.accessor('distinct_askers', {}),
 ])
 const noCases: Case[] = []
 const pickRow = (event: MouseEvent<HTMLTableRowElement>) =>

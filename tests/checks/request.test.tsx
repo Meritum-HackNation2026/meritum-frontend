@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { MAX_TEXT_CHARS, MIN_TEXT_CHARS, validateCheck } from '@/checks'
+import { MAX_TEXT_CHARS, MAX_URL_CHARS, MIN_TEXT_CHARS, validateCheck } from '@/checks'
 import { toRequest } from '@/components/meritum/check-form'
 import pl from '@/copy/pl.json'
 
@@ -17,8 +17,8 @@ for (const input of [
   'a'.repeat(MIN_TEXT_CHARS),
   'a'.repeat(MAX_TEXT_CHARS),
   'a'.repeat(MAX_TEXT_CHARS + 1),
-  link(2083),
-  link(2084),
+  link(MAX_URL_CHARS),
+  link(MAX_URL_CHARS + 1),
   'http://localhost:8000/a',
 ]) {
   test(`zod and the form agree on ${input.slice(0, 24)}… (${input.length} characters)`, () => {

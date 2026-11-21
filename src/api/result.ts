@@ -1,6 +1,6 @@
 import type { ReadOutcome, ResultReader } from '@/checks'
 import type { AnalysisStatus } from '@/contracts/meritum'
-import { fetchClient } from './_client'
+import { failureOf, fetchClient } from './_client'
 import { HTTP_NOT_FOUND } from './constants'
 
 function parseStatus(body: unknown): ReadOutcome {
@@ -30,8 +30,7 @@ export const apiResultReader: ResultReader = {
       }
       return response.status === HTTP_NOT_FOUND ? 'not_found' : 'busy'
     } catch (error) {
-      // fetch rejects with a TypeError when offline; an unreadable body is a SyntaxError
-      return error instanceof SyntaxError ? 'busy' : 'offline'
+      return failureOf(error)
     }
   },
 }

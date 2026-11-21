@@ -1,7 +1,7 @@
 import type { CheckSender } from '@/checks'
-import { fetchClient } from './_client'
+import { failureOf, fetchClient } from './_client'
 import { sessionId } from './_session'
-import { HTTP_TOO_MANY_REQUESTS } from './constants'
+import { HTTP_TOO_MANY_REQUESTS, SESSION_HEADER } from './constants'
 
 /**
  * Sends checks to POST /api/v1/checks with the tab's session id, typed by the backend's
@@ -14,7 +14,7 @@ export const apiCheckSender: CheckSender = {
   async send(request) {
     try {
       const { data, response } = await fetchClient.POST('/api/v1/checks', {
-        params: { header: { 'X-Meritum-Session': sessionId() } },
+        params: { header: { [SESSION_HEADER]: sessionId() } },
         body: request,
       })
       // trust boundary: the schema promises a check id, the page still checks it is there
@@ -23,8 +23,7 @@ export const apiCheckSender: CheckSender = {
       }
       return response.status === HTTP_TOO_MANY_REQUESTS ? 'rate_limited' : 'busy'
     } catch (error) {
-      // fetch rejects with a TypeError when offline; an unreadable body is a SyntaxError
-      return error instanceof SyntaxError ? 'busy' : 'offline'
+      return failureOf(error)
     }
   },
 }
