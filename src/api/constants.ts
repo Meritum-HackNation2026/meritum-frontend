@@ -90,6 +90,22 @@ export const STEP_STATUSES = {
 export const NOTIFICATIONS_ENDPOINT = '/api/v1/notifications'
 
 /**
+ * Pause before the notification stream is opened again after its first failure; it doubles
+ * with each failure in a row, so a missing worker or endpoint is not asked every few seconds.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const NOTIFICATIONS_RETRY_MS = 1000
+
+/**
+ * Reconnects of the notification stream after failures in a row (1, 2, 4 and 8 s apart); after
+ * the next failure it stays closed until the page loads again. A delivered event resets the count.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const NOTIFICATIONS_MAX_RETRIES = 4
+
+/**
  * Query parameter carrying the session id on the notification stream, because `EventSource`
  * cannot send the session header.
  *
