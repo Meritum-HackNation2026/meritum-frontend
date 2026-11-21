@@ -65,7 +65,7 @@ function ReportForm({ id, pending, error, onSend, onClose, text, onText }: FormP
         aria-busy={pending}
         className="justify-self-start aria-disabled:opacity-50"
       >
-        {t.result.report_error}
+        {t.result.report_error_send}
       </Button>
       {error && (
         <p role="alert" className="text-small text-pretty">

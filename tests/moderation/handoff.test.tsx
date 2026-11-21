@@ -57,7 +57,7 @@ test('a saved report ends the recommendation, so the card never says both', asyn
   )
   const claim = within(screen.getByRole('article'))
   fireEvent.click(claim.getByRole('button', { name: pl.result.report_error }))
-  fireEvent.click(claim.getAllByRole('button', { name: pl.result.report_error })[1] as HTMLElement)
+  fireEvent.click(claim.getByRole('button', { name: pl.result.report_error_send }))
   assert.ok(await screen.findByText(reported))
   assert.ok(screen.getByText(passed))
   assert.equal(hasText(pl.escalation.recommended), false)
@@ -128,7 +128,7 @@ test('a report with a justification gives the case number and the notification p
   fireEvent.change(second.getByLabelText(pl.result.report_error_reason), {
     target: { value: 'Zła data' },
   })
-  fireEvent.click(second.getAllByRole('button', { name: pl.result.report_error })[1] as HTMLElement)
+  fireEvent.click(second.getByRole('button', { name: pl.result.report_error_send }))
   assert.ok(await second.findByText(reported))
   assert.deepEqual(calls, [
     { kind: 'dispute', checkId: done.check_id, claimIndex: 1, text: 'Zła data' },
@@ -144,14 +144,30 @@ test('the justification is optional and limited to what the API accepts', () => 
   assert.equal(field.getAttribute('maxlength'), '4000')
 })
 
-test('a failed report shows the error and no case number', async () => {
-  render(<CheckResultCard result={done} handoff={fakeHandoff('rate_limited').handoff} />)
+test('the open report form sends with its own button, not a second „Zgłoś błąd”', () => {
+  render(<CheckResultCard result={done} handoff={fakeHandoff().handoff} />)
   const first = within(screen.getAllByRole('article')[0] as HTMLElement)
   fireEvent.click(first.getByRole('button', { name: pl.result.report_error }))
-  fireEvent.click(first.getAllByRole('button', { name: pl.result.report_error })[1] as HTMLElement)
-  assert.equal((await first.findByRole('alert')).textContent, pl.errors.rate_limited)
-  assert.equal(hasText('#S-'), false)
+  assert.ok(first.getByRole('button', { name: pl.result.report_error_send }))
+  assert.equal(first.getAllByRole('button', { name: pl.result.report_error }).length, 1)
 })
+
+for (const refusal of ['rate_limited_handoff', 'handoff_not_found', 'handoff_rejected'] as const) {
+  test(`a report refused with ${refusal} shows its own text and no case number`, async () => {
+    render(<CheckResultCard result={done} handoff={fakeHandoff(refusal).handoff} />)
+    const first = within(screen.getAllByRole('article')[0] as HTMLElement)
+    fireEvent.click(first.getByRole('button', { name: pl.result.report_error }))
+    fireEvent.click(first.getByRole('button', { name: pl.result.report_error_send }))
+    assert.equal((await first.findByRole('alert')).textContent, pl.errors[refusal])
+    assert.equal(hasText('#S-'), false)
+  })
+
+  test(`a hand-off refused with ${refusal} shows its own text`, async () => {
+    render(<CheckResultCard result={recommended} handoff={fakeHandoff(refusal).handoff} />)
+    fireEvent.click(screen.getByRole('button', { name: pl.result.escalate }))
+    assert.equal((await screen.findByRole('alert')).textContent, pl.errors[refusal])
+  })
+}
 
 test('Escape closes the report form and returns focus to its button', () => {
   render(<CheckResultCard result={done} handoff={fakeHandoff().handoff} />)

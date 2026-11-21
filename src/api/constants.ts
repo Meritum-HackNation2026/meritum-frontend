@@ -1,5 +1,6 @@
 import type { UploadOutcome } from '@/checks'
 import type { AnalysisStep } from '@/contracts/meritum'
+import type { HandoffOutcome } from '@/moderation'
 
 /**
  * Endpoint that accepts a `CheckRequest` and starts a check (meritum-backend#16).
@@ -152,3 +153,16 @@ export const DAILY_LIMIT_KEY = 'errors.rate_limited_daily'
  * @feature US-SPR-11, F-08
  */
 export const UNKNOWN_AUDIO_TYPE = 'application/octet-stream'
+
+/**
+ * Refusals of the hand-off endpoints by HTTP status: 429 the hand-off limit, 404 a check that is
+ * gone or has no such claim, 422 a justification the API refused; any other answer without a
+ * saved case is `busy`.
+ *
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
+ */
+export const HANDOFF_REFUSALS: Partial<Record<number, HandoffOutcome>> = {
+  [HTTP_TOO_MANY_REQUESTS]: 'rate_limited_handoff',
+  [HTTP_NOT_FOUND]: 'handoff_not_found',
+  422: 'handoff_rejected',
+}

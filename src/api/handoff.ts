@@ -1,6 +1,6 @@
 import type { Handoff, HandoffOutcome } from '@/moderation'
 import { type ApiSchemas, failureOf, fetchClient } from './_client'
-import { HTTP_TOO_MANY_REQUESTS } from './constants'
+import { HANDOFF_REFUSALS } from './constants'
 
 type Answer = { data?: ApiSchemas['Handoff'] | undefined; response: Response }
 
@@ -13,7 +13,7 @@ function outcomeOf({ data, response }: Answer): HandoffOutcome {
   if (isSaved && typeof caseId === 'string' && caseId !== '') {
     return { caseId }
   }
-  return response.status === HTTP_TOO_MANY_REQUESTS ? 'rate_limited' : 'busy'
+  return HANDOFF_REFUSALS[response.status] ?? 'busy'
 }
 
 async function handOff(call: () => Promise<Answer>): Promise<HandoffOutcome> {
@@ -27,8 +27,8 @@ async function handOff(call: () => Promise<Answer>): Promise<HandoffOutcome> {
 /**
  * Hands claims to the moderators through POST /api/v1/checks/{id}/claims/{n}/escalate and
  * /dispute, typed by the backend's OpenAPI schema. Never throws: a network failure is
- * `offline`, HTTP 429 is `rate_limited`, and a 503 or any answer without a saved case number is
- * `busy`. A blank justification is sent as none.
+ * `offline`, HTTP 429, 404 and 422 are the refusals of `HANDOFF_REFUSALS`, and a 503 or any
+ * other answer without a saved case number is `busy`. A blank justification is sent as none.
  *
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */

@@ -55,10 +55,18 @@ test('a success that is still only a recommendation gives no case number', async
   assert.equal(await apiHandoff.escalate('c_01', 0), 'busy')
 })
 
-test('429 is the rate limit and a network failure is offline', async (t) => {
-  fakeApi(t, { status: 429 })
-  assert.equal(await apiHandoff.escalate('c_01', 0), 'rate_limited')
-  t.mock.restoreAll()
+for (const [status, outcome] of [
+  [429, 'rate_limited_handoff'],
+  [404, 'handoff_not_found'],
+  [422, 'handoff_rejected'],
+] as const) {
+  test(`HTTP ${status} is ${outcome}`, async (t) => {
+    fakeApi(t, { status })
+    assert.equal(await apiHandoff.dispute('c_01', 0, 'x'), outcome)
+  })
+}
+
+test('a network failure is offline', async (t) => {
   fakeApi(t, 'network down')
   assert.equal(await apiHandoff.dispute('c_01', 0, ''), 'offline')
 })
