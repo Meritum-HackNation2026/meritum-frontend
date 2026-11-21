@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { apiProgressSource, apiResultReader } from '@/api'
+import { apiHandoff, apiProgressSource, apiResultReader } from '@/api'
 import { ResultPage } from '@/checks'
 
 /**
@@ -18,6 +18,7 @@ function Result() {
       checkId={checkId}
       reader={apiResultReader}
       progress={apiProgressSource}
+      handoff={apiHandoff}
     />
   )
 }

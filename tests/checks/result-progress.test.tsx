@@ -11,6 +11,12 @@ import { type ProgressSource, type ReadOutcome, ResultPage, type ResultReader } 
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, AnalysisStep } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
+import { fakeHandoff } from '../moderation/fake-handoff'
+
+const { handoff } = fakeHandoff()
+function resultPage(reader: ResultReader, progress: ProgressSource, pollMs: number) {
+  return <ResultPage {...{ reader, progress, pollMs, handoff }} checkId="c_01" />
+}
 
 const recorded = examples.AnalysisStatus as AnalysisStatus
 const result = examples['CheckResult.done'] as NonNullable<AnalysisStatus['result']>
@@ -59,9 +65,7 @@ function stopsAfterStream(): ResultReader {
 }
 
 async function startCheck(fake: ReturnType<typeof fakeSource>, reader = running) {
-  const page = render(
-    <ResultPage checkId="c_01" reader={reader} progress={fake.source} pollMs={60_000} />,
-  )
+  const page = render(resultPage(reader, fake.source, 60_000))
   // the subscription starts in an effect, which may run after the strip first renders
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   // the first API read has rendered, so nothing is left running after the test
@@ -165,7 +169,7 @@ test('a stream that ends early still shows the result the API has by then', asyn
         status: { check_id: 'c_01', steps: recorded.steps, ...(reads++ > 0 ? { result } : {}) },
       }),
   }
-  render(<ResultPage checkId="c_01" reader={finishing} progress={fake.source} pollMs={60_000} />)
+  render(resultPage(finishing, fake.source, 60_000))
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.search_corpus)
   fake.end()
@@ -202,7 +206,7 @@ test('a failed read after the stream ended shows its own message and the page as
   const flaky: ResultReader = {
     read: () => Promise.resolve(answers[Math.min(call++, 2)] ?? 'busy'),
   }
-  render(<ResultPage checkId="c_01" reader={flaky} progress={fake.source} pollMs={150} />)
+  render(resultPage(flaky, fake.source, 150))
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.search_corpus)
   fake.end()
@@ -221,7 +225,7 @@ test('a stream that drops while the check still runs keeps the page reading unti
   const later: ResultReader = {
     read: () => Promise.resolve(answers[Math.min(call++, 2)] ?? 'busy'),
   }
-  render(<ResultPage checkId="c_01" reader={later} progress={fake.source} pollMs={20} />)
+  render(resultPage(later, fake.source, 20))
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.search_corpus)
   fake.end()
@@ -237,7 +241,7 @@ test('a check still in the queue when the stream drops keeps the page reading un
   const answers: ReadOutcome[] = [queued, queued, { status: { ...recorded, result } }]
   let call = 0
   const later: ResultReader = { read: () => Promise.resolve(answers[call++] ?? queued) }
-  render(<ResultPage checkId="c_01" reader={later} progress={fake.source} pollMs={20} />)
+  render(resultPage(later, fake.source, 20))
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.receive)
   fake.end()

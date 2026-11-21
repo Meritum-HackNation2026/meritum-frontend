@@ -22,6 +22,8 @@ const repo = {
     // The "Jak działa Meritum" page views (React) are UI wiring of the evidence domain
     // (meritum-frontend#20); its .ts files stay framework-free.
     '^src/evidence/_[^/]+\\.tsx$',
+    // „Zgłoś błąd” and the hand-off line (React) are UI wiring of moderation (meritum-frontend#23).
+    '^src/moderation/_[^/]+\\.tsx$',
   ],
   frameworks: ['react', 'react-dom', '@tanstack', 'radix-ui', 'sonner'],
   excluded: ['^src/routeTree\\.gen\\.ts$'], // generated

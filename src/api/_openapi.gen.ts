@@ -698,6 +698,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/checks/{check_id}/claims/{claim_index}/escalate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Escalate Claim
+         * @description „Przekaż moderatorom”: turn a recommendation into a saved case.
+         *
+         *     Limited to HANDOFF_LIMIT per client address (429 above that).
+         *
+         *     Args:
+         *         request: the request; slowapi reads the client address from it.
+         *         jobs: the job queue port.
+         *         check_id: the finished check.
+         *         claim_index: the claim's position in the check's result.
+         *         response: the response; gets 503 when no case was saved.
+         *
+         *     Returns:
+         *         The case created or joined with its number and escalation.created or
+         *         escalation.updated; with 503, escalation recommended (no number) and
+         *         escalation.recommended when the case was not saved.
+         *
+         *     Raises:
+         *         HTTPException: 404 when the check is not finished or has no such claim.
+         *
+         *     Features:
+         *         US-MOD-03, F-24, ADR-22
+         */
+        post: operations["escalate_claim_api_v1_checks__check_id__claims__claim_index__escalate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checks/{check_id}/claims/{claim_index}/dispute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dispute Claim
+         * @description „Zgłoś błąd”: a case with reason user_dispute and a masked justification.
+         *
+         *     The stored result does not change; a moderator reviews the dispute first.
+         *     Limited to HANDOFF_LIMIT per client address (429 above that).
+         *
+         *     Args:
+         *         request: the request; slowapi reads the client address from it.
+         *         jobs: the job queue port.
+         *         check_id: the finished check.
+         *         claim_index: the claim's position in the check's result.
+         *         response: the response; gets 503 when no case was saved.
+         *         pii: the personal-data masking gate.
+         *         dispute: the person's optional reason, masked here before the workflow
+         *             starts; no body or a blank reason sends none.
+         *
+         *     Returns:
+         *         The case with its number and result.report_error_done; with 503,
+         *         escalation recommended (no number) when the case was not saved.
+         *
+         *     Raises:
+         *         HTTPException: 404 when the check is not finished or has no such claim.
+         *
+         *     Features:
+         *         US-MOD-06, F-24, ADR-22
+         */
+        post: operations["dispute_claim_api_v1_checks__check_id__claims__claim_index__dispute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -840,6 +923,11 @@ export interface components {
              * @description Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.
              */
             channel_user_id?: string | null;
+            /**
+             * Request Session Id
+             * @description Web and extension only: random id kept in the browser session; the API copies it to CheckRecord.session_id.
+             */
+            session_id?: string | null;
         };
         /**
          * CheckResult
@@ -1077,6 +1165,22 @@ export interface components {
             deleted: number;
         };
         /**
+         * Dispute
+         * @description Body of „Zgłoś błąd”.
+         *
+         *     Attributes:
+         *         justification: what the person thinks is wrong, optional (a blank one
+         *             counts as none, over JUSTIFICATION_INPUT_MAX_CHARS is refused);
+         *             masked, then cut to MAX_JUSTIFICATION_CHARS before any marker.
+         *
+         *     Features:
+         *         US-MOD-06, F-24
+         */
+        Dispute: {
+            /** Justification */
+            justification?: string | null;
+        };
+        /**
          * Enqueued
          * @description Answer to an accepted job.
          *
@@ -1121,6 +1225,23 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * Handoff
+         * @description The hand-off's outcome as the citizen sees it.
+         *
+         *     Attributes:
+         *         escalation: created or updated with the case number, or recommended
+         *             without one when no case was saved.
+         *         message_key: the copy/pl.json key to show; never says who else asked.
+         *
+         *     Features:
+         *         US-MOD-03, US-MOD-06, F-24
+         */
+        Handoff: {
+            escalation: components["schemas"]["Escalation"];
+            /** Message Key */
+            message_key: string;
         };
         /**
          * HighRiskTopic
@@ -1511,24 +1632,23 @@ export interface components {
         };
         /**
          * StaffAccount
-         * @description A role an administrator granted to an e-mail address.
+         * @description A panel role an administrator granted to an e-mail address.
          *
          *     Attributes:
          *         email: the address the OIDC provider must confirm (and verify).
-         *         role: the role in the panel.
+         *         role: the role in the moderator panel.
          *
          *     Features:
          *         US-MOD-05, F-25
          */
         StaffAccount: {
-            email: components["schemas"]["StaffEmail"];
+            email: components["schemas"]["_StaffEmail"];
             /**
              * Role
              * @enum {string}
              */
             role: "moderator" | "analyst" | "admin";
         };
-        StaffEmail: string;
         /**
          * StaffMember
          * @description The signed-in person and their role in the panel.
@@ -1576,6 +1696,7 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        _StaffEmail: string;
     };
     responses: never;
     parameters: never;
@@ -2235,6 +2356,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    escalate_claim_api_v1_checks__check_id__claims__claim_index__escalate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                check_id: string;
+                claim_index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Handoff"];
+                };
+            };
+            /** @description claim not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Handoff"];
+                };
+            };
+        };
+    };
+    dispute_claim_api_v1_checks__check_id__claims__claim_index__dispute_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                check_id: string;
+                claim_index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["Dispute"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Handoff"];
+                };
+            };
+            /** @description claim not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvalidCheck"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Handoff"];
                 };
             };
         };

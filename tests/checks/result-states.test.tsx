@@ -12,6 +12,9 @@ import { type ProgressSource, ResultPage, type ResultReader } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
+import { fakeHandoff } from '../moderation/fake-handoff'
+
+const { handoff } = fakeHandoff()
 
 /** A progress stream that never reports, so only the read drives the page. */
 const idle: ProgressSource = { watch: () => () => undefined }
@@ -25,7 +28,7 @@ function renderResult(result: CheckResult) {
         status: { check_id: result.check_id, steps: [{ code: 'receive', status: 'done' }], result },
       }),
   }
-  render(<ResultPage checkId={result.check_id} reader={reader} progress={idle} />)
+  render(<ResultPage handoff={handoff} checkId={result.check_id} reader={reader} progress={idle} />)
 }
 
 function nonVerdict(
