@@ -1,12 +1,15 @@
 import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
+import { useState } from 'react'
+import { apiNotifications } from '@/api'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
 import privacy from '@/copy/privacy.json'
+import { createInbox, Notifications } from '@/notifications'
 
 /**
- * Layout of every page: the Meritum header, the page below it and a footer with the
- * privacy policy of every channel.
+ * Layout of every page: the Meritum header with the notifications bell, the page below it and
+ * a footer with the privacy policy of every channel. Toasts show on every page.
  *
- * @feature US-SPR-01, US-DST-01, US-BEZ-06, US-BEZ-05, F-20
+ * @feature US-SPR-01, US-DST-01, US-BEZ-06, US-BEZ-05, US-POW-01, US-POW-04, F-20, F-26
  */
 export const Route = createRootRoute({ component: Layout })
 
@@ -19,6 +22,7 @@ const policyLinks = [
 ] as const
 
 function Layout() {
+  const [inbox] = useState(() => createInbox(apiNotifications))
   return (
     <div className="min-h-dvh">
       <header className="border-b bg-card">
@@ -28,6 +32,7 @@ function Layout() {
             <p className="text-body font-semibold">Meritum</p>
             <p className="text-small text-muted-foreground">obywatelski radar dezinformacji</p>
           </div>
+          <Notifications inbox={inbox} />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-8">

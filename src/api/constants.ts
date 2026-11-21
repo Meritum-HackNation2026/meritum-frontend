@@ -62,3 +62,19 @@ export const STEP_STATUSES = {
   skipped: true,
   failed: true,
 } as const satisfies Record<AnalysisStep['status'], true>
+
+/**
+ * Notifications of this session (meritum-backend#27): `GET` the inbox, `DELETE` all of them,
+ * `/stream` for server-sent events and `/{id}/read` to mark one as read.
+ *
+ * @feature US-POW-01, US-POW-04, F-26
+ */
+export const NOTIFICATIONS_ENDPOINT = '/api/v1/notifications'
+
+/**
+ * Query parameter carrying the session id on the notification stream, because `EventSource`
+ * cannot send the session header.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const SESSION_QUERY_PARAM = 'session'
