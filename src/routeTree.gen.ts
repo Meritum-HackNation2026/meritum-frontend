@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JakDzialaRouteImport } from './routes/jak-dziala'
 import { Route as PrywatnoscIndexRouteImport } from './routes/prywatnosc/index'
 import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/discord'
 import { Route as PrywatnoscSmsRouteImport } from './routes/prywatnosc/sms'
@@ -18,6 +19,11 @@ import { Route as PrywatnoscWtyczkaRouteImport } from './routes/prywatnosc/wtycz
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JakDzialaRoute = JakDzialaRouteImport.update({
+  id: '/jak-dziala',
+  path: '/jak-dziala',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrywatnoscIndexRoute = PrywatnoscIndexRouteImport.update({
@@ -43,6 +49,7 @@ const PrywatnoscWtyczkaRoute = PrywatnoscWtyczkaRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/jak-dziala': typeof JakDzialaRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/jak-dziala': typeof JakDzialaRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/jak-dziala': typeof JakDzialaRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
@@ -67,6 +76,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/jak-dziala'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/jak-dziala'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/jak-dziala'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
@@ -89,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  JakDzialaRoute: typeof JakDzialaRoute
   PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
   PrywatnoscSmsRoute: typeof PrywatnoscSmsRoute
   PrywatnoscWtyczkaRoute: typeof PrywatnoscWtyczkaRoute
@@ -102,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jak-dziala': {
+      id: '/jak-dziala'
+      path: '/jak-dziala'
+      fullPath: '/jak-dziala'
+      preLoaderRoute: typeof JakDzialaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prywatnosc/': {
@@ -137,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  JakDzialaRoute: JakDzialaRoute,
   PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,
   PrywatnoscSmsRoute: PrywatnoscSmsRoute,
   PrywatnoscWtyczkaRoute: PrywatnoscWtyczkaRoute,

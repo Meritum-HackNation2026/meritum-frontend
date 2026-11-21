@@ -238,7 +238,7 @@
     },
     "similar": "{count} podobnych pytań",
     "high_risk_by": {
-      "model": "temat rozpoznał model według listy administratora",
+      "embeddings": "temat rozpoznany po podobieństwie do listy administratora",
       "keywords": "temat rozpoznany po słowach kluczowych"
     },
     "role": {
@@ -307,6 +307,7 @@
     "url_too_long": "Link jest za długi. Wklej adres do 2083 znaków albo sam tekst.",
     "too_long": "Tekst jest za długi. Wklej najwyżej 4000 znaków albo sam link.",
     "rate_limited": "Za dużo sprawdzeń w krótkim czasie. Spróbuj za minutę.",
+    "rate_limited_daily": "Na dziś wykorzystano limit wysłanych nagrań. Spróbuj później.",
     "busy": "Mamy teraz bardzo dużo pytań. Spróbuj za kilka minut. To nie jest ocena treści.",
     "offline": "Brak połączenia. Spróbuj, gdy wrócisz do sieci.",
     "unsupported_site": "Przycisk „Sprawdź” działa na X, Facebooku, Instagramie, Reddicie i TikToku. Tekst z innych stron wklej w okienku wtyczki.",
@@ -322,9 +323,20 @@
   },
   "discord": {
     "$comment": "Message content max 2000 characters (API limit for bots). First message: summary with a link; then one message per claim. Never split inside a citation.",
-    "summary": "Wynik sprawdzenia ({count} twierdzeń). Pełna karta: {link}",
+    "summary": "Wynik sprawdzenia: {claims}. Pełna karta: {link}",
+    "claims": {
+      "$comment": "{claims} in summary: pick the form with Intl.PluralRules('pl').select(count).",
+      "one": "{count} twierdzenie",
+      "few": "{count} twierdzenia",
+      "many": "{count} twierdzeń",
+      "other": "{count} twierdzenia"
+    },
+    "user_author": "Ty",
     "summary_line": "{verdict}: {claim}",
     "claim": "{verdict}: {claim}\n„{fragment}” ({publisher}, {date})\nSiła podstawy: {strength}",
+    "claim_undated": "{verdict}: {claim}\n„{fragment}” ({publisher}, data publikacji nieznana)\nSiła podstawy: {strength}",
+    "claim_no_strength": "{verdict}: {claim}\n„{fragment}” ({publisher}, {date})",
+    "claim_undated_no_strength": "{verdict}: {claim}\n„{fragment}” ({publisher}, data publikacji nieznana)",
     "claim_unsettled": "{verdict}: {claim}\n{unresolved}"
   },
   "notifications": {
@@ -359,6 +371,101 @@
       "running": "trwa",
       "done": "gotowy",
       "failed": "nieudany"
+    }
+  },
+  "method": {
+    "$comment": "Page „Jak działa Meritum” (US-ZRD-12, F-29, meritum-frontend#20). Page title: result.how_it_works. The data controller block comes from privacy.json (controller). Source kinds and tiers: source_kind, source_tier. Facts only from the product document; numbers only from a measured evaluation run.",
+    "lead": "Tu opisujemy, jak Meritum sprawdza informacje, skąd bierze źródła i jak mierzymy jakość odpowiedzi. Metodę opisujemy według zasad IFCN i EFCSN, międzynarodowej i europejskiej sieci fact-checkerów.",
+    "sources": {
+      "title": "Jak wybieramy i sprawdzamy źródła",
+      "text": [
+        "Dowodów szukamy tylko w jawnym katalogu źródeł. Każda pozycja ma powód kwalifikacji, licencję albo podstawę prawną i sposób odświeżania.",
+        "Źródła urzędowe i pierwotne to serwisy gov.pl i agencji z listy organizatora konkursu, ISAP, EUR-Lex, dane.gov.pl i BIP.",
+        "Źródła wtórne to artykuły z fakenews.pl i pravda.org.pl, których wydawcy podpisali kodeks IFCN. Do tego teksty z bazy EUvsDisinfo, które prostują fałszywe twierdzenia.",
+        "Oceny fact-checkerów z IFCN albo EFCSN, takich jak Demagog i AFP Sprawdzam, znajdujemy w Google Fact Check Tools API. Podajemy wtedy nazwę fact-checkera, ocenę, tytuł, datę i link.",
+        "Dla każdej domeny sprawdzamy robots.txt i zastrzeżenie eksploracji tekstów i danych. Źródło wtórne z takim zastrzeżeniem wypada z katalogu.",
+        "Każdy cytat to dosłowny fragment źródła z tytułem, wydawcą, datą i linkiem. Fragment, którego nie ma w źródle, odpada przed pokazaniem."
+      ]
+    },
+    "verdict": {
+      "title": "Jak liczymy werdykt i siłę",
+      "text": [
+        "Z jednego zapytania wyodrębniamy najwyżej pięć twierdzeń o faktach. Pozostałe wymieniamy w ograniczeniach.",
+        "Każde twierdzenie dostaje jeden z pięciu werdyktów. Potwierdzone, fałszywe i wprowadzające w błąd wymagają co najmniej jednego cytatu.",
+        "Gdy dowodów brakuje albo wiarygodne źródła są sprzeczne, nie rozstrzygamy. Mówimy wtedy, czego nie ustaliliśmy.",
+        "Siłę podstawy liczy jedna reguła w kodzie, bez oceny modelu. Liczymy tylko niezależnych wydawców, których cytaty zgadzają się z werdyktem.",
+        "Mocna: co najmniej dwóch wydawców, w tym jeden urzędowy lub pierwotny, i świeże dowody. Umiarkowana: co najmniej dwóch wydawców albo jeden urzędowy lub pierwotny. Słaba: jeden wydawca spoza źródeł urzędowych albo nieaktualny dowód.",
+        "Wyjaśnienie przygotowuje model AI, a jego podstawą są cytaty. Treść pytania i źródeł trafia do modelu tylko jako dane do analizy."
+      ]
+    },
+    "team": {
+      "title": "Kto prowadzi projekt",
+      "text": [
+        "Meritum buduje Zespół Meritum na HackNation 2026, w konkursie MSZ „Prawdowid”.",
+        "Projekt nie ma partnerstw z MSZ ani z organizacjami fact-checkingowymi.",
+        "Aplikacja działa na serwerze zespołu w Polsce. Główny model językowy i model wektorów gemini-embedding-001 działają w Vertex AI w Warszawie (Google Cloud, europe-central2).",
+        "Część dostawców działa poza UE albo bez gwarancji przetwarzania w UE, na przykład Cloudflare i wyszukiwarka Vertex AI Search. Pełny wykaz jest w polityce prywatności.",
+        "Na koniec prac udostępnimy publicznie wszystkie repozytoria i system."
+      ]
+    },
+    "catalog": {
+      "title": "Katalog źródeł",
+      "lead": "Tu są wszystkie źródła, w których szukamy dowodów. Przy każdym podajemy powód kwalifikacji i licencję.",
+      "columns": {
+        "source": "Źródło",
+        "kind": "Rodzaj",
+        "license": "Licencja lub podstawa prawna",
+        "qualified_because": "Powód kwalifikacji",
+        "exclusion_reason": "Powód wykluczenia"
+      },
+      "excluded_title": "Źródła wykluczone",
+      "excluded_lead": "Z tych źródeł nie korzystamy. Przy każdym podajemy powód.",
+      "unavailable": "Katalog źródeł nie jest jeszcze opublikowany. Pokażemy go tutaj, gdy będzie gotowy."
+    },
+    "metrics": {
+      "$comment": "The page shows the last finished run on the golden set only. {date} in run_date: a long Polish date, e.g. „20 listopada 2026”. names: Keys follow the metrics listed in meritum-core#36 (EvalMetrics); rename them when the contract lands.",
+      "title": "Mierniki jakości",
+      "lead": "Pokazujemy tylko liczby zmierzone naszym skryptem ewaluacji na golden secie, czyli zestawie deweloperskim. Zestaw jury jest dla nas ukryty, więc nie stroimy na nim progów.",
+      "run_date": "Ostatni przebieg ewaluacji: {date}.",
+      "reproduce": "Paczka do odtworzenia przebiegu",
+      "no_run": "Nie ma jeszcze zakończonego przebiegu ewaluacji, więc nie pokazujemy liczb.",
+      "names": {
+        "macro_f1": "Trafność werdyktów (macro-F1)",
+        "citation_coverage": "Pokrycie twierdzeń cytatami",
+        "citation_accuracy": "Poprawność cytatów",
+        "abstention": "Trafne wstrzymanie się od werdyktu",
+        "injection_robustness": "Odporność na wstrzyknięcie poleceń",
+        "latency_median_s": "Mediana czasu odpowiedzi (s)",
+        "latency_max_s": "Najdłuższy czas odpowiedzi (s)",
+        "cost_per_100": "Koszt 100 testów",
+        "channel_consistency": "Spójność odpowiedzi w kanałach",
+        "feedback_loop": "Pętla informacji"
+      }
+    },
+    "corrections": {
+      "title": "Polityka poprawek",
+      "text": [
+        "Gdy nowszy dokument zastępuje starszy albo wydawca publikuje korektę, starszy dowód oznaczamy jako zastąpiony. Nie liczy się do siły, ale zostaje widoczny na osi czasu.",
+        "Zgłoszony błąd rozpatruje moderator, czyli człowiek. Planujemy, że odpowie cytatami ze źródeł z katalogu, sprawdzanymi dosłownie jak odpowiedź systemu.",
+        "Odpowiedzi moderatora nie publikujemy. Trafi jako powiadomienie do osób, które pytały o to samo."
+      ]
+    },
+    "report_error": {
+      "title": "Co się dzieje po kliknięciu „Zgłoś błąd”",
+      "text": [
+        "Przycisk jest przy każdym twierdzeniu na karcie wyniku. Możesz dopisać, co jest nie tak, ale nie musisz.",
+        "Dane osobowe w tym opisie maskujemy tak samo jak w pytaniu.",
+        "Zgłoszenie tworzy sprawę dla moderatora albo dołącza do sprawy o to samo twierdzenie. Dostajesz numer sprawy.",
+        "Dopóki moderator nie rozpatrzy zgłoszenia, wynik dla innych osób się nie zmienia. Odpowiedź moderatora przyjdzie jako powiadomienie."
+      ]
+    },
+    "pilot": {
+      "title": "Droga do pilotażu",
+      "text": [
+        "Na hackathonie nie publikujemy odpowiedzi. Pytania bez odpowiedzi trafiają do kolejki moderatora.",
+        "W pilotażu odpowiedź publiczną zatwierdzi człowiek przed publikacją. Opcjonalnie zatwierdzą ją wspólnie osoby o różnych poglądach.",
+        "Po hackathonie planujemy też model językowy na własnym serwerze, żeby mniej zależeć od dostawców spoza EOG."
+      ]
     }
   }
 }

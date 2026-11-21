@@ -2,19 +2,22 @@ import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
 import { useState } from 'react'
 import { apiNotifications } from '@/api'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
+import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
 import { createInbox, Notifications } from '@/notifications'
 
 /**
  * Layout of every page: the Meritum header with the notifications bell, the page below it and
- * a footer with the privacy policy of every channel. Toasts show on every page.
+ * a footer with the "Jak działa Meritum" page and the privacy policy of every channel. Toasts
+ * show on every page.
  *
- * @feature US-SPR-01, US-DST-01, US-BEZ-06, US-BEZ-05, US-POW-01, US-POW-04, F-20, F-26
+ * @feature US-SPR-01, US-DST-01, US-BEZ-06, US-BEZ-05, US-POW-01, US-POW-04, US-ZRD-12, F-20, F-26, F-29
  */
 export const Route = createRootRoute({ component: Layout })
 
 const { policies } = privacy
-const policyLinks = [
+const footerLinks = [
+  ['/jak-dziala', pl.result.how_it_works],
   ['/prywatnosc', policies.web.title],
   ['/prywatnosc/discord', policies.discord.title],
   ['/prywatnosc/wtyczka', policies.extension.title],
@@ -40,7 +43,7 @@ function Layout() {
       </main>
       <footer className="border-t">
         <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
-          {policyLinks.map(([to, title]) => (
+          {footerLinks.map(([to, title]) => (
             <li key={to}>
               <Link to={to} className="underline underline-offset-3">
                 {title}

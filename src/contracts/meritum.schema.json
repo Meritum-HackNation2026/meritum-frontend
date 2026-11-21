@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Meritum contracts",
-  "x-contract-version": 3,
+  "x-contract-version": 4,
   "$defs": {
     "CheckRequest": {
       "additionalProperties": false,
@@ -76,6 +76,21 @@
           "default": null,
           "description": "Uploaded audio file or Discord voice message; transcribed in an EU region, then checked like text.",
           "title": "Audio Id"
+        },
+        "channel_user_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.",
+          "title": "Channel User Id"
         }
       },
       "required": [
@@ -145,35 +160,19 @@
           "type": "string"
         },
         "claim_date": {
-          "anyOf": [
-            {
-              "format": "date",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
           "description": "The date the claim refers to; evidence age is measured against it.",
-          "title": "Claim Date"
+          "format": "date",
+          "title": "Claim Date",
+          "type": "string"
         },
         "claim_date_source": {
-          "anyOf": [
-            {
-              "enum": [
-                "text",
-                "input_published_at",
-                "today"
-              ],
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
+          "enum": [
+            "text",
+            "input_published_at",
+            "today"
           ],
-          "default": null,
-          "title": "Claim Date Source"
+          "title": "Claim Date Source",
+          "type": "string"
         },
         "verdict": {
           "enum": [
@@ -205,6 +204,15 @@
           "title": "Citations",
           "type": "array"
         },
+        "claim_review_premises": {
+          "default": [],
+          "description": "IFCN or EFCSN fact-checkers' ratings that back the verdict without a page fragment (ADR-34).",
+          "items": {
+            "$ref": "#/$defs/ClaimReviewPremise"
+          },
+          "title": "Claim Review Premises",
+          "type": "array"
+        },
         "explanation": {
           "maxLength": 800,
           "minLength": 10,
@@ -224,6 +232,22 @@
           "default": null,
           "description": "What could not be established.",
           "title": "Unresolved"
+        },
+        "would_change_verdict": {
+          "default": [],
+          "description": "What would change the verdict, computed by a rule from the premises; the channel words it from copy/pl.json.",
+          "items": {
+            "enum": [
+              "needs_primary_source",
+              "needs_second_publisher",
+              "needs_fresh_evidence",
+              "needs_resolving_source",
+              "needs_named_source"
+            ],
+            "type": "string"
+          },
+          "title": "Would Change Verdict",
+          "type": "array"
         },
         "archival": {
           "default": false,
@@ -275,6 +299,8 @@
       },
       "required": [
         "claim",
+        "claim_date",
+        "claim_date_source",
         "verdict",
         "explanation"
       ],
@@ -325,6 +351,89 @@
         "url"
       ],
       "title": "ClaimReviewContext",
+      "type": "object"
+    },
+    "ClaimReviewPremise": {
+      "additionalProperties": false,
+      "description": "A fact-checker's ClaimReview rating used as a premise of the verdict, next to the citations (ADR-34).\n\nFound through Google Fact Check Tools API. It has no page fragment: the rating, title,\ndate and link are the evidence. Only publishers the catalogue lists as IFCN or EFCSN\nsignatories qualify; the pipeline copies `signatory_of` from their catalogue entry.\nCounted per publisher like a secondary-tier citation.",
+      "properties": {
+        "publisher": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "publisher_id": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+          "title": "Publisher Id",
+          "type": "string"
+        },
+        "signatory_of": {
+          "description": "IFCN or EFCSN membership from the publisher's catalogue entry; required for a premise.",
+          "items": {
+            "enum": [
+              "ifcn",
+              "efcsn"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Signatory Of",
+          "type": "array"
+        },
+        "rating": {
+          "description": "textualRating, verbatim.",
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Rating",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 3,
+          "title": "Title",
+          "type": "string"
+        },
+        "reviewed_at": {
+          "format": "date-time",
+          "title": "Reviewed At",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "fetched_at": {
+          "description": "When Google Fact Check Tools API returned it.",
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "stance": {
+          "enum": [
+            "supports",
+            "refutes",
+            "context"
+          ],
+          "title": "Stance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "publisher_id",
+        "signatory_of",
+        "rating",
+        "title",
+        "reviewed_at",
+        "url",
+        "fetched_at",
+        "stance"
+      ],
+      "title": "ClaimReviewPremise",
       "type": "object"
     },
     "Escalation": {
@@ -386,13 +495,15 @@
     },
     "IncidentMatch": {
       "additionalProperties": false,
-      "description": "Similarity to a known incident (organiser's database or the local EUvsDisinfo copy). Context only.\n\nNever a basis for the verdict by itself, and never changes it. An EUvsDisinfo `fact` text is cited as a Citation,\nnot carried here.\n\n`domain` is the one explicitly defined warning case: the checked URL is on a domain the incident database lists\n(for EUvsDisinfo: linksToDisinformation), and the incident's topic matches the claim.",
+      "description": "Similarity to a known incident (organiser's database, the local EUvsDisinfo copy or a checked fact-check). Context only.\n\nNever a basis for the verdict by itself, and never changes it. An EUvsDisinfo `fact` text is cited as a Citation,\nnot carried here.\n\n`domain` is the one explicitly defined warning case: the checked URL is on a domain the incident database lists\n(for EUvsDisinfo: linksToDisinformation), and the incident's topic matches the claim. A content match needs a\nmatching title, topic and date; the domain alone never makes one. `match_basis` lists what matched and is shown.",
       "properties": {
         "database": {
           "default": "organiser",
+          "description": "fact_check: the entry matched an already checked publication.",
           "enum": [
             "organiser",
-            "euvsdisinfo"
+            "euvsdisinfo",
+            "fact_check"
           ],
           "title": "Database",
           "type": "string"
@@ -411,6 +522,21 @@
           ],
           "title": "Matched On",
           "type": "string"
+        },
+        "match_basis": {
+          "description": "What agreed; shown with the match.",
+          "items": {
+            "enum": [
+              "title",
+              "topic",
+              "date",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Match Basis",
+          "type": "array"
         },
         "title": {
           "maxLength": 200,
@@ -438,6 +564,7 @@
       },
       "required": [
         "incident_id",
+        "match_basis",
         "title",
         "date",
         "url",
@@ -708,6 +835,26 @@
           "description": "For non-verdict statuses: what to do next.",
           "title": "Message"
         },
+        "failure_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "provider_unavailable",
+                "web_search_unavailable",
+                "transcription_failed",
+                "url_unavailable",
+                "not_ready"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "technical_failure only; never names a key or a provider.",
+          "title": "Failure Code"
+        },
         "limitations": {
           "default": [],
           "items": {
@@ -716,6 +863,33 @@
           },
           "title": "Limitations",
           "type": "array"
+        },
+        "limitation_codes": {
+          "default": [],
+          "description": "Codes next to the limitation texts; the channel words them from copy/pl.json. They never change the status.",
+          "items": {
+            "enum": [
+              "fact_check_unavailable",
+              "image_search_not_run"
+            ],
+            "type": "string"
+          },
+          "title": "Limitation Codes",
+          "type": "array"
+        },
+        "transcript": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio input only: the automatic transcript, with personal data masked.",
+          "title": "Transcript"
         },
         "source_warning": {
           "anyOf": [
@@ -803,6 +977,33 @@
           },
           "title": "Limitations",
           "type": "array"
+        },
+        "limitation_codes": {
+          "default": [],
+          "description": "Codes next to the limitation texts; the channel words them from copy/pl.json. They never change the status.",
+          "items": {
+            "enum": [
+              "fact_check_unavailable",
+              "image_search_not_run"
+            ],
+            "type": "string"
+          },
+          "title": "Limitation Codes",
+          "type": "array"
+        },
+        "transcript": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio input only: the automatic transcript, with personal data masked.",
+          "title": "Transcript"
         },
         "source_warning": {
           "anyOf": [
@@ -1274,7 +1475,7 @@
           "anyOf": [
             {
               "enum": [
-                "model",
+                "embeddings",
                 "keywords"
               ],
               "type": "string"
@@ -1284,7 +1485,7 @@
             }
           ],
           "default": null,
-          "description": "Model classification against the admin list, or the keyword list as a fallback.",
+          "description": "Embedding similarity to the admin list above a threshold, or the keyword list as a fallback (ADR-35).",
           "title": "High Risk Classified By"
         },
         "summary": {
@@ -1455,6 +1656,19 @@
           ],
           "title": "Tdm Reservation",
           "type": "string"
+        },
+        "signatory_of": {
+          "default": [],
+          "description": "IFCN or EFCSN membership; only such publishers' ClaimReview ratings may be premises (ADR-34).",
+          "items": {
+            "enum": [
+              "ifcn",
+              "efcsn"
+            ],
+            "type": "string"
+          },
+          "title": "Signatory Of",
+          "type": "array"
         },
         "excluded": {
           "default": false,
