@@ -48,4 +48,26 @@ export interface ProgressSource {
     onStatus: (status: AnalysisStatus) => void,
     onClosed: () => void,
   ): () => void
+
+/**
+ * What GET /api/v1/checks/{id} said: the check's steps (with `result` once it finished), an
+ * unknown id, or the `errors` key of copy/pl.json for a failed request.
+ *
+ * @feature US-SPR-01, F-01, F-21
+ */
+export type ReadOutcome = { status: AnalysisStatus } | 'not_found' | 'busy' | 'offline'
+
+/**
+ * Reads the state of one check from the verification API.
+ *
+ * @feature US-SPR-01, F-01, F-21
+ */
+export interface ResultReader {
+  /**
+   * Reads one check; never throws, a failure is an outcome.
+   *
+   * @param checkId - The id the API gave the accepted check.
+   * @returns The check's state or why it could not be read.
+   */
+  read(checkId: string): Promise<ReadOutcome>
 }

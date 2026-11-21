@@ -34,3 +34,11 @@ export const VERIFY_STEP = 'verify_citations'
  * @feature US-SPR-02, F-09
  */
 export const RECEIVED_STEPS: readonly AnalysisStep[] = [{ code: 'receive', status: 'done' }]
+
+/**
+ * Pause between two reads of a running check on the result page; the API itself waits a moment
+ * for new steps before it answers.
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const POLL_INTERVAL_MS = 1500
