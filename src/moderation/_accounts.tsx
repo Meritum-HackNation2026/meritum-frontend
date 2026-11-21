@@ -136,7 +136,7 @@ function GrantForm({ onAdd }: { onAdd: (account: StaffAccount) => Promise<boolea
           ))}
         </NativeSelect>
       </Field>
-      <Button type="submit" size="lg" className="h-11 rounded-pill">
+      <Button type="submit" size="lg" className="h-11 justify-self-start rounded-pill">
         {copy.add}
       </Button>
     </form>
