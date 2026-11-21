@@ -8,7 +8,7 @@ import type { StaffApi } from './ports'
  * staff session (read again on leaving the panel); citizens never see it, and the panel pages
  * have their own navigation.
  *
- * @param props.api - Reads the staff session once.
+ * @param props.api - Reads the staff session on each page outside the panel.
  * @returns The link, or nothing.
  * @feature US-MOD-05, F-25
  */

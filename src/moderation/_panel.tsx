@@ -43,7 +43,7 @@ function CasesSection({ cases }: { cases: PanelData['cases'] }) {
  * with the open case below it.
  * Notifications (`case_assigned` toasts and the inbox) come from the layout's bell.
  *
- * @param props.data - The session and cases from `loadPanel`.
+ * @param props.data - The session from `loadPanel` or `loadAdmin`, with the cases when the page shows them.
  * @param props.api - The staff API (login addresses, sign-out).
  * @param props.children - Another panel page in place of the cases (e.g. administration).
  * @returns The panel.

@@ -52,7 +52,7 @@ export const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 export const MAX_EMAIL_CHARS = 254
 
 /**
- * Longest topic name and keyword the API accepts (`HighRiskTopic` in backend#22).
+ * Longest topic name the API accepts (`HighRiskTopic` in backend#22); a longer keyword is refused by the API (422).
  *
  * @feature US-MOD-05, F-20, F-25
  */
