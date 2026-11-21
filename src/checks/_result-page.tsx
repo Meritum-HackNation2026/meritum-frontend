@@ -6,6 +6,7 @@ import type { Handoff } from '@/moderation'
 import { findSavedCheck, saveCheck } from './_history'
 import { isDraft, shownResult } from './_progress'
 import { ResultState } from './_result-state'
+import { Transcript } from './_transcript'
 import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
 import type { ProgressSource, ReadOutcome, ResultReader } from './ports'
 
@@ -181,6 +182,7 @@ function LiveResult({
           {error}
         </p>
       )}
+      {result?.transcript && <Transcript text={result.transcript} />}
       <div aria-live="polite" className="min-w-0">
         {result && <Card result={result} handoff={handoff} />}
       </div>
@@ -191,7 +193,9 @@ function LiveResult({
 /**
  * The result page of one check: live steps streamed over SSE while it runs (the API read
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
- * so a screen reader announces the result. Verdicts wait for verified citations. A failed
+ * so a screen reader announces the result. A checked recording shows its transcript above it
+ * (`Transcript`), outside that region, so a long transcript does not hold back the verdicts.
+ * Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
  * times in a row; an unknown id stops it. After the stream ended without a result, a read
  * showing a failed step with nothing left running ends with the technical failure line; a run
@@ -206,10 +210,18 @@ function LiveResult({
  * @param props.pollMs - Pause between reads; tests pass a short one.
  * @param props.maxReads - Reads before giving up; tests pass a small one.
  * @returns The result page.
- * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-09, US-BEZ-07, F-01, F-09, F-17, F-21
+ * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-09, US-SPR-11, US-BEZ-07, F-01, F-08, F-09, F-17, F-21
  */
 export function ResultPage(props: ResultPageProps) {
   // read once: the page of a check this tab already has opens without the API
   const [saved] = useState(() => findSavedCheck(props.checkId))
-  return saved ? <Card result={saved} handoff={props.handoff} /> : <LiveResult {...props} />
+  if (!saved) {
+    return <LiveResult {...props} />
+  }
+  return (
+    <div className="grid min-w-0 gap-4">
+      {saved.transcript && <Transcript text={saved.transcript} />}
+      <Card result={saved} handoff={props.handoff} />
+    </div>
+  )
 }
