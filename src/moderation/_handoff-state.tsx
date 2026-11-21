@@ -7,10 +7,14 @@ import type { HandoffOutcome } from './ports'
  * the request is still out. A new request clears the previous error; one already out blocks it.
  *
  * @param run - Sends the hand-off through the port.
+ * @param onSaved - Told the case number once the API saved the case, so the card can show it.
  * @returns The case number, the error text, the pending flag and the sender.
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
-export function useHandoff(run: () => Promise<HandoffOutcome>) {
+export function useHandoff(
+  run: () => Promise<HandoffOutcome>,
+  onSaved: (caseId: string) => void = () => undefined,
+) {
   const [outcome, setOutcome] = useState<HandoffOutcome | null>(null)
   const [pending, setPending] = useState(false)
   // a second click while one request is out does nothing; the button stays focusable
@@ -20,8 +24,15 @@ export function useHandoff(run: () => Promise<HandoffOutcome>) {
     }
     setPending(true)
     setOutcome(null)
-    setOutcome(await run())
-    setPending(false)
+    try {
+      const answer = await run()
+      setOutcome(answer)
+      if (typeof answer === 'object') {
+        onSaved(answer.caseId)
+      }
+    } finally {
+      setPending(false)
+    }
   }
   const caseId = typeof outcome === 'object' && outcome !== null ? outcome.caseId : null
   const error = typeof outcome === 'string' ? t.errors[outcome] : null

@@ -22,18 +22,30 @@ function passedText(caseId: string): string {
  * (`CheckResult.escalation`): a saved case (created or joined) shows its number; a
  * recommendation shows that the case suits a moderator, that it was not passed on yet, and
  * „Przekaż moderatorom”. A case number appears only after the API saved the case; a failed save
- * shows the error and keeps the recommendation. No escalation, no line.
+ * shows the error and keeps the recommendation. A case saved by „Zgłoś błąd” on this card ends the
+ * recommendation too, so the card never says both. No escalation, no line; no claims, no button.
  *
  * @param props.result - The check result from the API.
  * @param props.handoff - Sends the hand-off (the `src/api` adapter in the app).
+ * @param props.savedCase - A case another hand-off on this card saved, or null.
  * @returns The hand-off line, or null.
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
-export function EscalationLine({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
+export function EscalationLine({
+  result,
+  handoff,
+  savedCase,
+}: {
+  result: CheckResult
+  handoff: Handoff
+  savedCase: string | null
+}) {
   const { caseId, error, pending, send } = useHandoff(() =>
     handoff.escalate(result.check_id, recommendedClaim(result)),
   )
   const escalation = result.escalation
+  // the endpoint needs a claim; without one the hint stays and nothing can be pressed
+  const hasClaims = (result.claims?.length ?? 0) > 0
   if (!escalation) {
     return null
   }
@@ -44,6 +56,9 @@ export function EscalationLine({ result, handoff }: { result: CheckResult; hando
       </p>
     )
   }
+  if (savedCase) {
+    return <p className="text-small text-foreground">{passedText(savedCase)}</p>
+  }
   if (escalation.state !== 'recommended') {
     // a saved case without its number shows nothing rather than a number or a promise
     return escalation.case_id ? (
@@ -53,9 +68,18 @@ export function EscalationLine({ result, handoff }: { result: CheckResult; hando
   return (
     <div className="grid justify-items-start gap-2">
       <p className="text-small text-foreground text-pretty">{t.escalation.recommended}</p>
-      <Button type="button" variant="outline" aria-disabled={pending} onClick={send}>
-        {t.result.escalate}
-      </Button>
+      {hasClaims && (
+        <Button
+          type="button"
+          variant="outline"
+          aria-disabled={pending}
+          aria-busy={pending}
+          className="aria-disabled:opacity-50"
+          onClick={send}
+        >
+          {t.result.escalate}
+        </Button>
+      )}
       {error && (
         <p role="alert" className="text-small text-foreground text-pretty">
           {error}

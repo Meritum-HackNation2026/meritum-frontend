@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { MeritumLabel, t } from '@/components/meritum'
 import type { CheckResult } from '@/contracts/meritum'
 import { EscalationLine, type Handoff, ReportError } from '@/moderation'
@@ -18,6 +19,8 @@ import { limitationTexts } from './_wording'
  * @feature US-SPR-04, US-SPR-05, US-ZRD-01, US-ZRD-02, US-ZRD-03, US-ZRD-06, US-MOD-03, US-MOD-06, F-17, F-24
  */
 export function CheckResultCard({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
+  // a case saved by „Zgłoś błąd” also ends the footer's recommendation
+  const [savedCase, setSavedCase] = useState<string | null>(null)
   return (
     <section
       aria-label={t.result.label}
@@ -29,11 +32,16 @@ export function CheckResultCard({ result, handoff }: { result: CheckResult; hand
       <h2 className="sr-only">{t.result.claims_title}</h2>
       {result.claims?.map((claim, index) => (
         <ClaimBlock key={claim.claim} claim={claim}>
-          <ReportError checkId={result.check_id} claimIndex={index} handoff={handoff} />
+          <ReportError
+            checkId={result.check_id}
+            claimIndex={index}
+            handoff={handoff}
+            onSaved={setSavedCase}
+          />
         </ClaimBlock>
       ))}
       <footer className="mt-3 grid gap-1.5 border-t border-border px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
-        <EscalationLine result={result} handoff={handoff} />
+        <EscalationLine result={result} handoff={handoff} savedCase={savedCase} />
         <Limitations items={limitationTexts(result)} />
         <p>{t.result.ai_disclosure}</p>
       </footer>

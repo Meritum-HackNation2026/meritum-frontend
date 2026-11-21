@@ -39,6 +39,39 @@ test('clicking „Przekaż moderatorom” shows the case number the API saved', 
   assert.equal(screen.queryAllByRole('button', { name: pl.result.escalate }).length, 0)
 })
 
+test('„Przekaż moderatorom” hands off the claim without enough evidence, not the first claim', async () => {
+  const { handoff, calls } = fakeHandoff({ caseId: '#S-12' })
+  const result: CheckResult = {
+    ...recommended,
+    claims: [...(done.claims ?? []).slice(0, 1), ...(abstain.claims ?? [])],
+  }
+  render(<CheckResultCard result={result} handoff={handoff} />)
+  fireEvent.click(screen.getByRole('button', { name: pl.result.escalate }))
+  await screen.findByText(passed)
+  assert.deepEqual(calls, [{ kind: 'escalate', checkId: result.check_id, claimIndex: 1 }])
+})
+
+test('a saved report ends the recommendation, so the card never says both', async () => {
+  render(
+    <CheckResultCard result={recommended} handoff={fakeHandoff({ caseId: '#S-12' }).handoff} />,
+  )
+  const claim = within(screen.getByRole('article'))
+  fireEvent.click(claim.getByRole('button', { name: pl.result.report_error }))
+  fireEvent.click(claim.getAllByRole('button', { name: pl.result.report_error })[1] as HTMLElement)
+  assert.ok(await screen.findByText(reported))
+  assert.ok(screen.getByText(passed))
+  assert.equal(hasText(pl.escalation.recommended), false)
+  assert.equal(screen.queryAllByRole('button', { name: pl.result.escalate }).length, 0)
+})
+
+test('a recommendation without claims shows the hint but no button to press', () => {
+  render(
+    <CheckResultCard result={{ ...recommended, claims: [] }} handoff={fakeHandoff().handoff} />,
+  )
+  assert.ok(screen.getByText(pl.escalation.recommended))
+  assert.equal(screen.queryAllByRole('button', { name: pl.result.escalate }).length, 0)
+})
+
 test('a failed save shows neither a number nor that the case was passed on', async () => {
   render(<CheckResultCard result={recommended} handoff={fakeHandoff().handoff} />)
   fireEvent.click(screen.getByRole('button', { name: pl.result.escalate }))
@@ -95,7 +128,7 @@ test('a report with a justification gives the case number and the notification p
   fireEvent.change(second.getByLabelText(pl.result.report_error_reason), {
     target: { value: 'Zła data' },
   })
-  fireEvent.submit(second.getByLabelText(pl.result.report_error_reason))
+  fireEvent.click(second.getAllByRole('button', { name: pl.result.report_error })[1] as HTMLElement)
   assert.ok(await second.findByText(reported))
   assert.deepEqual(calls, [
     { kind: 'dispute', checkId: done.check_id, claimIndex: 1, text: 'Zła data' },
@@ -115,7 +148,7 @@ test('a failed report shows the error and no case number', async () => {
   render(<CheckResultCard result={done} handoff={fakeHandoff('rate_limited').handoff} />)
   const first = within(screen.getAllByRole('article')[0] as HTMLElement)
   fireEvent.click(first.getByRole('button', { name: pl.result.report_error }))
-  fireEvent.submit(first.getByLabelText(pl.result.report_error_reason))
+  fireEvent.click(first.getAllByRole('button', { name: pl.result.report_error })[1] as HTMLElement)
   assert.equal((await first.findByRole('alert')).textContent, pl.errors.rate_limited)
   assert.equal(hasText('#S-'), false)
 })

@@ -16,7 +16,7 @@ import {
  * @param props.claim - One claim result from the API.
  * @param props.children - The claim's actions („Zgłoś błąd”).
  * @returns The claim block.
- * @feature US-SPR-04, US-SPR-05, US-ZRD-01, US-ZRD-02, US-ZRD-03, US-ZRD-06, F-17
+ * @feature US-SPR-04, US-SPR-05, US-ZRD-01, US-ZRD-02, US-ZRD-03, US-ZRD-06, US-MOD-06, F-17, F-24
  */
 export function ClaimBlock({ claim, children }: { claim: ClaimResult; children: ReactNode }) {
   return (
