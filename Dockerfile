@@ -9,7 +9,7 @@ RUN npm install --global "$(node -p "require('./package.json').packageManager")"
 COPY . ./
 RUN pnpm build
 
-FROM nginxinc/nginx-unprivileged:1.29-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 # Overridden by the deploy (meritum-api-<env>:8000); `api` fits a compose service.
 ENV API_UPSTREAM=api:8000
 COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
