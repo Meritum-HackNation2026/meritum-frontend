@@ -1,10 +1,10 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
 
 /**
- * Layout of every page: the Meritum header and the page below it.
+ * Layout of every page: the Meritum header, the page and a footer with the privacy policy.
  *
- * @feature US-SPR-01, US-DST-01
+ * @feature US-SPR-01, US-DST-01, ADR-13
  */
 export const Route = createRootRoute({ component: Layout })
 
@@ -23,6 +23,11 @@ function Layout() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <Outlet />
       </main>
+      <footer className="mx-auto max-w-3xl px-4 pb-8 text-small text-muted-foreground">
+        <Link className="underline underline-offset-2" to="/prywatnosc">
+          Polityka prywatności
+        </Link>
+      </footer>
     </div>
   )
 }
