@@ -12,6 +12,8 @@ import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
 
 const uuid = /^[0-9a-f-]{36}$/
+const copiedTabs = /w kartach z niej otwartych/
+const singleTabPromise = /tylko w tej karcie|zniknie/
 
 function fakeApi(t: TestContext, status = 202) {
   return t.mock.method(globalThis, 'fetch', () =>
@@ -131,4 +133,12 @@ test('a failed connection shows the offline message', async (t) => {
   renderPage()
   typeAndCheck('Od stycznia nie zapłacisz w sklepie gotówką')
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
+})
+
+test('the note under the history says it also shows in tabs opened from this one', () => {
+  // The browser copies sessionStorage into tabs opened from the page (frontend#69).
+  renderPage()
+  const note = screen.getByText(pl.history.session_note).textContent ?? ''
+  assert.match(note, copiedTabs)
+  assert.doesNotMatch(note, singleTabPromise)
 })
