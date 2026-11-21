@@ -1,5 +1,5 @@
 {
-  "$comment": "Privacy policies per channel and the processor register (pl). Single source for the frontend, the Discord bot, the extension, the SMS adapter and README. Facts from the product document and the team decisions on PR #20: ADR-13, ADR-14, US-BEZ-06, US-BEZ-07, US-WDR-03. policies.<channel>.processors lists ids from processors.items; planned_processors lists ids from processors.planned_items. channel_privacy in pl.json is the short in-channel summary of the same rules. Tone: DESIGN_SYSTEM.md section 8. controller and external_mcp_clients are shown in every policy. Decisions from the team on PR #20 (2026-11-21).",
+  "$comment": "Privacy policies per channel and the processor register (pl). Single source for the frontend, the Discord bot, the extension, the SMS adapter and README. Facts from the product document and the team decisions on PR #20: ADR-13, ADR-14, US-BEZ-06, US-BEZ-07, US-WDR-03. policies.<channel>.processors lists ids from processors.items; planned_processors lists ids from processors.planned_items. channel_privacy in pl.json is the short in-channel summary of the same rules. Tone: DESIGN_SYSTEM.md section 8. controller and external_mcp_clients are shown in every policy. policies.web.sign_in is a web-only subsection (title, scopes, purpose, retention) about Google or Microsoft sign-in (design-system#28). Decisions from the team on PR #20 (2026-11-21).",
   "controller": {
     "$comment": "Shown at the top of every policy. contact: team address decided on PR #20.",
     "title": "Kto odpowiada za dane",
@@ -11,16 +11,22 @@
   "policies": {
     "web": {
       "title": "Polityka prywatności strony Meritum",
-      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy identyfikator konta i historię sprawdzeń z ukrytymi danymi osobowymi.",
+      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy imię i nazwisko, adres e-mail i identyfikator konta. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
       "purpose": "Dane służą tylko do sprawdzenia informacji, odpowiedzi i pokazania twojej historii sprawdzeń.",
-      "retention": "Historię sprawdzeń i powiadomienia usuwamy automatycznie po 30 dniach, a wcześniej, jeśli usuniesz historię albo konto. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia. Logowanie jest opcjonalne. Identyfikator konta przechowujemy do kliknięcia „Usuń konto”.",
+      "retention": "Historię sprawdzeń i powiadomienia usuwamy automatycznie po 30 dniach, a wcześniej, jeśli usuniesz historię albo konto. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia. Logowanie jest opcjonalne. Dane konta przechowujemy do kliknięcia „Usuń konto”.",
       "deletion": "Przycisk „Usuń moje sprawdzenia” usuwa zapisy twojej sesji. Po zalogowaniu „Usuń moją historię” usuwa historię, a „Usuń konto” także konto.",
       "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
       "ip_addresses": "Adres IP i region możemy przetwarzać, żeby liczyć limit zapytań i chronić usługę przed DDoS i innymi atakami. Licznik limitu zapytań trzymamy tylko przez czas okna limitu (minuty albo godziny), bez trwałego zapisu. Logi techniczne i bezpieczeństwa z adresem IP usuwamy automatycznie po 14 dniach. Cloudflare przechowuje swoje logi według własnej polityki retencji.",
       "processors_lead": "Dane strony przetwarzają te podmioty:",
       "processors": ["team_server", "gcp_europe_central2", "cloud_storage", "cloudflare", "vertex_ai", "mistral_vertex", "vertex_ai_embeddings", "model_armor", "sensitive_data_protection", "speech_to_text", "vertex_ai_search", "searxng", "linkup", "crawl4ai", "firecrawl", "fact_check_tools", "sign_in", "moderator_notifications"],
       "planned_processors_lead": "Po włączeniu planowanych funkcji dołączą do nich:",
-      "planned_processors": ["cloudflare_workers_ai", "vertex_ai_ranking"]
+      "planned_processors": ["cloudflare_workers_ai", "vertex_ai_ranking"],
+      "sign_in": {
+        "title": "Logowanie kontem Google albo Microsoft",
+        "scopes": "Logowanie jest dobrowolne. Prosimy Google albo Microsoft tylko o podstawowe dane (zakresy openid, email i profile). To imię i nazwisko, adres e-mail i identyfikator konta u dostawcy. Nie dostajemy hasła ani dostępu do poczty, plików czy kontaktów.",
+        "purpose": "Te dane służą tylko do utrzymania sesji logowania, zapisania historii twoich sprawdzeń i nadania ról członkom zespołu, na przykład moderatorom. Nie sprzedajemy ich i nie używamy do reklam. Nie przekazujemy ich nikomu poza podmiotami z rejestru.",
+        "retention": "Trzymamy je, dopóki masz konto. „Usuń moją historię” usuwa historię sprawdzeń, a „Usuń konto” usuwa konto razem z historią. Dostęp aplikacji możesz też cofnąć w ustawieniach konta Google albo Microsoft."
+      }
     },
     "discord": {
       "title": "Polityka prywatności bota Meritum na Discordzie",
@@ -83,10 +89,10 @@
     "items": [
       {
         "id": "team_server",
-        "name": "Serwer zespołu (on-prem)",
-        "region": "GCP europe-central2 (Warszawa, Polska)",
-        "data": "Wszystko, co dziś przetwarza demo: API, worker, PostgreSQL z zapisami przebiegu, sprawami i korpusem",
-        "purpose": "Obecne demo (meritum.gburek.app) do czasu migracji do GCP"
+        "name": "Serwer zespołu",
+        "region": "Serwer zespołu w Polsce",
+        "data": "API, worker, PostgreSQL z zapisami przebiegu, sprawami i korpusem",
+        "purpose": "Demo na czas hackathonu (meritum.gburek.app)"
       },
       {
         "id": "cloudflare",
@@ -97,15 +103,15 @@
       },
       {
         "id": "gcp_europe_central2",
-        "name": "GCP europe-central2 (docelowo)",
+        "name": "GCP europe-central2",
         "region": "UE (Warszawa)",
-        "data": "API, worker, PostgreSQL z zapisami przebiegu, sprawami i korpusem",
-        "purpose": "Docelowe demo"
+        "data": "Przesłane pliki i wywołania modeli; aplikacja i baza tu nie działają",
+        "purpose": "Magazyn plików i modele Vertex AI"
       },
       {
         "id": "vertex_ai",
         "name": "Vertex AI",
-        "region": "GCP, region UE, w którym jest dostępny wybrany model",
+        "region": "GCP europe-central2 (Warszawa)",
         "data": "Zamaskowane pytanie, fragmenty źródeł, odpowiedzi modelu",
         "purpose": "Wyodrębnianie twierdzeń, ocena wymowy, odpowiedź"
       },
@@ -190,7 +196,7 @@
         "id": "sign_in",
         "name": "Google i Microsoft (logowanie)",
         "region": "USA",
-        "data": "Identyfikator konta",
+        "data": "Imię i nazwisko, adres e-mail i identyfikator konta, tylko gdy się logujesz",
         "purpose": "Opcjonalne logowanie, jeśli starczy czasu"
       },
       {
@@ -203,7 +209,7 @@
       {
         "id": "vertex_ai_embeddings",
         "name": "Vertex AI (embeddingi)",
-        "region": "GCP, region UE (docelowo europe-central2 albo inny dostępny region UE)",
+        "region": "GCP europe-central2 (Warszawa)",
         "data": "Zamaskowane twierdzenia, fragmenty źródeł, opisy incydentów",
         "purpose": "Wyszukiwanie, podobieństwo spraw i incydentów"
       },

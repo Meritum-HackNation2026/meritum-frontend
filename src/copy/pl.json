@@ -1,5 +1,5 @@
 {
-  "$comment": "Meritum UI copy (pl). Keys mirror codes in the meritum-core contracts (src/meritum_core/checks/contracts.py; read-only copy in contracts/). Tone: DESIGN_SYSTEM.md section 8. Plain language for people without technical knowledge.",
+  "$comment": "Meritum UI copy (pl). Keys mirror codes in the meritum-core contracts (package src/meritum_core/checks/contracts/; read-only copy in contracts/). Tone: DESIGN_SYSTEM.md section 8. Plain language for people without technical knowledge.",
   "brand": {
     "name": "Meritum",
     "subtitle": "obywatelski radar dezinformacji",
@@ -36,7 +36,7 @@
     "sign_in_microsoft": "Zaloguj się kontem Microsoft",
     "sign_out": "Wyloguj się",
     "delete_account": "Usuń konto i historię",
-    "stored": "Zapisujemy tylko identyfikator konta od Google albo Microsoft i historię sprawdzeń z ukrytymi danymi osobowymi.",
+    "stored": "Zapisujemy imię i nazwisko, adres e-mail i identyfikator konta od Google albo Microsoft. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
     "signed_in_as": "Zalogowano jako {email}.",
     "signed_out": "Wylogowano. Historia zostaje na koncie i zobaczysz ją po ponownym zalogowaniu.",
     "sign_in_failed": "Nie udało się zalogować. Spróbuj jeszcze raz albo sprawdzaj bez konta.",
