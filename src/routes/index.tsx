@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCallback, useContext } from 'react'
-import { apiCheckSender, apiSessionEraser } from '@/api'
+import { apiAudioUploader, apiCheckSender, apiSessionEraser } from '@/api'
 import { CheckPage } from '@/checks'
 import { AiNotice } from '@/components/ai-notice'
 import { InboxContext } from '@/notifications'
@@ -28,6 +28,7 @@ function Home() {
       <AiNotice />
       <CheckPage
         sender={apiCheckSender}
+        uploader={apiAudioUploader}
         eraser={apiSessionEraser}
         onAccepted={open}
         onErased={clearInbox}

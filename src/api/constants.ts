@@ -122,3 +122,33 @@ export const HTTP_FORBIDDEN = 403
  * @feature US-MOD-05, F-25
  */
 export const CSRF_HEADER = 'X-CSRF-Token'
+
+/**
+ * Refusals of POST /api/v1/audio by HTTP status (meritum-backend's README): 413 over the size
+ * limit, 415 a file that is not a supported recording, 422 over the length limit.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const AUDIO_REFUSALS: Readonly<
+  Record<number, 'audio_too_large' | 'unsupported_format' | 'audio_too_long'>
+> = {
+  413: 'audio_too_large',
+  415: 'unsupported_format',
+  422: 'audio_too_long',
+}
+
+/**
+ * `message_key` of a 429 from POST /api/v1/audio once the daily recording limit is used up; any
+ * other 429 is the per-minute limit.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const DAILY_LIMIT_KEY = 'errors.rate_limited_daily'
+
+/**
+ * Content type sent with a recording the browser could not type; the API reads the format from
+ * the bytes anyway.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const UNKNOWN_AUDIO_TYPE = 'application/octet-stream'
