@@ -1,3 +1,4 @@
+export { type ApiSchemas, meritumQueries } from './_client.ts'
 export { apiCheckSender } from './checks.ts'
 export { apiLatestRunSource } from './evaluation.ts'
 export { apiNotifications } from './notifications.ts'
