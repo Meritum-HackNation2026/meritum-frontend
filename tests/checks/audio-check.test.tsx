@@ -65,6 +65,7 @@ test('the audio field says who transcribes it, where, and the limits of a file',
   assert.ok(text.includes('Plik do 20 MB i 10 min nagrania. Formaty: OGG, MP3, M4A, WAV.'))
   assert.ok(text.includes('Google Speech-to-Text v2 (Chirp 3)'))
   assert.ok(text.includes('multi-region eu'))
+  assert.ok(text.includes('Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia.'))
 })
 
 test('the audio form has no check button until a file is chosen', () => {
@@ -137,4 +138,23 @@ test('a network failure during the upload shows the offline message', async (t) 
   chooseAndCheck(recording())
   const alert = await within(audioForm()).findByRole('alert')
   assert.equal(alert.textContent, pl.errors.offline)
+})
+
+test('a 422 without the length key is not reported as a too long recording', async (t) => {
+  fakeApi(t, { status: 422, body: { detail: 'invalid body' } })
+  renderPage()
+  chooseAndCheck(recording())
+  const alert = await within(audioForm()).findByRole('alert')
+  assert.equal(alert.textContent, pl.errors.busy)
+})
+
+test('the file cannot be changed while the recording is sent', async (t) => {
+  let answer: (value: Response) => void = () => undefined
+  t.mock.method(globalThis, 'fetch', () => new Promise<Response>((resolve) => (answer = resolve)))
+  renderPage()
+  chooseAndCheck(recording())
+  const input = screen.getByLabelText(pl.form.audio_label, { selector: 'input' })
+  await waitFor(() => assert.equal((input as HTMLInputElement).disabled, true))
+  answer(new Response(JSON.stringify({ detail: 'x' }), { status: 500 }))
+  await waitFor(() => assert.equal((input as HTMLInputElement).disabled, false))
 })

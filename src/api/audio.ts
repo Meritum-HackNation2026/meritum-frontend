@@ -7,20 +7,27 @@ import {
   UNKNOWN_AUDIO_TYPE,
 } from './constants'
 
-/** The refusal of a 429: the daily recording limit by its `message_key`, else the minute limit. */
-function rateLimit(body: unknown): UploadOutcome {
-  const isDaily =
-    typeof body === 'object' &&
-    body !== null &&
-    Reflect.get(body, 'message_key') === DAILY_LIMIT_KEY
-  return isDaily ? 'rate_limited_daily' : 'rate_limited'
+/** The `message_key` of a refusal body, or an empty string when it has none. */
+function messageKey(body: unknown): string {
+  const key: unknown = typeof body === 'object' && body !== null && Reflect.get(body, 'message_key')
+  return typeof key === 'string' ? key : ''
+}
+
+/** What a refused upload means: a rate limit by its status, otherwise its known `message_key`. */
+function refusal(status: number, key: string): UploadOutcome {
+  if (status === HTTP_TOO_MANY_REQUESTS) {
+    return key === DAILY_LIMIT_KEY ? 'rate_limited_daily' : 'rate_limited'
+  }
+  return Object.hasOwn(AUDIO_REFUSALS, key)
+    ? AUDIO_REFUSALS[key as keyof typeof AUDIO_REFUSALS]
+    : 'busy'
 }
 
 /**
  * Uploads recordings to POST /api/v1/audio as the raw request body, typed by the backend's
- * OpenAPI schema. Never throws: a network failure is `offline`; 413, 415 and 422 are the size,
- * format and length refusals (by status, so a newer `message_key` cannot break them); 429 is a
- * rate limit; any other answer without an `audio_id` is `busy`.
+ * OpenAPI schema. Never throws: a network failure is `offline`; a refusal with the size, length
+ * or format `message_key` is that refusal; 429 is a rate limit (daily by its key); any other
+ * answer without an `audio_id`, a 422 of a malformed request included, is `busy`.
  *
  * @feature US-SPR-11, F-08
  */
@@ -37,10 +44,7 @@ export const apiAudioUploader: AudioUploader = {
       if (typeof data?.audio_id === 'string') {
         return { audioId: data.audio_id }
       }
-      if (response.status === HTTP_TOO_MANY_REQUESTS) {
-        return rateLimit(error)
-      }
-      return AUDIO_REFUSALS[response.status] ?? 'busy'
+      return refusal(response.status, messageKey(error))
     } catch (error) {
       return failureOf(error)
     }

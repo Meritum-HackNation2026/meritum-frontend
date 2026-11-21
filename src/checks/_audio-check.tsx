@@ -20,6 +20,9 @@ const limits = { max_mb: MAX_AUDIO_MB, max_minutes: MAX_AUDIO_MINUTES }
 const limitsLine = fill(t.form.audio_limits, { ...limits, formats: AUDIO_FORMATS.join(', ') })
 const transcriber = privacy.processors.items.find((p) => p.id === 'speech_to_text')
 const providerLine = transcriber ? `${transcriber.name}, ${transcriber.region}` : ''
+// the web policy's retention text, its sentence about the recording file
+const retentionLine =
+  privacy.policies.web.retention.split(/(?<=\.)\s+/).find((s) => s.includes('nagrania')) ?? ''
 
 /** Uploads the file, then starts a check of its `audio_id`; the first refusal ends it. */
 async function checkRecording(
@@ -85,14 +88,14 @@ export function AudioCheck({
     },
     [file, pending, uploader, sender, onAccepted],
   )
-  const choose = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setFile(event.target.files?.[0] ?? null)
     setRefusal(null)
   }, [])
 
   const fieldError = refusal === 'unsupported_format' ? null : refusal
   return (
-    <div className="grid min-w-0 max-w-[720px] gap-4">
+    <div className="grid min-w-0 gap-4">
       <form
         aria-label={t.form.audio_label}
         onSubmit={submit}
@@ -107,12 +110,13 @@ export function AudioCheck({
           type="file"
           accept={AUDIO_ACCEPT}
           aria-invalid={fieldError !== null}
-          aria-describedby={`${id}-about`}
-          onChange={choose}
+          disabled={pending}
+          aria-describedby={fieldError ? `${id}-error ${id}-about` : `${id}-about`}
+          onChange={onFileChange}
           className="min-w-0 text-small text-muted-foreground file:mr-3 file:h-10 file:cursor-pointer file:rounded-pill file:border file:border-border file:bg-card file:px-4 file:font-semibold file:text-foreground"
         />
         {fieldError && (
-          <p role="alert" className="text-meta text-scam-foreground">
+          <p id={`${id}-error`} role="alert" className="text-meta text-scam-foreground">
             {fill(t.errors[fieldError], limits)}
           </p>
         )}
@@ -120,6 +124,7 @@ export function AudioCheck({
           <p>{t.form.audio_note}</p>
           <p className="tabular-nums">{limitsLine}</p>
           <p>{providerLine}</p>
+          <p>{retentionLine}</p>
           <p>{t.form.audio_transcription_warning}</p>
         </div>
         {file && (
@@ -130,12 +135,14 @@ export function AudioCheck({
           </div>
         )}
       </form>
-      {refusal === 'unsupported_format' && (
-        <ResultState
-          status="out_of_scope"
-          hint={`${t.status_hint.out_of_scope_audio_format} ${limitsLine}`}
-        />
-      )}
+      <div aria-live="polite" className="min-w-0">
+        {refusal === 'unsupported_format' && (
+          <ResultState
+            status="out_of_scope"
+            hint={`${t.status_hint.out_of_scope_audio_format} ${limitsLine}`}
+          />
+        )}
+      </div>
     </div>
   )
 }
