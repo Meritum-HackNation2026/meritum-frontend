@@ -13,6 +13,7 @@ import { apiNotifications } from '@/api'
 class FakeEventSource {
   static opened: FakeEventSource[] = []
   onmessage: ((event: MessageEvent<string>) => void) | null = null
+  onopen: (() => void) | null = null
   onerror: (() => void) | null = null
   closed = false
   constructor() {
@@ -20,6 +21,9 @@ class FakeEventSource {
   }
   close() {
     this.closed = true
+  }
+  open() {
+    this.onopen?.()
   }
   fail() {
     this.onerror?.()
@@ -29,7 +33,11 @@ class FakeEventSource {
   }
 }
 
-const last = () => FakeEventSource.opened.at(-1) as FakeEventSource
+function last(): FakeEventSource {
+  const source = FakeEventSource.opened.at(-1)
+  assert.ok(source, 'no EventSource was opened')
+  return source
+}
 
 beforeEach(() => {
   FakeEventSource.opened = []
@@ -82,6 +90,27 @@ test('a delivered event starts the count again', (t) => {
   failAndWait(t, 1000)
   assert.equal(FakeEventSource.opened.length, 4)
   assert.deepEqual(events, [{ id: 'n_1' }])
+})
+
+test('a stream open for 30 s starts the count again, so idle drops never end it', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  apiNotifications.subscribe(() => undefined)
+  for (let drop = 0; drop < 10; drop += 1) {
+    last().open()
+    t.mock.timers.tick(30_000)
+    failAndWait(t, 1000)
+  }
+  assert.equal(FakeEventSource.opened.length, 11)
+})
+
+test('a stream that opens and drops at once still counts as a failure', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  apiNotifications.subscribe(() => undefined)
+  for (const pause of [1000, 2000, 4000, 8000, 16_000]) {
+    last().open()
+    failAndWait(t, pause)
+  }
+  assert.equal(FakeEventSource.opened.length, 5)
 })
 
 test('closing the subscription cancels a planned reconnect', (t) => {

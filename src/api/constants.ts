@@ -99,11 +99,20 @@ export const NOTIFICATIONS_RETRY_MS = 1000
 
 /**
  * Reconnects of the notification stream after failures in a row (1, 2, 4 and 8 s apart); after
- * the next failure it stays closed until the page loads again. A delivered event resets the count.
+ * the next failure it stays closed until the page loads again. A delivered event, or a stream
+ * open for `NOTIFICATIONS_STABLE_MS`, resets the count.
  *
  * @feature US-POW-01, F-26
  */
 export const NOTIFICATIONS_MAX_RETRIES = 4
+
+/**
+ * How long the notification stream must stay open to count as working: a proxy that drops a
+ * quiet stream now and then never uses up the retries, a stream that drops at once does.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const NOTIFICATIONS_STABLE_MS = 30_000
 
 /**
  * Query parameter carrying the session id on the notification stream, because `EventSource`

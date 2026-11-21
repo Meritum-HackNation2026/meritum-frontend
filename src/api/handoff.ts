@@ -32,7 +32,8 @@ async function handOff(call: () => Promise<Answer>): Promise<HandoffOutcome> {
  * Hands claims to the moderators through POST /api/v1/checks/{id}/claims/{n}/escalate and
  * /dispute, typed by the backend's OpenAPI schema. Never throws: a network failure is
  * `offline`, HTTP 429, 404 and 422 are the refusals of `HANDOFF_REFUSALS`, and a 5xx, an
- * unreadable answer or any other answer without a saved case number is `not_saved`. A blank justification is sent as none.
+ * unreadable answer or any other answer without a saved case number is `not_saved`. A blank
+ * justification is sent as none.
  *
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */

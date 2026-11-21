@@ -4,6 +4,7 @@ import {
   NOTIFICATIONS_ENDPOINT,
   NOTIFICATIONS_MAX_RETRIES,
   NOTIFICATIONS_RETRY_MS,
+  NOTIFICATIONS_STABLE_MS,
   SESSION_HEADER,
   SESSION_QUERY_PARAM,
 } from './constants'
@@ -54,8 +55,13 @@ export const apiNotifications: NotificationsApi = {
     let source: EventSource
     let retry: ReturnType<typeof setTimeout> | undefined
     let failures = 0
+    let openedAt: number | undefined
     const open = () => {
+      openedAt = undefined
       source = new EventSource(`${NOTIFICATIONS_ENDPOINT}/stream?${query}`)
+      source.onopen = () => {
+        openedAt = Date.now()
+      }
       source.onmessage = (event: MessageEvent<string>) => {
         failures = 0
         const value = parse(event.data)
@@ -63,10 +69,14 @@ export const apiNotifications: NotificationsApi = {
           onEvent(value)
         }
       }
-      // The browser would reconnect a dropped stream every few seconds forever; close it and
-      // retry with a doubling pause, then give up (no worker, a 404 or 502 behind a proxy).
+      // The browser would reconnect a dropped stream every few seconds forever; close it
+      // and retry with a doubling pause, then give up (no worker, a 404 or 502 by a proxy).
       source.onerror = () => {
         source.close()
+        const wasStable = openedAt !== undefined && Date.now() - openedAt >= NOTIFICATIONS_STABLE_MS
+        if (wasStable) {
+          failures = 0
+        }
         if (failures < NOTIFICATIONS_MAX_RETRIES) {
           retry = setTimeout(open, NOTIFICATIONS_RETRY_MS * 2 ** failures)
           failures += 1

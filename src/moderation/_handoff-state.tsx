@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { t } from '@/components/meritum'
 import type { HandoffOutcome } from './ports'
 
-// A server failure gets the technical line of `escalation`, never the overload text of `errors.busy`.
+// A server failure reads `escalation.not_saved`, never the overload line of `errors.busy`.
 function outcomeText(outcome: HandoffOutcome | null): string | null {
   if (typeof outcome !== 'string') {
     return null
