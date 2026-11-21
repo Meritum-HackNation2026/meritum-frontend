@@ -6,7 +6,7 @@ Components for the MSZ "Prawdowid" flow: a citizen pastes text or a link in the 
 
 1. Tokens: paste `../../tokens/meritum.css` into the app's global CSS after `@import "tailwindcss";`.
 2. Fonts: Archivo (wdth 75..125, wght 400..800) and Azeret Mono (400..600); the frontend self-hosts them with Fontsource.
-3. shadcn primitives (Radix flavour, `asChild` API): `npx shadcn@latest add button textarea tooltip`.
+3. shadcn primitives (Radix flavour, `asChild` API): `npx shadcn@latest add button textarea tooltip`; `lucide-react` for the icons of the conversation view.
 4. Copy this folder to `src/components/meritum/`, `../../contracts/meritum.ts` to `src/contracts/meritum.ts` and `../../copy/pl.json` to `src/copy/pl.json` (the components import `@/contracts/meritum` and `@/copy/pl.json`; turn on `resolveJsonModule`). Wrap the app in `<TooltipProvider>`.
 
 ## Components
@@ -14,7 +14,8 @@ Components for the MSZ "Prawdowid" flow: a citizen pastes text or a link in the 
 | Component | Spec | Props |
 |---|---|---|
 | `CheckForm` | 6.1 | `onSubmit(CheckRequest)`, `pending`, `serverError` (an `errors` key), `retentionDays`, `onDeleteChecks`. Validates text (3 to 4000 characters) or a full http(s) link with `toRequest()`; keeps the text on an error. |
-| `CheckHistory` | 6.1 | `items: HistoryItem[]` (newest first), `account` (anonymous with `onSignIn`, or signed in with sign-out and delete actions), `onOpen(checkId)` |
+| `Composer`, `Question`, `Reply`, `Welcome`, `Attachment` | 6.8 | Conversation view of the web page. `Composer`: controlled `value`/`onValueChange`, `onSubmit(CheckRequest)` (same `toRequest()` rules as `CheckForm`), `pending`, `serverError`, `tools` (left of „Sprawdź”), `attachment` with `onSendAttachment`. `Question`: the citizen's words, `at`. `Reply`: signed answer, `at`, the steps or card as children. `Welcome`: `onPick(claim)` for `conversation.examples`, children slot for the AI notice. `Attachment`: `name`, `onRemove`, the recording's notes as children. Icons from `lucide-react`. |
+| `CheckHistory` | 6.1 | `items: HistoryItem[]` (newest first), `account` (anonymous with `onSignIn`, signed in with sign-out and delete actions, or `false`/left out for no sign-in block), `onOpen(checkId)` |
 | `CheckButton` | 6.2 | `state: "idle" \| "pending" \| "done"`, `onClick`. Takes the host's icon colour through `--host-icon`. |
 | `AnalysisSteps` | 6.3 | `steps: AnalysisStep[]` from `AnalysisStatus`, `draft` while citations are not verified yet |
 | `ResultCard` | 6.4 | `result: CheckResult`. One block per claim; non-verdict statuses get an icon and a sentence, never a badge. Conflicting sources are shown side by side with what differs. |

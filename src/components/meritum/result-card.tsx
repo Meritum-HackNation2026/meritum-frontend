@@ -28,7 +28,7 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
         className,
       )}
     >
-      <header className="flex items-center px-3.5 pt-3">
+      <header className="flex items-center px-3.5 pt-3 in-data-reply:hidden">
         <MeritumLabel />
       </header>
 

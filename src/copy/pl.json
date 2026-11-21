@@ -9,7 +9,7 @@
     ]
   },
   "form": {
-    "$comment": "audio_transcription_warning is shown next to the audio field before sending; result.transcript_hint is shown on the result card next to the transcript (meritum-frontend#22, frontend/007).",
+    "$comment": "audio_transcription_warning is shown next to the audio field before sending; result.transcript_hint is shown on the result card next to the transcript (meritum-frontend#22, frontend/007). audio_provider, audio_cost and audio_retention sit under the audio field; {days} is the same check-record retention as in form.privacy (design-system#69). delete_session_* confirm „Usuń moje sprawdzenia” on the page (design-system#74).",
     "title": "Sprawdź informację",
     "lead": "Wklej tekst albo link. Sprawdzimy twierdzenia w opisanych źródłach i pokażemy, na czym opieramy odpowiedź.",
     "input_label": "Tekst albo link",
@@ -18,17 +18,38 @@
     "checking": "Sprawdzamy…",
     "privacy": "Konto nie jest potrzebne. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Zapis sprawdzenia usuwamy po {days} dniach.",
     "delete_session": "Usuń moje sprawdzenia",
+    "delete_session_title": "Usunąć twoje sprawdzenia?",
+    "delete_session_text": "Usuniemy sprawdzenia z tej karty przeglądarki i ich zapisy na naszym serwerze. Tego nie da się cofnąć.",
+    "delete_session_yes": "Usuń",
+    "delete_session_cancel": "Anuluj",
     "audio_label": "Albo nagranie (plik audio)",
     "audio_note": "Nagranie zamienimy na tekst w regionie UE i pokażemy transkrypcję obok wyniku.",
     "audio_limits": "Plik do {max_mb} MB i {max_minutes} min nagrania. Formaty: {formats}.",
-    "audio_transcription_warning": "System z użyciem AI zamieni nagranie na tekst. Może się pomylić, więc porównaj transkrypcję z nagraniem."
+    "audio_transcription_warning": "System z użyciem AI zamieni nagranie na tekst. Może się pomylić, więc porównaj transkrypcję z nagraniem.",
+    "audio_provider": "Transkrypcję robi {name} ({region}).",
+    "audio_cost": "Zamiana nagrania na tekst jest bezpłatna.",
+    "audio_retention": "Plik nagrania i transkrypcję usuwamy razem z zapisem sprawdzenia, najpóźniej po {days} dniach."
   },
   "history": {
     "title": "Twoje sprawdzenia",
     "empty": "Tu pojawią się sprawdzenia z tej rozmowy.",
-    "session_note": "Historia jest zapisana tylko w tej karcie przeglądarki. Zniknie, gdy ją zamkniesz.",
+    "session_note": "Historia jest zapisana tylko w tej przeglądarce: w tej karcie i w kartach z niej otwartych.",
     "account_note": "Jesteś zalogowany, więc historię przechowujemy na naszym serwerze. Możesz ją usunąć w każdej chwili.",
     "delete": "Usuń moją historię"
+  },
+  "conversation": {
+    "$comment": "Conversation view of the web page (DESIGN_SYSTEM.md 6.8, design-system#79, meritum-frontend#67). label names the thread for screen readers; you is the hidden speaker name of the citizen's question; examples are claims to check, not facts, shown on the empty page and sent on click; audio_question stands in the thread for a sent recording.",
+    "label": "Rozmowa z Meritum",
+    "you": "Ty",
+    "examples_lead": "Albo sprawdź jedno z tych twierdzeń:",
+    "examples": [
+      "Od stycznia nie zapłacisz w sklepie gotówką.",
+      "Prezydent w Polsce może rządzić przez trzy kadencje.",
+      "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł."
+    ],
+    "attach_audio": "Dodaj nagranie",
+    "remove_audio": "Usuń nagranie",
+    "audio_question": "Nagranie: {name}"
   },
   "account": {
     "optional": "Logowanie nie jest potrzebne. Zaloguj się, jeśli chcesz zachować historię po zamknięciu przeglądarki.",
@@ -185,9 +206,11 @@
     "not_ready": "Meritum jeszcze się uruchamia i nie przyjmuje sprawdzeń. To nie jest ocena treści. Spróbuj za kilka minut."
   },
   "limitation_code": {
-    "$comment": "CheckResult.limitation_codes and CachedResult.limitation_codes: listed under result.limitations. A limitation never changes the status. result.fact_check_unavailable is kept for channels that read it.",
+    "$comment": "CheckResult.limitation_codes and CachedResult.limitation_codes: listed under result.limitations. A limitation never changes the status. result.fact_check_unavailable is kept for channels that read it. audio_format_unsupported and audio_too_long explain an out_of_scope recording; the card already says the reason, so they only give the accepted formats ({formats}, as in form.audio_limits) and the length limit ({max_minutes}) (design-system#83).",
     "fact_check_unavailable": "Nie mogę teraz sprawdzić indeksu Google Fact Check z powodu błędu dostępu. To nie znaczy, że takiej oceny nie ma.",
-    "image_search_not_run": "Nie szukaliśmy wcześniejszych wystąpień tego obrazu. Nie wiemy, czy pojawił się już gdzie indziej."
+    "image_search_not_run": "Nie szukaliśmy wcześniejszych wystąpień tego obrazu. Nie wiemy, czy pojawił się już gdzie indziej.",
+    "audio_format_unsupported": "Przyjmujemy pliki: {formats}.",
+    "audio_too_long": "Sprawdzamy nagrania do {max_minutes} min."
   },
   "escalation": {
     "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown on HTTP 503 when „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case (no case_id, no case number). Backend will send it instead of escalation.recommended once meritum-backend picks up this key. updated has the same text as created and the frontend shows created in both states, so the citizen never learns that someone else asked the same (meritum-frontend#23).",
@@ -376,7 +399,7 @@
     "check_not_found": "Nie mamy zapisanego wyniku pod tym adresem. Zapis mógł zostać usunięty albo adres jest nieprawidłowy. To nie jest ocena treści. Wklej treść jeszcze raz i kliknij „Sprawdź”.",
     "rate_limited_handoff": "Za dużo zgłoszeń w krótkim czasie. Spróbuj za minutę.",
     "handoff_not_found": "Tego wyniku nie da się już przekazać, bo nie mamy go zapisanego. Sprawdź treść jeszcze raz.",
-    "handoff_rejected": "Nie udało się zapisać uzasadnienia. Skróć je do 4000 znaków i wyślij jeszcze raz."
+    "handoff_rejected": "Nie udało się wysłać. Spróbuj jeszcze raz albo odśwież wynik."
   },
   "ai_notice": {
     "$comment": "AI Act art. 50: shown at first contact in every channel. first_contact: above the web form field and in the extension popup; discord: first bot reply; sms: first SMS to a new number, must fit one UCS-2 SMS (70 characters); mcp: in every MCP tool result. The result card line is result.ai_disclosure.",
