@@ -4,8 +4,6 @@ import { cn } from "@/lib/utils"
 import { t } from "./copy"
 import { MeritumMark } from "./meritum-mark"
 
-const SR: Record<AnalysisStep["status"], string> = { pending: "czeka", active: "w toku", done: "gotowe", skipped: "pominięte", failed: "nieudane" }
-
 /**
  * Processing strip between "Sprawdź" and the result (DESIGN_SYSTEM.md 6.3). Drive it from `AnalysisStatus.steps`;
  * research steps run in parallel, so several circles may spin at once. `draft` marks a streamed answer
@@ -30,7 +28,7 @@ export function AnalysisSteps({ steps, draft = false, className }: { steps: Anal
           >
             <StepMark status={s.status} />
             {t.analysis.steps[s.code]}
-            <span className="sr-only">, {SR[s.status]}</span>
+            <span className="sr-only">, {t.analysis.step_status[s.status]}</span>
           </li>
         ))}
       </ol>

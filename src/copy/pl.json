@@ -111,18 +111,21 @@
     "claim_review_context": "Ocena fact-checkera {publisher}: „{rating}”. To kontekst, a nie podstawa naszej oceny.",
     "fact_check_unavailable": "Nie mogę teraz sprawdzić indeksu Google Fact Check z powodu błędu dostępu. To nie znaczy, że takiej oceny nie ma.",
     "no_result_hint": "Brak wyniku w naszych źródłach nie oznacza, że tak nie jest.",
+    "no_change_hint": "Brak wyniku w naszych źródłach nie oznacza, że zmiany nie było.",
     "announced_only": "Zapowiedziano to na {date}. Nie mamy informacji, czy się odbyło.",
     "image_date_hint": "Data widoczna na obrazie nie potwierdza sama w sobie rzeczywistej daty publikacji.",
     "match_basis": "Podstawa dopasowania: zgadzają się {fields}.",
     "different_quantities": "Te liczby mierzą co innego: {difference}. To nie są sprzeczne dane.",
     "incident_database": {
       "organiser": "incydentów organizatora",
-      "euvsdisinfo": "EUvsDisinfo (EEAS East StratCom Task Force)"
+      "euvsdisinfo": "EUvsDisinfo (EEAS East StratCom Task Force)",
+      "fact_check": "sprawdzonych publikacji fact-checkerów"
     },
     "euvsdisinfo_disclaimer": "Publikacje EUvsDisinfo nie są oficjalnym stanowiskiem UE. Wpis w bazie nie znaczy, że dany serwis jest powiązany z Kremlem.",
     "report_error": "Zgłoś błąd",
     "report_error_reason": "Co jest nie tak? (opcjonalnie)",
     "report_error_done": "Dziękujemy. Zgłoszenie trafiło do moderatorów (sprawa {case}). Odpowiedź przyjdzie jako powiadomienie.",
+    "escalate": "Przekaż moderatorom",
     "how_it_works": "Jak działa Meritum"
   },
   "verdict": {
@@ -138,6 +141,14 @@
     "misleading": "Dane mogą być prawdziwe, ale prowadzą do błędnego wniosku albo brakuje im kontekstu.",
     "insufficient_evidence": "Nie rozstrzygamy, bo nie mamy wystarczających źródeł.",
     "not_verifiable": "To opinia, przewidywanie albo ocena. Faktów nie da się tu sprawdzić."
+  },
+  "would_change_verdict": {
+    "$comment": "ClaimResult.would_change_verdict: list under result.what_would_change. Each line names a missing kind of evidence, never a fact (US-ZRD-11, core/026).",
+    "needs_primary_source": "Dokument urzędowy albo inne źródło pierwotne na ten temat.",
+    "needs_second_publisher": "Drugi niezależny wydawca, który podaje to samo.",
+    "needs_fresh_evidence": "Nowsze źródło z okresu, którego dotyczy twierdzenie.",
+    "needs_resolving_source": "Nowszy dokument urzędowy, który rozstrzygnie spór między źródłami.",
+    "needs_named_source": "Wypowiedź podpisana nazwiskiem albo nazwą instytucji, opublikowana w jej oficjalnym kanale."
   },
   "strength": {
     "strong": "Mocna",
@@ -156,6 +167,19 @@
     "out_of_scope_image": "Na razie nie sprawdzamy obrazów. Przepisz tekst z obrazka albo wklej link do źródła.",
     "out_of_scope_audio_format": "Tego formatu nagrania nie obsługujemy. Wyślij inny plik audio albo przepisz tekst.",
     "technical_failure_url": "Nie udało się otworzyć strony z linku: jest niedostępna albo wymaga logowania. To nie jest ocena treści. Wklej tekst."
+  },
+  "failure_code": {
+    "$comment": "CheckResult.failure_code, technical_failure only; status_hint.technical_failure stays for a result without a code. status_hint.technical_failure_url is kept for channels that read it. Never names a key or a provider.",
+    "provider_unavailable": "Usługa, z której korzystamy przy sprawdzaniu, nie odpowiada. To nie jest ocena treści. Spróbuj za kilka minut.",
+    "web_search_unavailable": "Nie udało się wyszukać świeżych publikacji, a bez nich nie damy odpowiedzi. To nie jest ocena treści. Spróbuj za kilka minut.",
+    "transcription_failed": "Nie udało się zamienić nagrania na tekst. To nie jest ocena treści. Wyślij nagranie jeszcze raz albo przepisz tekst.",
+    "url_unavailable": "Nie udało się otworzyć strony z linku: jest niedostępna albo wymaga logowania. To nie jest ocena treści. Wklej tekst.",
+    "not_ready": "Meritum jeszcze się uruchamia i nie przyjmuje sprawdzeń. To nie jest ocena treści. Spróbuj za kilka minut."
+  },
+  "limitation_code": {
+    "$comment": "CheckResult.limitation_codes and CachedResult.limitation_codes: listed under result.limitations. A limitation never changes the status. result.fact_check_unavailable is kept for channels that read it.",
+    "fact_check_unavailable": "Nie mogę teraz sprawdzić indeksu Google Fact Check z powodu błędu dostępu. To nie znaczy, że takiej oceny nie ma.",
+    "image_search_not_run": "Nie szukaliśmy wcześniejszych wystąpień tego obrazu. Nie wiemy, czy pojawił się już gdzie indziej."
   },
   "escalation": {
     "recommended": "Ta sprawa nadaje się do sprawdzenia przez moderatora. Nie została jeszcze przekazana.",
@@ -181,6 +205,13 @@
       "verify_citations": "Sprawdzamy, czy cytaty są dosłowne",
       "write_answer": "Piszemy odpowiedź prostym językiem",
       "save_record": "Zapisujemy przebieg sprawdzenia"
+    },
+    "step_status": {
+      "pending": "czeka",
+      "active": "w toku",
+      "done": "gotowe",
+      "skipped": "pominięte",
+      "failed": "nieudane"
     }
   },
   "techniques": {
@@ -227,6 +258,13 @@
   "source_tier": {
     "primary": "źródło urzędowe lub pierwotne",
     "secondary": "źródło wtórne"
+  },
+  "match_basis": {
+    "$comment": "IncidentMatch.match_basis: the words joined into {fields} of result.match_basis. A content match needs title, topic and date (jury scenario I).",
+    "title": "tytuł",
+    "topic": "temat",
+    "date": "data",
+    "domain": "domena"
   },
   "moderation": {
     "queue_title": "Sprawy do sprawdzenia",
@@ -351,7 +389,8 @@
       "moderator_answer": "Moderator odpowiedział na sprawę {case}.",
       "new_evidence": "Mamy nowy dowód do twojego wcześniejszego pytania.",
       "case_assigned": "Nowa albo zaktualizowana sprawa {case}.",
-      "system": "{message}"
+      "system": "{message}",
+      "eval_run_done": "Przebieg ewaluacji się zakończył. Zobacz wyniki."
     },
     "status": {
       "unread": "nieprzeczytane",
