@@ -20,5 +20,9 @@ afterEach(() => {
 })
 
 after(async () => {
+  // React queues the passive-effects flush of a commit made outside act() as a setImmediate
+  // that reads `window.event`; one more setImmediate runs after it, before the DOM goes
+  // (meritum-frontend#49).
+  await new Promise((resolve) => setImmediate(resolve))
   await GlobalRegistrator.unregister()
 })
