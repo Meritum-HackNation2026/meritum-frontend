@@ -1,24 +1,52 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { apiHandoff, apiProgressSource, apiResultReader } from '@/api'
-import { ResultPage } from '@/checks'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useCallback, useContext } from 'react'
+import {
+  apiAudioUploader,
+  apiCheckSender,
+  apiHandoff,
+  apiProgressSource,
+  apiResultReader,
+  apiSessionEraser,
+} from '@/api'
+import { CheckPage } from '@/checks'
+import { AiNotice } from '@/components/ai-notice'
+import { InboxContext } from '@/notifications'
 
 /**
- * Result page of one check at /sprawdzenie/{id}: the form goes here once the API accepts a
- * check, and the address can be opened again while the record is kept.
+ * Result address of one check at /sprawdzenie/{id}: the same conversation as the home page,
+ * with this check as the current turn; the message field goes here once the API accepts a
+ * check, and the address can be opened again while the record is kept. After „Usuń moje
+ * sprawdzenia” the page goes back home, since this check is deleted too.
  *
- * @feature US-SPR-01, US-SPR-04, F-01, F-17
+ * @feature US-SPR-01, US-SPR-04, US-SPR-09, US-BEZ-05, F-01, F-17, F-20
  */
 export const Route = createFileRoute('/sprawdzenie/$checkId')({ component: Result })
 
 function Result() {
   const { checkId } = Route.useParams()
+  const navigate = useNavigate()
+  const inbox = useContext(InboxContext)
+  const erased = useCallback(async () => {
+    await inbox?.clear()
+    await navigate({ to: '/' })
+  }, [inbox, navigate])
+  const open = useCallback(
+    (id: string) => navigate({ to: '/sprawdzenie/$checkId', params: { checkId: id } }),
+    [navigate],
+  )
   return (
-    <ResultPage
+    <CheckPage
       key={checkId}
-      checkId={checkId}
+      sender={apiCheckSender}
+      uploader={apiAudioUploader}
+      eraser={apiSessionEraser}
       reader={apiResultReader}
       progress={apiProgressSource}
       handoff={apiHandoff}
+      activeCheckId={checkId}
+      onAccepted={open}
+      onErased={erased}
+      notice={<AiNotice />}
     />
   )
 }

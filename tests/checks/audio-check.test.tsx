@@ -1,13 +1,20 @@
 /**
- * Checking a recording through the public API of `src/checks`: the audio field of the check
- * page, with a fake API behind `fetch` (POST /api/v1/audio, then POST /api/v1/checks).
+ * Checking a recording through the public API of `src/checks`: the microphone button of the
+ * message field, with a fake API behind `fetch` (POST /api/v1/audio, then POST /api/v1/checks).
  *
  * @feature US-SPR-11, F-08
  */
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { apiAudioUploader, apiCheckSender, apiSessionEraser } from '@/api'
+import {
+  apiAudioUploader,
+  apiCheckSender,
+  apiHandoff,
+  apiProgressSource,
+  apiResultReader,
+  apiSessionEraser,
+} from '@/api'
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
@@ -38,6 +45,9 @@ function renderPage(): string[] {
       sender={apiCheckSender}
       uploader={apiAudioUploader}
       eraser={apiSessionEraser}
+      reader={apiResultReader}
+      progress={apiProgressSource}
+      handoff={apiHandoff}
       onAccepted={onAccepted}
     />,
   )
@@ -45,32 +55,43 @@ function renderPage(): string[] {
 }
 
 function audioForm(): HTMLElement {
-  return screen.getByRole('form', { name: pl.form.audio_label })
+  return screen.getByRole('form', { name: pl.form.title })
+}
+
+function choose(file: File) {
+  fireEvent.change(screen.getByLabelText(pl.conversation.attach_audio), {
+    target: { files: [file] },
+  })
 }
 
 function chooseAndCheck(file: File) {
-  fireEvent.change(screen.getByLabelText(pl.form.audio_label, { selector: 'input' }), {
-    target: { files: [file] },
-  })
+  choose(file)
   fireEvent.click(within(audioForm()).getByRole('button', { name: pl.form.submit }))
 }
 
 const recording = () => new File(['ID3 nagranie'], 'wywiad.mp3', { type: 'audio/mpeg' })
 
-test('the audio field says who transcribes it, where, and the limits of a file', () => {
+test('a chosen recording says who transcribes it, where, the cost, retention and limits', () => {
   renderPage()
+  choose(recording())
   const text = audioForm().textContent ?? ''
   assert.ok(text.includes(pl.form.audio_note))
   assert.ok(text.includes(pl.form.audio_transcription_warning))
   assert.ok(text.includes('Plik do 20 MB i 10 min nagrania. Formaty: OGG, MP3, M4A, WAV.'))
-  assert.ok(text.includes('Google Speech-to-Text v2 (Chirp 3)'))
-  assert.ok(text.includes('multi-region eu'))
-  assert.ok(text.includes('Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia.'))
+  assert.ok(
+    text.includes('Transkrypcję robi Google Speech-to-Text v2 (Chirp 3) (GCP, multi-region eu).'),
+  )
+  assert.ok(text.includes(pl.form.audio_cost))
+  assert.ok(text.includes('najpóźniej po 30 dniach.'))
 })
 
-test('the audio form has no check button until a file is chosen', () => {
+test('a chosen recording takes the place of the text field until it is removed', () => {
   renderPage()
-  assert.equal(within(audioForm()).queryAllByRole('button').length, 0)
+  choose(recording())
+  assert.equal(screen.queryByLabelText(pl.form.input_label), null)
+  assert.ok(within(audioForm()).getByText('wywiad.mp3'))
+  fireEvent.click(screen.getByRole('button', { name: pl.conversation.remove_audio }))
+  assert.ok(screen.getByLabelText(pl.form.input_label))
 })
 
 test('a chosen recording goes to POST /api/v1/audio, then its id to POST /api/v1/checks', async (t) => {
@@ -153,7 +174,7 @@ test('the file cannot be changed while the recording is sent', async (t) => {
   t.mock.method(globalThis, 'fetch', () => new Promise<Response>((resolve) => (answer = resolve)))
   renderPage()
   chooseAndCheck(recording())
-  const input = screen.getByLabelText(pl.form.audio_label, { selector: 'input' })
+  const input = screen.getByLabelText(pl.conversation.attach_audio)
   await waitFor(() => assert.equal((input as HTMLInputElement).disabled, true))
   answer(new Response(JSON.stringify({ detail: 'x' }), { status: 500 }))
   await waitFor(() => assert.equal((input as HTMLInputElement).disabled, false))

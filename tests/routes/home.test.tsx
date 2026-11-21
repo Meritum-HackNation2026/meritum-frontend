@@ -1,7 +1,7 @@
 /**
- * The home page: the AI notice stands above the check form's field and nothing asks for a
- * sign-in (US-BEZ-07, AI Act art. 50); besides „Sprawdź” the only button deletes the session's
- * checks (US-BEZ-05).
+ * The home page: the AI notice stands above the message field and nothing asks for a
+ * sign-in (US-BEZ-07, AI Act art. 50); besides the example claims and „Sprawdź” the only
+ * button deletes the session's checks (US-BEZ-05).
  *
  * @feature US-SPR-01, US-BEZ-05, US-BEZ-07, F-20, F-21
  */
@@ -23,5 +23,6 @@ test('the AI notice stands above the field and no button asks for a sign-in', as
   const buttons = within(main)
     .queryAllByRole('button')
     .map((button) => button.textContent)
-  assert.deepEqual(buttons, [pl.form.submit, pl.form.delete_session])
+  const examples = pl.conversation.examples.map((claim) => `„${claim}”`)
+  assert.deepEqual(buttons, [...examples, pl.form.delete_session, pl.form.submit])
 })

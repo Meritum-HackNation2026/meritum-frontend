@@ -6,7 +6,14 @@
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { apiAudioUploader, apiCheckSender, apiSessionEraser } from '@/api'
+import {
+  apiAudioUploader,
+  apiCheckSender,
+  apiHandoff,
+  apiProgressSource,
+  apiResultReader,
+  apiSessionEraser,
+} from '@/api'
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
@@ -30,6 +37,9 @@ function renderPage(): string[] {
       sender={apiCheckSender}
       uploader={apiAudioUploader}
       eraser={apiSessionEraser}
+      reader={apiResultReader}
+      progress={apiProgressSource}
+      handoff={apiHandoff}
       onAccepted={onAccepted}
     />,
   )

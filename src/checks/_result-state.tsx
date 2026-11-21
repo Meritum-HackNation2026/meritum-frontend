@@ -53,7 +53,7 @@ export function ResultState({
       aria-label={t.result.label}
       className="min-w-0 rounded-lg border border-border bg-card text-card-foreground motion-safe:animate-rise"
     >
-      <header className="flex items-center px-3.5 pt-3">
+      <header className="flex items-center px-3.5 pt-3 in-data-reply:hidden">
         <MeritumLabel />
       </header>
       <div className="flex items-start gap-2.5 px-3.5 pt-2.5 pb-3.5">

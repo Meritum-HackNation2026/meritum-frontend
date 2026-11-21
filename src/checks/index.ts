@@ -1,5 +1,5 @@
 export { CheckPage } from './_check-page'
-export { findSavedCheck, forgetChecks, saveCheck, savedChecks } from './_history'
+export { findSavedCheck, forgetChecks, rememberQuestion, saveCheck, savedChecks } from './_history'
 export { validateCheck } from './_request'
 export { ResultPage } from './_result-page'
 export { MAX_TEXT_CHARS, MAX_URL_CHARS, MIN_TEXT_CHARS } from './constants'

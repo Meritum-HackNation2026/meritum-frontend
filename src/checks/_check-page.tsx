@@ -1,73 +1,55 @@
-import { useCallback, useState } from 'react'
-import { CheckForm, t } from '@/components/meritum'
+import { type ReactNode, useCallback, useState } from 'react'
+import { Composer, fill, t, Welcome } from '@/components/meritum'
 import type { CheckRequest } from '@/contracts/meritum'
-import { AudioCheck } from './_audio-check'
+import type { Handoff } from '@/moderation'
+import {
+  RecordingAttachment,
+  RecordingButton,
+  RecordingRefusal,
+  useRecording,
+} from './_audio-check'
 import { DeleteChecksDialog } from './_delete-checks'
-import { forgetChecks, savedChecks } from './_history'
+import { forgetChecks, rememberQuestion } from './_history'
 import { type ErrorKey, validateCheck } from './_request'
-import { SessionHistory } from './_session-history'
+import { conversationTurns, Thread } from './_thread'
 import { RETENTION_DAYS } from './constants'
-import type { AudioUploader, CheckSender, SendOutcome, SessionEraser } from './ports'
+import type {
+  AudioUploader,
+  CheckSender,
+  ProgressSource,
+  ResultReader,
+  SendOutcome,
+  SessionEraser,
+} from './ports'
 
-/** This tab's history and „Usuń moje sprawdzenia”: the confirmation, the deletion, its outcome. */
-function useSessionHistory(eraser: SessionEraser, onErased: () => Promise<void> | void) {
+/** „Usuń moje sprawdzenia”: the confirmation, the deletion and its outcome; `onEmptied` clears the thread. */
+function useErase(
+  eraser: SessionEraser,
+  onErased: () => Promise<void> | void,
+  onEmptied: () => void,
+) {
   const [confirming, setConfirming] = useState(false)
   const [erased, setErased] = useState<boolean | null>(null)
-  const [items, setItems] = useState(savedChecks)
   const erase = useCallback(async () => {
     setErased(null)
     const ok = await eraser.erase()
     // the local copies go only once the server deleted its records, so a failure can be retried
     if (ok) {
       forgetChecks()
-      setItems([])
+      onEmptied()
       await onErased()
     }
     setErased(ok)
-  }, [eraser, onErased])
+  }, [eraser, onErased, onEmptied])
   const ask = useCallback(() => setConfirming(true), [])
-  return { confirming, setConfirming, ask, erased, items, erase }
+  return { confirming, setConfirming, ask, erased, erase }
 }
 
-/**
- * The web check form (ADR-08): the design-system `CheckForm`, without sign-in. The request is
- * checked with zod (`validateCheck`) before it is sent. API errors,
- * rate limit included, show under the field as a message, never as a verdict; an accepted
- * check is handed on by its id, to open its result page. Below the form, this tab's checks
- * (sessionStorage) open their results; „Usuń moje sprawdzenia” next to the 30-day retention
- * line asks first, then deletes the session's records on the server, the tab's history and,
- * through `onErased`, its notifications. Under the form, „Albo nagranie” takes a recording
- * instead (`AudioCheck`).
- *
- * @param props.sender - Sends the request to the API (the `src/api` adapter in the app).
- * @param props.uploader - Uploads a recording to the API (the `src/api` adapter in the app).
- * @param props.eraser - Deletes the session's records (the `src/api` adapter in the app).
- * @param props.onAccepted - Called with the id of an accepted check or one picked in the list.
- * @param props.onErased - Called after the server deleted the records; empties the inbox.
- * @returns The check page.
- * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, F-01, F-08, F-20, F-21
- */
-export function CheckPage({
-  sender,
-  uploader,
-  eraser,
-  onAccepted,
-  onErased = () => undefined,
-}: {
-  sender: CheckSender
-  uploader: AudioUploader
-  eraser: SessionEraser
-  onAccepted: (checkId: string) => void
-  onErased?: () => Promise<void> | void
-}) {
+/** Sends a typed or picked request: zod first, then the API; an accepted check is handed on. */
+function useSend(sender: CheckSender, onAccepted: (checkId: string, question: string) => void) {
   const [sending, setSending] = useState(false)
   const [outcome, setOutcome] = useState<SendOutcome | ErrorKey | null>(null)
-  const { confirming, setConfirming, ask, erased, items, erase } = useSessionHistory(
-    eraser,
-    onErased,
-  )
-
-  const submit = useCallback(
+  const send = useCallback(
     async (form: CheckRequest) => {
       const request = validateCheck(form)
       if (typeof request === 'string') {
@@ -80,7 +62,7 @@ export function CheckPage({
         const next = await sender.send(request)
         setOutcome(next)
         if (typeof next === 'object') {
-          onAccepted(next.checkId)
+          onAccepted(next.checkId, request.text ?? request.url ?? '')
         }
       } finally {
         setSending(false)
@@ -88,25 +70,123 @@ export function CheckPage({
     },
     [sender, onAccepted],
   )
+  return { sending, refusal: typeof outcome === 'string' ? outcome : null, send }
+}
 
-  const isRefused = typeof outcome === 'string'
+type CheckPageProps = {
+  sender: CheckSender
+  uploader: AudioUploader
+  eraser: SessionEraser
+  reader: ResultReader
+  progress: ProgressSource
+  handoff: Handoff
+  onAccepted: (checkId: string) => void
+  onErased?: () => Promise<void> | void
+  activeCheckId?: string
+  notice?: ReactNode
+}
+
+/**
+ * The web channel as one conversation (ADR-08, DESIGN_SYSTEM.md 6.8), without sign-in: this
+ * tab's checks as question–answer turns (`Thread`), or on an empty tab a welcome with example
+ * claims; under them `notice` (the AI notice), the privacy line with „Usuń moje sprawdzenia”
+ * (asks first, then deletes the session's records on the server, the tab's history and, through
+ * `onErased`, its notifications); at the bottom the docked message field. A typed text or link
+ * is checked with zod (`validateCheck`) before it is sent; a clicked example is sent the same
+ * way. API errors, rate limit included, show under the field, never as a verdict. A recording
+ * attaches through the microphone button. An accepted check keeps its question for the thread
+ * and is handed on by its id, to open its result address.
+ *
+ * @param props.sender - Sends the request to the API (the `src/api` adapter in the app).
+ * @param props.uploader - Uploads a recording to the API (the `src/api` adapter in the app).
+ * @param props.eraser - Deletes the session's records (the `src/api` adapter in the app).
+ * @param props.reader - Reads a check from the API (the `src/api` adapter in the app).
+ * @param props.progress - Streams a check's steps (the `src/api` SSE adapter in the app).
+ * @param props.handoff - Hands claims to the moderators (the `src/api` adapter in the app).
+ * @param props.onAccepted - Called with the id of an accepted check.
+ * @param props.onErased - Called after the server deleted the records; empties the inbox.
+ * @param props.activeCheckId - The check of the result address, shown as the current turn.
+ * @param props.notice - The AI notice, above the field.
+ * @returns The conversation page.
+ * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, F-01, F-08, F-20, F-21
+ */
+export function CheckPage({
+  sender,
+  uploader,
+  eraser,
+  reader,
+  progress,
+  handoff,
+  onAccepted,
+  onErased = () => undefined,
+  activeCheckId,
+  notice,
+}: CheckPageProps) {
+  const [turns, setTurns] = useState(() => conversationTurns(activeCheckId))
+  const [value, setValue] = useState('')
+  const empty = useCallback(() => setTurns([]), [])
+  const { confirming, setConfirming, ask, erased, erase } = useErase(eraser, onErased, empty)
+  const accept = useCallback(
+    (checkId: string, question: string) => {
+      rememberQuestion(checkId, question)
+      onAccepted(checkId)
+    },
+    [onAccepted],
+  )
+  const { sending, refusal, send } = useSend(sender, accept)
+  const recording = useRecording(uploader, sender, accept)
+  const pick = useCallback((claim: string) => send({ channel: 'web', text: claim }), [send])
+  const busy = sending || recording.pending
+
   return (
-    <div className="grid min-w-0 gap-8">
-      <div className="grid gap-2">
-        <CheckForm
-          onSubmit={submit}
-          pending={sending}
-          serverError={isRefused ? outcome : null}
-          retentionDays={RETENTION_DAYS}
-          onDeleteChecks={ask}
+    <div className="grid min-w-0 gap-10">
+      <h1 className="sr-only">{t.form.title}</h1>
+      {turns.length === 0 ? (
+        <Welcome onPick={pick} disabled={busy}>
+          {notice}
+        </Welcome>
+      ) : (
+        <Thread
+          turns={turns}
+          activeCheckId={activeCheckId}
+          reader={reader}
+          progress={progress}
+          handoff={handoff}
         />
-        <p role="status" className="text-small text-pretty empty:hidden">
+      )}
+      <div className="grid gap-1.5 text-small text-muted-foreground text-pretty">
+        {turns.length > 0 && notice}
+        <p>
+          {fill(t.form.privacy, { days: RETENTION_DAYS })}{' '}
+          <button
+            type="button"
+            onClick={ask}
+            className="py-3 text-foreground underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {t.form.delete_session}
+          </button>
+        </p>
+        <p className="text-meta">{t.history.session_note}</p>
+        <p role="status" className="text-foreground empty:hidden">
           {erased !== null &&
             (erased ? t.channel_privacy.deleted : t.extension.popup_delete_failed)}
         </p>
       </div>
-      <AudioCheck uploader={uploader} sender={sender} onAccepted={onAccepted} />
-      <SessionHistory items={items} onOpen={onAccepted} />
+      <div className="sticky bottom-0 z-10 -mx-4 grid bg-background px-4 pt-2 pb-4">
+        <div aria-live="polite" className="min-w-0 *:mb-3">
+          <RecordingRefusal recording={recording} />
+        </div>
+        <Composer
+          value={value}
+          onValueChange={setValue}
+          onSubmit={send}
+          pending={busy}
+          serverError={refusal}
+          tools={<RecordingButton recording={recording} />}
+          attachment={recording.file ? <RecordingAttachment recording={recording} /> : undefined}
+          onSendAttachment={recording.send}
+        />
+      </div>
       <DeleteChecksDialog open={confirming} onOpenChange={setConfirming} onConfirm={erase} />
     </div>
   )

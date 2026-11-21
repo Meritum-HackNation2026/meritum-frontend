@@ -81,11 +81,12 @@ export const MAX_READS = 120
 export const HISTORY_STORAGE_KEY = 'meritum.history'
 
 /**
- * Locale of the times in the history list under the form.
+ * sessionStorage key of the questions this tab sent, in the order sent, so the conversation can
+ * show the citizen's own words above each answer; it lives as long as the history.
  *
- * @feature US-SPR-09, F-01
+ * @feature US-SPR-01, US-SPR-09, F-01
  */
-export const LOCALE = 'pl-PL'
+export const QUESTIONS_STORAGE_KEY = 'meritum.questions'
 
 /**
  * The four statuses of `CheckResult` in the contract; `tsc` fails when the contract adds or drops
@@ -140,17 +141,9 @@ export const AUDIO_FORMATS = ['OGG', 'MP3', 'M4A', 'WAV'] as const
 export const AUDIO_ACCEPT = 'audio/*,.ogg,.opus,.mp3,.m4a,.wav'
 
 /**
- * Id of the transcription service in the processor register of copy/privacy.json; the audio
- * field names it with its region until copy has `form.audio_provider` (meritum-design-system#69).
+ * Id of the transcription service in the processor register of copy/privacy.json; the
+ * recording's notes fill `form.audio_provider` with its name and region.
  *
  * @feature US-SPR-11, F-08
  */
 export const TRANSCRIBER_ID = 'speech_to_text'
-
-/**
- * Word that picks the sentence about the recording file out of the web policy's retention text,
- * until copy has `form.audio_retention` (meritum-design-system#69).
- *
- * @feature US-SPR-11, F-08
- */
-export const RETENTION_SENTENCE_MARKER = 'nagrania'
