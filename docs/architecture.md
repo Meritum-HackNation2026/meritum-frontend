@@ -25,7 +25,7 @@ Wąsko i z powodem: `// biome-ignore lint/<grupa>/<reguła>: <powód>` w linii, 
 
 Obecne wyjątki:
 
-- `src/routeTree.gen.ts` (generowany), `src/components/ui/` (shadcn), `src/styles/meritum.css` i `src/components/meritum/` (kopie z design-systemu: JSDoc z `@feature` trzeba dodać tam) są poza testami architektury i knipem;
+- `src/routeTree.gen.ts` (generowany), `src/components/ui/` (shadcn), `src/styles/meritum.css`, `src/components/meritum/`, `src/contracts/` i `src/copy/` (kopie z `pnpm sync`: JSDoc z `@feature` trzeba dodać w design systemie) są poza testami architektury, Biome i knipem (`src/copy/` to sam JSON, knip go nie czyta); dependency-cruiser traktuje `src/contracts/` i `src/copy/` jak wspólne foldery (`notDomains`), nie domeny;
 - `src/api/` to klient HTTP backendu, czyli adapter: może używać TanStack Query;
 - `performance/noBarrelFile` jest wyłączone dla `src/lib/utils.ts` (alias `cn` z shadcn) i `src/*/index.ts` (publiczne API domeny);
 - knip pomija zależności komponentów shadcn (`class-variance-authority`, `lucide-react`, `radix-ui`) i `@swc/core` (parser dependency-cruisera); `pnpm-workspace.yaml` nie pozwala `@swc/core` ani `esbuild` (używa go `tsx` w `pnpm test`) uruchamiać skryptu instalacyjnego (binarki przychodzą z pakietów platformy).

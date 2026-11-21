@@ -80,7 +80,7 @@ pnpm sync <ref> [<core-ref>]    # inna gałąź, tag albo commit
 pnpm build                      # tsc pokaże miejsca do dostosowania po nowej wersji kontraktu
 ```
 
-`scripts/sync.sh` potrzebuje `gh` z dostępem do obu repozytoriów. Zapisuje `SOURCE` (commity źródłowe) i `SHA256SUMS`. `pnpm test` (`tests/synced-copies.test.ts`) sprawdza sumy bez sieci, więc CI odrzuca ręczną zmianę kopii albo dodany do tych katalogów plik i podaje jego nazwę. Biome, knip, dependency-cruiser i testy architektury pomijają kopie. Dopóki meritum-core nie ma `catalog/catalog.json` (meritum-core#22), skrypt pomija ten plik z ostrzeżeniem.
+`scripts/sync.sh` potrzebuje `gh` z dostępem do obu repozytoriów. Najpierw pobiera wszystko do katalogu tymczasowego, więc nieudane wywołanie `gh` kończy skrypt błędem i zostawia kopie bez zmian. Zapisuje `SOURCE` (commity źródłowe) i `SHA256SUMS`. `pnpm test` (`tests/synced-copies.test.ts`) sprawdza sumy bez sieci, więc CI odrzuca ręczną zmianę albo usunięcie kopii i plik dodany do tych katalogów, podając jego nazwę; `tests/sync-script.test.ts` uruchamia skrypt na udawanym `gh`. Biome, knip i testy architektury pomijają kopie, a dependency-cruiser traktuje `src/contracts/` i `src/copy/` jak wspólne foldery, nie domeny. Dopóki meritum-core nie ma `catalog/catalog.json` (meritum-core#22), skrypt pomija ten plik z ostrzeżeniem.
 
 ## CI/CD
 

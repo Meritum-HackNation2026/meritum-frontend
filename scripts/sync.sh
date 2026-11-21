@@ -14,7 +14,13 @@ ds=$org/meritum-design-system
 core=$org/meritum-core
 ds_ref=$(gh api "repos/$ds/commits/${1:-main}" --jq .sha)
 core_ref=$(gh api "repos/$core/commits/${2:-main}" --jq .sha)
-fetch() { gh api -H 'Accept: application/vnd.github.raw' "repos/$1/contents/${2// /%20}?ref=$3"; }
+# Downloads go to a staging folder first, so a failed call leaves the copies untouched.
+stage=$(mktemp -d)
+trap 'rm -rf "$stage"' EXIT
+fetch() {
+  mkdir -p "$stage/$(dirname "$4")"
+  gh api -H 'Accept: application/vnd.github.raw' "repos/$1/contents/${2// /%20}?ref=$3" >"$stage/$4"
+}
 # sha256sum on Linux, shasum on older macOS; same output format.
 sums() { if command -v sha256sum >/dev/null; then sha256sum "$@"; else shasum -a 256 "$@"; fi; }
 
@@ -24,31 +30,37 @@ from=(contracts/meritum.ts contracts/meritum.schema.json contracts/examples.json
   tokens/meritum.css)
 to=(src/contracts/meritum.ts src/contracts/meritum.schema.json src/contracts/examples.json
   src/copy/pl.json src/styles/meritum.css)
+# A plain assignment, not a process substitution, so set -e stops on a failed call.
+names=$(gh api "repos/$ds/contents/components/meritum?ref=$ds_ref" \
+  --jq '.[] | select(.type == "file") | .name')
+[ -n "$names" ] || { echo "error: $ds@$ds_ref lists no components/meritum files" >&2; exit 1; }
 while IFS= read -r name; do
   from+=("components/meritum/$name")
   to+=("src/components/meritum/$name")
-done < <(gh api "repos/$ds/contents/components/meritum?ref=$ds_ref" \
-  --jq '.[] | select(.type == "file") | .name')
+done <<<"$names"
 
-rm -rf src/contracts src/copy src/components/meritum
-mkdir -p src/contracts src/copy src/components/meritum src/styles
 for i in "${!from[@]}"; do
-  fetch "$ds" "${from[$i]}" "$ds_ref" >"${to[$i]}"
+  fetch "$ds" "${from[$i]}" "$ds_ref" "${to[$i]}"
 done
 copies=("${to[@]}")
-source="meritum-design-system $ds_ref"
+sources="meritum-design-system $ds_ref"
 
-# shortcut: core has no catalog/catalog.json until meritum-core#22 lands, so the copy
-# is skipped with a warning; make it mandatory once the file exists.
-if fetch "$core" catalog/catalog.json "$core_ref" >src/contracts/catalog.json 2>/dev/null; then
+# shortcut: core has no catalog/catalog.json until meritum-core#22 lands, so a 404 skips
+# the copy with a warning; make it mandatory once the file exists.
+if err=$(fetch "$core" catalog/catalog.json "$core_ref" src/contracts/catalog.json 2>&1); then
   copies+=(src/contracts/catalog.json)
-  source+=$'\n'"meritum-core $core_ref"
-else
-  rm -f src/contracts/catalog.json
+  sources+=$'\n'"meritum-core $core_ref"
+elif [[ $err == *"HTTP 404"* ]]; then
+  rm "$stage/src/contracts/catalog.json"
   echo "warning: $core@${core_ref:0:12} has no catalog/catalog.json yet, skipped" >&2
+else
+  echo "$err" >&2
+  exit 1
 fi
 
-printf '%s\n' "$source" >SOURCE
+rm -rf src/contracts src/copy src/components/meritum src/styles/meritum.css
+cp -R "$stage/src/." src/
+printf '%s\n' "$sources" >SOURCE
 sorted=()
 while IFS= read -r -d '' f; do sorted+=("$f"); done < <(printf '%s\0' "${copies[@]}" | LC_ALL=C sort -z)
 sums "${sorted[@]}" >SHA256SUMS

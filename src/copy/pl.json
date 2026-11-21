@@ -57,10 +57,14 @@
     "deleted": "Usunęliśmy zapisy twoich sprawdzeń."
   },
   "extension": {
+    "$comment": "popup_* show the popup's connection to the Meritum server; {api} is its address or version (design-system#16).",
     "check": "Sprawdź",
     "checked": "Sprawdzono",
     "popup_title": "Sprawdź tekst albo link",
-    "page_hint": "Wysyłamy treść posta dopiero po kliknięciu „Sprawdź”."
+    "page_hint": "Wysyłamy treść posta dopiero po kliknięciu „Sprawdź”.",
+    "popup_connecting": "Łączymy z serwerem Meritum…",
+    "popup_api_ok": "Połączono z serwerem Meritum ({api}).",
+    "popup_api_down": "Serwer Meritum nie odpowiada. Spróbuj za kilka minut."
   },
   "result": {
     "label": "Meritum",

@@ -6,14 +6,14 @@
  */
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
 const sumLine = /^([0-9a-f]{64}) {2}(.+)$/
 const sourceLine = /^meritum-(design-system|core) [0-9a-f]{40}$/
 const fix = 'run pnpm sync instead of editing it'
 // Folders that hold only synced files; anything else added there is a hand edit.
-const syncedDirs = ['src/contracts/', 'src/copy/', 'src/components/meritum/']
+const syncedDirs = ['src/contracts/', 'src/copy/', 'src/components/meritum/', 'src/styles/']
 
 const sums = readFileSync('SHA256SUMS', 'utf8')
   .trim()
@@ -26,6 +26,9 @@ const sums = readFileSync('SHA256SUMS', 'utf8')
 
 test('every synced copy matches its SHA256SUMS line', () => {
   const changed = sums.flatMap(({ sum, file }) => {
+    if (!existsSync(file)) {
+      return [`${file}: missing; ${fix}`]
+    }
     const actual = createHash('sha256').update(readFileSync(file)).digest('hex')
     return actual === sum ? [] : [`${file}: ${fix}`]
   })

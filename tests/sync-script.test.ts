@@ -1,59 +1,98 @@
 /**
  * scripts/sync.sh run offline against a fake `gh`: it keeps file names with spaces
- * whole and writes SOURCE and SHA256SUMS for every copy.
+ * whole, copies the core catalogue once it exists, and leaves the copies untouched
+ * when a call fails.
  *
  * @feature F-30, ADR-33
  */
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import {
   chmodSync,
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 
 const sha = 'a'.repeat(40)
-// Answers the three gh calls of sync.sh; core has no catalog yet (404).
+const sumLine = /^[0-9a-f]{64} {2}(.+)$/
+const ds = 'repos/Meritum-HackNation2026/meritum-design-system/contents'
+// Answers the gh calls of sync.sh; FAKE_CATALOG (ok | 404 | 500) and FAKE_LIST (fail)
+// pick the outcome of the catalogue download and the component listing.
 const fakeGh = `#!/usr/bin/env bash
 case "$*" in
   *commits/*) echo ${sha} ;;
-  *"--jq .[] | select"*) printf 'index.ts\\nwith space.tsx\\n' ;;
-  *catalog/catalog.json*) exit 1 ;;
+  *"components/meritum?ref="*)
+    [ "\${FAKE_LIST:-}" = fail ] && { echo 'gh: HTTP 401' >&2; exit 1; }
+    printf 'index.ts\\nwith space.tsx\\n' ;;
+  *catalog/catalog.json*)
+    [ "\${FAKE_CATALOG:-404}" = ok ] && { echo '{}'; exit 0; }
+    echo "gh: Not Found (HTTP \${FAKE_CATALOG:-404})" >&2; exit 1 ;;
   *) printf 'copy of %s\\n' "\${@: -1}" ;;
 esac
 `
+const dirs: string[] = []
+after(() => {
+  for (const dir of dirs) {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
 
-function runSync(): string {
+function runSync(env: Record<string, string> = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'meritum-sync-'))
+  dirs.push(dir)
   mkdirSync(join(dir, 'scripts'))
   mkdirSync(join(dir, 'bin'))
+  mkdirSync(join(dir, 'src/copy'), { recursive: true })
+  writeFileSync(join(dir, 'src/copy/pl.json'), 'old\n')
   copyFileSync('scripts/sync.sh', join(dir, 'scripts/sync.sh'))
   writeFileSync(join(dir, 'bin/gh'), fakeGh)
   chmodSync(join(dir, 'bin/gh'), 0o755)
-  const env = { ...process.env, PATH: `${join(dir, 'bin')}:${process.env['PATH']}` }
-  execFileSync('bash', [join(dir, 'scripts/sync.sh')], { env, stdio: 'pipe' })
-  return dir
+  const path = `${join(dir, 'bin')}:${process.env['PATH']}`
+  const run = spawnSync('bash', [join(dir, 'scripts/sync.sh')], {
+    env: { ...process.env, ...env, PATH: path },
+  })
+  const read = (file: string) => readFileSync(join(dir, file), 'utf8')
+  const summed = () =>
+    read('SHA256SUMS')
+      .trim()
+      .split('\n')
+      .map((line) => sumLine.exec(line)?.[1])
+  return { status: run.status, read, summed, has: (file: string) => existsSync(join(dir, file)) }
 }
 
 test('pnpm sync keeps names with spaces whole and sums every copy', () => {
-  const dir = runSync()
-  const sums = readFileSync(join(dir, 'SHA256SUMS'), 'utf8')
-  const files = sums
-    .trim()
-    .split('\n')
-    .map((line) => line.slice(66))
-  assert.ok(files.includes('src/components/meritum/with space.tsx'))
-  assert.ok(files.includes('src/copy/pl.json'))
-  assert.equal(files.length, 7)
+  const sync = runSync()
+  assert.equal(sync.status, 0)
+  assert.ok(sync.summed().includes('src/components/meritum/with space.tsx'))
   assert.equal(
-    readFileSync(join(dir, 'src/components/meritum/with space.tsx'), 'utf8'),
-    `copy of repos/Meritum-HackNation2026/meritum-design-system/contents/components/meritum/with%20space.tsx?ref=${sha}\n`,
+    sync.read('src/components/meritum/with space.tsx'),
+    `copy of ${ds}/components/meritum/with%20space.tsx?ref=${sha}\n`,
   )
-  assert.equal(readFileSync(join(dir, 'SOURCE'), 'utf8'), `meritum-design-system ${sha}\n`)
+  assert.equal(sync.read('src/copy/pl.json'), `copy of ${ds}/copy/pl.json?ref=${sha}\n`)
+  assert.equal(sync.read('SOURCE'), `meritum-design-system ${sha}\n`)
+  assert.equal(sync.has('src/contracts/catalog.json'), false)
+})
+
+test('pnpm sync copies the core catalogue once it exists and names the core commit', () => {
+  const sync = runSync({ FAKE_CATALOG: 'ok' })
+  assert.equal(sync.status, 0)
+  assert.ok(sync.summed().includes('src/contracts/catalog.json'))
+  assert.equal(sync.read('SOURCE'), `meritum-design-system ${sha}\nmeritum-core ${sha}\n`)
+})
+
+test('a failed gh call stops pnpm sync and leaves the copies untouched', () => {
+  for (const env of [{ FAKE_LIST: 'fail' }, { FAKE_CATALOG: '500' }]) {
+    const sync = runSync(env)
+    assert.notEqual(sync.status, 0)
+    assert.equal(sync.read('src/copy/pl.json'), 'old\n')
+    assert.equal(sync.has('SHA256SUMS'), false)
+  }
 })
