@@ -12,11 +12,13 @@ const parse = (data: string): unknown => {
 
 /** Drops an event addressed to another session; the server checks this too. */
 const isForOtherSession = (value: unknown): boolean => {
-  const session = (value as { session_id?: unknown } | null)?.session_id
-  return typeof session === 'string' && session !== sessionId()
+  if (typeof value !== 'object' || value === null || !('session_id' in value)) {
+    return false
+  }
+  return typeof value.session_id === 'string' && value.session_id !== sessionId()
 }
 
-const send = async (path: string, method: string): Promise<Response | null> => {
+const send = async (path: string, method: 'GET' | 'POST' | 'DELETE'): Promise<Response | null> => {
   try {
     return await fetch(`${NOTIFICATIONS_ENDPOINT}${path}`, {
       method,

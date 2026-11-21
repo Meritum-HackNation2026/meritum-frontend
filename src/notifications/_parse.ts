@@ -7,6 +7,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isInAppPath = (link: unknown): boolean => typeof link === 'string' && IN_APP_PATH.test(link)
 
+const isDate = (value: unknown): boolean =>
+  typeof value === 'string' && !Number.isNaN(Date.parse(value))
+
 const isOptionalId = (value: unknown): boolean =>
   value === undefined || value === null || typeof value === 'string'
 
@@ -27,7 +30,7 @@ export function parseNotification(value: unknown): Notification | null {
   const { id, kind, status, link, created_at: createdAt, retention_until: retentionUntil } = value
   const isKnownKind = NOTIFICATION_KINDS.some((known) => known === kind)
   const isKnownStatus = status === undefined || status === 'unread' || status === 'read'
-  const hasDates = typeof createdAt === 'string' && typeof retentionUntil === 'string'
+  const hasDates = isDate(createdAt) && isDate(retentionUntil)
   const hasIds = typeof id === 'string' && optionalIds.every((key) => isOptionalId(value[key]))
   if (!(hasIds && isKnownKind && isKnownStatus && hasDates && isInAppPath(link))) {
     return null

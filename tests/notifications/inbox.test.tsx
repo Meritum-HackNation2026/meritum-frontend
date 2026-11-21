@@ -84,6 +84,8 @@ test('an unknown kind, a malformed event and an off-site link are ignored', () =
   push({ ...checkDone, id: 'n_08', link: 'javascript:alert(1)' })
   push({ ...checkDone, id: 'n_09', case_id: { evil: true } })
   push({ ...checkDone, id: 'n_10', status: 'archived' })
+  push({ ...checkDone, id: 'n_12', created_at: 'wczoraj' })
+  push({ ...checkDone, id: 'n_13', retention_until: '' })
   assert.deepEqual(announced, [])
   assert.equal(inbox.items().length, 0)
 })
