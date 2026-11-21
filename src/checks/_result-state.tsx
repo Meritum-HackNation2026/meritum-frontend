@@ -6,14 +6,14 @@ import type { CheckResult } from '@/contracts/meritum'
 type NonVerdictStatus = Exclude<CheckResult['status'], 'done'>
 
 /**
- * The line under the state title: the text of the v4 failure code when the API sent one,
- * otherwise the status hint. Never the API `message` (meritum-worker#68).
+ * The line under the state title: the text of the v4 failure code when the API sent one the
+ * copy knows, otherwise the status hint. Never the API `message` (meritum-worker#68).
  */
 function stateLine(status: NonVerdictStatus, failureCode: CheckResult['failure_code']): string {
-  if (status === 'technical_failure' && failureCode) {
-    return t.failure_code[failureCode]
-  }
-  return t.status_hint[status]
+  // a code newer than the synced copy has no text; the hint still says it is not a rating
+  const codeText =
+    status === 'technical_failure' && failureCode ? t.failure_code[failureCode] : undefined
+  return codeText ?? t.status_hint[status]
 }
 
 /**
@@ -42,7 +42,11 @@ export function ResultState({
         <MeritumLabel />
       </header>
       <div className="flex items-start gap-2.5 px-3.5 pt-2.5 pb-3.5">
-        <CircleAlert aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted-foreground" />
+        <CircleAlert
+          aria-hidden="true"
+          strokeWidth={1.5}
+          className="mt-1 size-4 shrink-0 text-muted-foreground"
+        />
         <div className="min-w-0">
           <h2 className="text-body font-bold">{t.status[status]}</h2>
           <p className="text-body text-pretty">{stateLine(status, failureCode)}</p>

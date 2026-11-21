@@ -28,7 +28,10 @@ function renderResult(result: CheckResult) {
   render(<ResultPage checkId={result.check_id} reader={reader} progress={idle} />)
 }
 
-function nonVerdict(status: CheckResult['status'], extra: Partial<CheckResult> = {}): CheckResult {
+function nonVerdict(
+  status: Exclude<CheckResult['status'], 'done'>,
+  extra: Partial<CheckResult> = {},
+): CheckResult {
   return { check_id: 'c_09', status, corpus_version: '1', message: leakedCopyKey, ...extra }
 }
 
@@ -57,7 +60,7 @@ test('a technical failure without a code shows the general failure line', async 
   assertNoVerdict()
 })
 
-test('out of scope says what we check instead, not a verdict', async () => {
+test('out of scope shows the general out-of-scope line, not a verdict', async () => {
   renderResult(nonVerdict('out_of_scope', { message: 'Obrazów nie obsługujemy.' }))
   assert.ok(await screen.findByText(pl.status.out_of_scope))
   assert.ok(screen.getByText(pl.status_hint.out_of_scope))
@@ -65,7 +68,7 @@ test('out of scope says what we check instead, not a verdict', async () => {
   assertNoVerdict()
 })
 
-test('"czy to prawda?" asks to write the claim to check', async () => {
+test('needs clarification asks to write the claim to check, never the message', async () => {
   renderResult(nonVerdict('needs_clarification', { message: 'czy to prawda?' }))
   assert.ok(await screen.findByText(pl.status.needs_clarification))
   assert.ok(screen.getByText(pl.status_hint.needs_clarification))
@@ -87,4 +90,12 @@ test('a done result with a verdict and an opinion shows two claims', async () =>
   assert.ok(screen.getByText(pl.verdict[claim.verdict]))
   assert.ok(screen.getByText(pl.verdict.not_verifiable))
   assert.equal(screen.queryByText(pl.status.technical_failure), null)
+})
+
+test('a failure code the copy does not know yet falls back to the general failure line', async () => {
+  const unknownCode = 'quota_exceeded' as NonNullable<CheckResult['failure_code']>
+  renderResult(nonVerdict('technical_failure', { failure_code: unknownCode }))
+  assert.ok(await screen.findByText(pl.status.technical_failure))
+  assert.ok(screen.getByText(pl.status_hint.technical_failure))
+  assertNoVerdict()
 })
