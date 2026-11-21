@@ -1,7 +1,11 @@
 // Dead code and unused dependencies (docs/architecture.md). Run: pnpm knip
 {
   "$schema": "./node_modules/knip/schema-jsonc.json",
-  "entry": ["tests/**/*.test.{ts,tsx}"],
+  "entry": [
+    "tests/**/*.test.{ts,tsx}",
+    // Run only as a child process by tests/setup-dom.test.ts.
+    "tests/fixtures/*.fixture.tsx"
+  ],
   // Copies owned by other tools or repos: shadcn components and the pnpm sync copies
   // (design-system components and contracts).
   // knip may hint that src/components/meritum/** has no issues (tests import it); keep it ignored.
