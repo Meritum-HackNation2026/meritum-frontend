@@ -3,6 +3,7 @@
   "$schema": "./node_modules/knip/schema-jsonc.json",
   "entry": ["tests/**/*.test.{ts,tsx}"],
   // Copies owned by other tools or repos: shadcn components and design-system components.
+  // knip may hint that src/components/meritum/** has no issues (tests import it); keep it ignored.
   "ignore": ["src/components/ui/**", "src/components/meritum/**"],
   "ignoreDependencies": [
     // Used by the shadcn components in src/components/ui (ignored above).
