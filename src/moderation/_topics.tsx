@@ -18,12 +18,21 @@ const keywordsOf = (text: string) =>
 
 function TopicRow({ name, keywords, onRemove }: RiskTopic & { onRemove: (n: string) => void }) {
   const remove = useCallback(() => onRemove(name), [onRemove, name])
+  const nameId = useId()
   return (
     <tr className={tableClass.row}>
-      <td className={`${tableClass.td} font-semibold`}>{name}</td>
+      <td id={nameId} className={`${tableClass.td} font-semibold`}>
+        {name}
+      </td>
       <td className={`${tableClass.td} text-pretty`}>{keywords.join(', ')}</td>
       <td className="py-1 text-right">
-        <Button variant="ghost" size="sm" className="rounded-pill" onClick={remove}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-pill"
+          aria-describedby={nameId}
+          onClick={remove}
+        >
           {copy.remove}
         </Button>
       </td>

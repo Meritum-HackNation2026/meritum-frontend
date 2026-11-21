@@ -24,14 +24,17 @@ const isRole = (value: string): value is StaffRole =>
 
 function AccountRow({ email, role, onRemove }: StaffAccount & { onRemove: (e: string) => void }) {
   const confirm = useCallback(() => onRemove(email), [onRemove, email])
+  const emailId = useId()
   return (
     <tr className={tableClass.row}>
-      <td className={`${tableClass.td} break-all font-semibold`}>{email}</td>
+      <td id={emailId} className={`${tableClass.td} break-all font-semibold`}>
+        {email}
+      </td>
       <td className={tableClass.td}>{t.moderation.role[role]}</td>
       <td className="py-1 text-right">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="rounded-pill">
+            <Button variant="ghost" size="sm" className="rounded-pill" aria-describedby={emailId}>
               {copy.remove}
             </Button>
           </AlertDialogTrigger>

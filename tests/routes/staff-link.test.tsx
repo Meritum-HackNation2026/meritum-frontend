@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import pl from '@/copy/pl.json'
 import { routeTree } from '@/routeTree.gen'
 import { requestPath } from '../fetch-request'
@@ -44,4 +44,27 @@ test('a citizen without a staff session sees no panel link', async (t) => {
   await new Promise((resolve) => setTimeout(resolve, 0))
   const header = screen.getByRole('banner')
   assert.equal(within(header).queryByRole('link', { name: pl.staff.sign_in.title }), null)
+})
+
+test('after signing out of the panel the home page has no panel link', async (t) => {
+  let isSignedIn = true
+  t.mock.method(globalThis, 'fetch', (input: unknown) => {
+    const path = requestPath(input)
+    if (path === '/api/v1/auth/logout') {
+      isSignedIn = false
+      return Promise.resolve(new Response(null, { status: 204 }))
+    }
+    if (path === '/api/v1/auth/me') return Promise.resolve(Response.json({ csrf_token: 'tok_1' }))
+    if (path === '/api/v1/staff/me') {
+      return Promise.resolve(Response.json(moderator, { status: isSignedIn ? 200 : 401 }))
+    }
+    return Promise.resolve(Response.json([]))
+  })
+  const router = await open('/panel')
+  fireEvent.click(await screen.findByRole('button', { name: pl.account.sign_out }))
+  await waitFor(() => assert.equal(router.state.location.pathname, '/'))
+  const header = screen.getByRole('banner')
+  await waitFor(() =>
+    assert.equal(within(header).queryByRole('link', { name: pl.staff.sign_in.title }), null),
+  )
 })
