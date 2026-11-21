@@ -2,12 +2,16 @@ import type { Citation, ClaimResult, Stance } from '@/contracts/meritum'
 import { AGE_EXEMPT_VALIDITY, DECISIVE_VERDICTS, STANCE_ORDER } from './constants'
 
 /**
- * One citation on the evidence timeline with the date of the document that superseded it, if
- * the result marks it as superseded and that date is known.
+ * One citation on the evidence timeline: whether the result marks it as superseded and, when a
+ * later citation of the same publisher shows it, the date of the newer document.
  *
  * @feature US-ZRD-11, US-ZRD-04, F-17
  */
-export type TimelineEntry = { citation: Citation; supersededOn: string | null }
+export type TimelineEntry = {
+  citation: Citation
+  isSuperseded: boolean
+  supersededOn: string | null
+}
 
 /**
  * Citations of one stance on the evidence timeline, oldest first.
@@ -17,8 +21,9 @@ export type TimelineEntry = { citation: Citation; supersededOn: string | null }
 export type StanceGroup = { stance: Stance; entries: TimelineEntry[] }
 
 function time(date: string | null | undefined): number {
-  // undated evidence sorts last
-  return date ? Date.parse(date) : Number.POSITIVE_INFINITY
+  // undated or unreadable dates sort last
+  const parsed = date ? Date.parse(date) : Number.NaN
+  return Number.isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed
 }
 
 function isSuperseded(citation: Citation): boolean {
@@ -31,8 +36,7 @@ function newest(dates: readonly (string | null | undefined)[]): string | null {
 }
 
 // The contract marks evidence as superseded but does not link the newer document, so the card
-// names it by the newest later citation of the same publisher, else by the newest agreeing
-// source of the strength premises when that one is later.
+// dates it only by a later citation of the same publisher; otherwise it names no date.
 function supersededOn(citation: Citation, claim: ClaimResult): string | null {
   const published = time(citation.source.published_at)
   const samePublisher = (claim.citations ?? []).filter(
@@ -40,12 +44,7 @@ function supersededOn(citation: Citation, claim: ClaimResult): string | null {
       other.source.publisher_id === citation.source.publisher_id &&
       time(other.source.published_at) > published,
   )
-  const premisesDate = claim.strength?.premises.newest_source_published_at
-  const laterPremises = time(premisesDate) > published && time(premisesDate) < Infinity
-  return (
-    newest(samePublisher.map((c) => c.source.published_at)) ??
-    (laterPremises ? (premisesDate ?? null) : null)
-  )
+  return newest(samePublisher.map((c) => c.source.published_at))
 }
 
 /**
@@ -65,6 +64,7 @@ export function stanceGroups(claim: ClaimResult): StanceGroup[] {
       .sort((a, b) => time(a.source.published_at) - time(b.source.published_at))
       .map((citation) => ({
         citation,
+        isSuperseded: isSuperseded(citation),
         supersededOn: isSuperseded(citation) ? supersededOn(citation, claim) : null,
       })),
   })).filter((group) => group.entries.length > 0)

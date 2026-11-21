@@ -10,7 +10,6 @@ import {
   VerdictSection,
 } from './_sections'
 import { EvidenceTimeline } from './_timeline'
-import { DECISIVE_VERDICTS } from './constants'
 
 /**
  * One claim of the card: verdict, AI explanation, the evidence timeline with „co zmieniłoby
@@ -25,14 +24,13 @@ import { DECISIVE_VERDICTS } from './constants'
  */
 export function ClaimBlock({ claim, children }: { claim: ClaimResult; children: ReactNode }) {
   const conflict = isConflict(claim)
-  const isDecisive = DECISIVE_VERDICTS.has(claim.verdict)
   // the conflict note already says what differs
   const isUnresolvedInNote = conflict && Boolean(claim.unresolved)
   return (
     <article className="border-b border-border/70 px-3.5 py-3 last-of-type:border-b-0">
       <VerdictSection claim={claim.claim} verdict={claim.verdict} />
       <ExplanationSection explanation={claim.explanation} />
-      <EvidenceTimeline claim={claim} isConflict={conflict} isDecisive={isDecisive} />
+      <EvidenceTimeline claim={claim} isConflict={conflict} />
       <WouldChangeSection codes={claim.would_change_verdict} />
       <StrengthSection claim={claim} />
       <ArchivalNote claim={claim} />

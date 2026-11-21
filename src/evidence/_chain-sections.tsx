@@ -4,7 +4,8 @@ import { newestDateForWarning, showsArchivalWarning } from './_chain'
 
 /**
  * The warning that the newest evidence is old for the date the claim is about, with both dates
- * in words, never a count of days (the strength premises name them when that section shows). Neutral, on its own row, never red; laws in force, pages
+ * in words, never a count of days. When the strength section shows, its premises already name
+ * both dates, so the warning does not repeat them. Neutral, on its own row, never red; laws in force, pages
  * updated in place and past events never get it.
  *
  * @param props.claim - One claim result from the API.

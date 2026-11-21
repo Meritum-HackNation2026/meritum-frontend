@@ -2,6 +2,7 @@ import { fill, formatDate, t } from '@/components/meritum'
 import type { ClaimResult } from '@/contracts/meritum'
 import { cn } from '@/lib/utils'
 import { type StanceGroup, stanceGroups, type TimelineEntry } from './_chain'
+import { DECISIVE_VERDICTS } from './constants'
 
 function sourceLine({ citation }: TimelineEntry): string {
   const { publisher, kind, tier, via } = citation.source
@@ -10,23 +11,30 @@ function sourceLine({ citation }: TimelineEntry): string {
   return `${publisher}. ${kindWord.charAt(0).toUpperCase()}${kindWord.slice(1)}, ${t.source_tier[tier]}${found}.`
 }
 
+function supersededText({ supersededOn }: TimelineEntry): string {
+  return supersededOn
+    ? fill(t.result.superseded, { date: formatDate(supersededOn) })
+    : t.result.superseded_undated
+}
+
 // One timeline row: the publication date in Azeret Mono, a superseded mark in words, then the
-// source as CitationItem shows it (DESIGN_SYSTEM.md 6.4) without repeating the date.
+// source as CitationItem shows it (DESIGN_SYSTEM.md 6.4) without repeating the date, which
+// CitationItem puts in its publisher line.
 function Entry({ entry }: { entry: TimelineEntry }) {
   const { source, fragment } = entry.citation
   return (
     <li className="relative grid gap-1 py-1.5 before:absolute before:top-3 before:-left-4 before:size-2 before:rounded-full before:bg-muted-foreground">
-      <p className="font-mono text-meta text-muted-foreground">
+      <p className="text-meta text-muted-foreground">
         {source.published_at ? (
-          <time dateTime={source.published_at}>{formatDate(source.published_at)}</time>
+          <time dateTime={source.published_at} className="font-mono">
+            {formatDate(source.published_at)}
+          </time>
         ) : (
           fill(t.result.source_undated, { publisher: source.publisher })
         )}
       </p>
-      {entry.supersededOn && (
-        <p className="text-small font-semibold text-pretty">
-          {fill(t.result.superseded, { date: formatDate(entry.supersededOn) })}
-        </p>
+      {entry.isSuperseded && (
+        <p className="text-small font-semibold text-pretty">{supersededText(entry)}</p>
       )}
       <a
         href={source.url}
@@ -69,20 +77,18 @@ function Group({ group, isWide }: { group: StanceGroup; isWide: boolean }) {
  *
  * @param props.claim - One claim result from the API.
  * @param props.isConflict - Reliable sources disagree (`isConflict` of the claim).
- * @param props.isDecisive - The verdict settles the claim.
  * @returns The timeline, or null when there is nothing to show.
  * @feature US-ZRD-11, US-ZRD-04, US-ZRD-05, US-ZRD-10, F-17
  */
 export function EvidenceTimeline({
   claim,
   isConflict,
-  isDecisive,
 }: {
   claim: ClaimResult
   isConflict: boolean
-  isDecisive: boolean
 }) {
   const groups = stanceGroups(claim)
+  const isDecisive = DECISIVE_VERDICTS.has(claim.verdict)
   if (!(isDecisive || isConflict) || groups.length === 0) {
     return null
   }
