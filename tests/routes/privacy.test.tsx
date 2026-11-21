@@ -103,3 +103,12 @@ test('the AI notice links to the website privacy policy', async () => {
   const link = screen.getByRole('link', { name: policies.web.title })
   assert.equal(link.getAttribute('href'), '/prywatnosc')
 })
+
+test('the website policy describes Google or Microsoft sign-in and its OAuth scopes', async () => {
+  await openPage('/prywatnosc', policies.web.title)
+  const { sign_in: signIn } = policies.web
+  assert.ok(screen.getByRole('heading', { level: 2, name: signIn.title }))
+  for (const text of [signIn.scopes, signIn.purpose, signIn.retention]) {
+    assert.ok(screen.getByText(text))
+  }
+})

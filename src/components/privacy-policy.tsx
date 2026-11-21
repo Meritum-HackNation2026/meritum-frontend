@@ -79,6 +79,14 @@ export function PrivacyPolicy({ channel }: { channel: Channel }) {
         <p>{policy.telemetry}</p>
         <p>{policy.ip_addresses}</p>
       </section>
+      {'sign_in' in policy && (
+        <section className="space-y-2">
+          <h2 className="font-semibold">{policy.sign_in.title}</h2>
+          <p>{policy.sign_in.scopes}</p>
+          <p>{policy.sign_in.purpose}</p>
+          <p>{policy.sign_in.retention}</p>
+        </section>
+      )}
       <section className="space-y-3">
         <h2 className="font-semibold">{privacy.processors.title}</h2>
         <p>{policy.processors_lead}</p>
