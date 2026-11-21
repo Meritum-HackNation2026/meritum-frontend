@@ -1,5 +1,4 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useCallback } from 'react'
+import { createFileRoute } from '@tanstack/react-router'
 import { apiStaff } from '@/api'
 import { loadPanel, Panel } from '@/moderation'
 
@@ -15,7 +14,5 @@ export const Route = createFileRoute('/panel/')({
 })
 
 function PanelPage() {
-  const router = useRouter()
-  const reload = useCallback(() => router.invalidate(), [router])
-  return <Panel data={Route.useLoaderData()} api={apiStaff} onSignedOut={reload} />
+  return <Panel data={Route.useLoaderData()} api={apiStaff} />
 }

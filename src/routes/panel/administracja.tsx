@@ -1,5 +1,4 @@
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
-import { useCallback } from 'react'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { apiAdmin, apiStaff } from '@/api'
 import { AdminPage, loadAdmin, sectionsFor } from '@/moderation'
 
@@ -22,14 +21,5 @@ export const Route = createFileRoute('/panel/administracja')({
 })
 
 function AdminRoute() {
-  const router = useRouter()
-  const reload = useCallback(() => router.invalidate(), [router])
-  return (
-    <AdminPage
-      data={Route.useLoaderData()}
-      staff={apiStaff}
-      admin={apiAdmin}
-      onSignedOut={reload}
-    />
-  )
+  return <AdminPage data={Route.useLoaderData()} staff={apiStaff} admin={apiAdmin} />
 }

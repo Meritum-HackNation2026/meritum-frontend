@@ -14,7 +14,7 @@ import { requestPath } from '../fetch-request'
 
 const admin = { email: 'admin@example.org', role: 'admin' }
 const analyst = { email: 'analityk@example.org', role: 'analyst' }
-const BASE = 'http://localhost'
+const origin = 'http://localhost'
 const transport = { name: 'transport', keywords: ['diesel', 'strefa czystego transportu'] }
 
 type Sent = { method: string; path: string; csrf: string | null; body: unknown }
@@ -40,7 +40,7 @@ function fakeApi(t: TestContext, me: object = admin) {
     },
   }
   const fetch = t.mock.method(globalThis, 'fetch', async (input: unknown) => {
-    const request = input instanceof Request ? input : new Request(new URL(String(input), BASE))
+    const request = input instanceof Request ? input : new Request(new URL(String(input), origin))
     const path = decodeURIComponent(requestPath(input))
     const body = request.method === 'POST' ? await request.json() : null
     if (request.method !== 'GET') {

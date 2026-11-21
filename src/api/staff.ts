@@ -17,7 +17,7 @@ export const apiStaff: StaffApi = {
   async session() {
     try {
       const { data, response } = await fetchClient.GET('/api/v1/staff/me')
-      if (data) {
+      if (data?.role) {
         return { kind: 'member', email: data.email, role: data.role }
       }
       if (response.status === HTTP_UNAUTHORIZED) {

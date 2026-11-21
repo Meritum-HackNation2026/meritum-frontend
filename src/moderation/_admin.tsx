@@ -13,18 +13,12 @@ import type { AdminApi, StaffApi } from './ports'
  * @param props.data - The session, accounts and topics from `loadAdmin`.
  * @param props.staff - The staff API (sign-in, sign-out).
  * @param props.admin - The administration API.
- * @param props.onSignedOut - Reloads the page after sign-out.
  * @returns The page.
  * @feature US-MOD-05, F-20, F-25
  */
-export function AdminPage(props: {
-  data: AdminData
-  staff: StaffApi
-  admin: AdminApi
-  onSignedOut: () => void
-}) {
+export function AdminPage(props: { data: AdminData; staff: StaffApi; admin: AdminApi }) {
   return (
-    <Panel data={props.data} api={props.staff} onSignedOut={props.onSignedOut}>
+    <Panel data={props.data} api={props.staff}>
       <h1 className="sr-only">{t.staff.admin.title}</h1>
       <div className="grid gap-10">
         <AccountsSection api={props.admin} initial={props.data.accounts} />

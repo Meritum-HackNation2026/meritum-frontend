@@ -1,4 +1,4 @@
-import { Link, type LinkProps } from '@tanstack/react-router'
+import { Link, type LinkProps, useNavigate } from '@tanstack/react-router'
 import { type ReactNode, useCallback, useState } from 'react'
 import { fill, t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
@@ -38,14 +38,13 @@ function CasesSection({ cases }: { cases: PanelData['cases'] }) {
 
 /**
  * The moderator panel (DESIGN_SYSTEM.md 6.5): the sign-in page for anyone without a staff role,
- * otherwise the member's address and role, sign-out, the navigation of their role's sections
+ * otherwise the member's address and role, sign-out (back to the home page), the navigation of their role's sections
  * and the page's own content: by default, for moderators and administrators, the case queue
  * with the open case below it.
  * Notifications (`case_assigned` toasts and the inbox) come from the layout's bell.
  *
  * @param props.data - The session and cases from `loadPanel`.
  * @param props.api - The staff API (login addresses, sign-out).
- * @param props.onSignedOut - Reloads the panel after sign-out.
  * @param props.children - Another panel page in place of the cases (e.g. administration).
  * @returns The panel.
  * @feature US-MOD-05, US-MOD-02, US-POW-05, F-25, F-26
@@ -53,24 +52,20 @@ function CasesSection({ cases }: { cases: PanelData['cases'] }) {
 export function Panel({
   data,
   api,
-  onSignedOut,
   children,
 }: {
   data: Pick<PanelData, 'session'> & Partial<Pick<PanelData, 'cases'>>
   api: StaffApi
-  onSignedOut: () => void
   children?: ReactNode
 }) {
-  const [isSignedOut, setSignedOut] = useState(false)
+  const navigate = useNavigate()
   const signOut = useCallback(async () => {
     await api.signOut()
-    setSignedOut(true)
-    onSignedOut()
-  }, [api, onSignedOut])
+    await navigate({ to: '/' })
+  }, [api, navigate])
   const { session } = data
   if (session.kind !== 'member') {
-    const notice = isSignedOut ? t.staff.sign_in.signed_out : notices[session.kind]
-    return <SignIn api={api} notice={notice} />
+    return <SignIn api={api} notice={notices[session.kind]} />
   }
   const sections = sectionsFor(session.role)
   const role = t.moderation.role[session.role]

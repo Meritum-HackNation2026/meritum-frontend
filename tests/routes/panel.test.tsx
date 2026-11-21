@@ -166,7 +166,7 @@ test('a signed-in account without a role is told to ask the administrator', asyn
   assert.equal(paths(fetch).includes('/api/v1/moderation/cases'), false)
 })
 
-test('signing out sends the CSRF token and returns to the sign-in page', async (t) => {
+test('signing out sends the CSRF token and goes to the home page', async (t) => {
   let isSignedIn = true
   const fetch = t.mock.method(globalThis, 'fetch', (input: unknown) => {
     const path = requestPath(input)
@@ -183,9 +183,9 @@ test('signing out sends the CSRF token and returns to the sign-in page', async (
     }
     return Promise.resolve(answers[path] ?? Response.json([]))
   })
-  await openPanel()
+  const router = await openPanel()
   fireEvent.click(await screen.findByRole('button', { name: pl.account.sign_out }))
-  assert.ok(await screen.findByText(pl.staff.sign_in.signed_out))
+  await waitFor(() => assert.equal(router.state.location.pathname, '/'))
   const logout = fetch.mock.calls
     .map((call) => call.arguments[0])
     .find((input) => requestPath(input) === '/api/v1/auth/logout')
