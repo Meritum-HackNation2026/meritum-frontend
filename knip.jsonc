@@ -1,7 +1,7 @@
 // Dead code and unused dependencies (docs/architecture.md). Run: pnpm knip
 {
   "$schema": "./node_modules/knip/schema-jsonc.json",
-  "entry": ["tests/architecture/*.test.ts"],
+  "entry": ["tests/**/*.test.{ts,tsx}"],
   // Copies owned by other tools or repos: shadcn components and design-system components.
   "ignore": ["src/components/ui/**", "src/components/meritum/**"],
   "ignoreDependencies": [

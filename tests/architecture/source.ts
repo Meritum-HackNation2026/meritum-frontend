@@ -53,14 +53,14 @@ export function codeFiles(): string[] {
 }
 
 /**
- * Application TypeScript files the JSDoc and constants rules cover (tests excluded).
+ * TypeScript files the JSDoc and constants rules cover: `settings.sourceDirs`, tests included.
  *
  * @returns Paths relative to the repository root.
  * @feature none (infrastructure)
  */
 export function sourceFiles(): string[] {
   const inSource = (f: string) => settings.sourceDirs.some((dir) => f.startsWith(dir))
-  return repoFiles().filter((f) => inSource(f) && typeScriptFile.test(f) && !f.includes('.test.'))
+  return repoFiles().filter((f) => inSource(f) && typeScriptFile.test(f))
 }
 
 /**

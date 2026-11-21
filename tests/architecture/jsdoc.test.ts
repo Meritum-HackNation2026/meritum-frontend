@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { jsdocProblems, read, sourceFiles } from './source.ts'
+import { settings } from './settings.ts'
+import { codeFiles, jsdocProblems, read, sourceFiles } from './source.ts'
+
+const testFile = /\.test\.tsx?$/
 
 test('every export has JSDoc with @feature, @param, @returns and @throws', () => {
   const problems = sourceFiles().flatMap((file) =>
@@ -36,4 +39,11 @@ test('the JSDoc check reports what is missing', () => {
     '3: JSDoc needs @param',
     '3: JSDoc needs @returns',
   ])
+})
+
+test('the JSDoc and constants rules also read test files in the source folders', () => {
+  const inSource = (f: string) => settings.sourceDirs.some((dir) => f.startsWith(dir))
+  const tests = codeFiles().filter((f) => inSource(f) && testFile.test(f))
+  const unchecked = tests.filter((f) => !sourceFiles().includes(f))
+  assert.deepEqual(unchecked, [])
 })

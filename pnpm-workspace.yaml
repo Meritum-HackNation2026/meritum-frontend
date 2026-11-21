@@ -1,3 +1,5 @@
 allowBuilds:
-  # The native binary comes from its platform package; the postinstall check is not needed.
+  # The native binaries come from their platform packages; the postinstall checks are not needed
+  # (@swc/core: dependency-cruiser's parser; esbuild: used by tsx in pnpm test).
   "@swc/core": false
+  "esbuild": false
