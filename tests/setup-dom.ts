@@ -7,7 +7,8 @@
 import { after, afterEach } from 'node:test'
 import { GlobalRegistrator } from '@happy-dom/global-registrator'
 
-GlobalRegistrator.register()
+// A page address, as in the browser: openapi-fetch builds a Request from a relative path.
+GlobalRegistrator.register({ url: 'http://localhost:5173/' })
 // Under Node's `node` export condition TanStack Router treats itself as running on a
 // server and skips client rendering unless NODE_ENV is `test`.
 process.env['NODE_ENV'] ??= 'test'
