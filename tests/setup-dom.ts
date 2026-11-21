@@ -1,6 +1,6 @@
 /**
  * Preloaded by `pnpm test` (`node --import ./tests/setup-dom.ts`): gives every test file a
- * happy-dom DOM and unmounts what a test rendered once it ends.
+ * happy-dom DOM, unmounts what a test rendered once it ends and empties sessionStorage.
  *
  * @feature none (infrastructure)
  */
@@ -18,6 +18,8 @@ const { cleanup } = await import('@testing-library/react')
 
 afterEach(() => {
   cleanup()
+  // the tab's history and session id live here; each test starts with a new tab
+  sessionStorage.clear()
 })
 
 after(async () => {

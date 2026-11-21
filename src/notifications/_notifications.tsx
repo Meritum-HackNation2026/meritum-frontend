@@ -1,6 +1,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { Bell } from 'lucide-react'
 import {
+  createContext,
   type MouseEvent,
   useCallback,
   useEffect,
@@ -18,6 +19,14 @@ import { notificationText } from './_parse'
 import { NOTIFICATION_RETENTION_DAYS } from './constants'
 
 const copy = t.notifications
+
+/**
+ * The inbox of this tab, given by the layout to the pages below it, so „Usuń moje sprawdzenia”
+ * on the home page empties the bell too. Null outside the layout.
+ *
+ * @feature US-POW-04, US-BEZ-05, F-20, F-26
+ */
+export const InboxContext = createContext<Inbox | null>(null)
 const toastOptions = { style: { transitionTimingFunction: 'var(--ease-out-meritum)' } }
 
 const progressToastId = ({ kind, check_id: checkId }: Notification) =>

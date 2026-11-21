@@ -1,4 +1,4 @@
-import type { AnalysisStep } from '@/contracts/meritum'
+import type { AnalysisStep, CheckResult } from '@/contracts/meritum'
 
 /**
  * Days a check record is kept before it is deleted (ADR-13); shown next to the form.
@@ -71,3 +71,31 @@ export const MAX_FAILED_READS = 5
  * @feature US-SPR-01, F-01
  */
 export const MAX_READS = 120
+
+/**
+ * sessionStorage key holding this tab's checked results, newest first (ADR-13): the history
+ * under the form lives as long as the browser tab.
+ *
+ * @feature US-SPR-09, US-BEZ-05, F-01, F-20
+ */
+export const HISTORY_STORAGE_KEY = 'meritum.history'
+
+/**
+ * Locale of the times in the history list under the form.
+ *
+ * @feature US-SPR-09, F-01
+ */
+export const LOCALE = 'pl-PL'
+
+/**
+ * The four statuses of `CheckResult` in the contract; `tsc` fails when the contract adds or drops
+ * one. A history entry with any other status is not shown.
+ *
+ * @feature US-SPR-09, F-01
+ */
+export const RESULT_STATUSES = {
+  done: true,
+  needs_clarification: true,
+  out_of_scope: true,
+  technical_failure: true,
+} as const satisfies Record<CheckResult['status'], true>
