@@ -8,6 +8,14 @@ import type { AnalysisStep } from '@/contracts/meritum'
 export const CHECKS_ENDPOINT = '/api/v1/checks'
 
 /**
+ * Public summary of the last finished evaluation run on the golden set, without sign-in
+ * (meritum-backend#35); 404 while there is no finished run.
+ *
+ * @feature US-ZRD-12, F-29
+ */
+export const LATEST_RUN_ENDPOINT = '/api/v1/eval/runs/latest'
+
+/**
  * Header carrying the random browser session id; the same name in the backend and the extension.
  *
  * @feature US-SPR-01, F-21

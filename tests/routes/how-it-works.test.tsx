@@ -5,7 +5,7 @@
  * @feature US-ZRD-12, F-29
  */
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
+import { type TestContext, test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { render, screen } from '@testing-library/react'
 import pl from '@/copy/pl.json'
@@ -16,10 +16,34 @@ function openPage(path: string) {
   render(<RouterProvider router={createRouter({ routeTree, history })} />)
 }
 
-test('/jak-dziala shows the page and, with no finished run, no numbers', async () => {
+function fakeApi(t: TestContext, body: unknown, status: number) {
+  t.mock.method(globalThis, 'fetch', () =>
+    Promise.resolve(new Response(JSON.stringify(body), { status })),
+  )
+}
+
+test('/jak-dziala shows the metrics of the last run from the API', async (t) => {
+  fakeApi(
+    t,
+    {
+      finished_at: '2026-11-20T18:30:00Z',
+      bundle_url: 'https://example.org/evals',
+      metrics: { macro_f1: 0.71 },
+    },
+    200,
+  )
   openPage('/jak-dziala')
   await screen.findByRole('heading', { level: 1, name: pl.result.how_it_works })
-  assert.ok(screen.getByText(pl.method.metrics.no_run))
+  assert.ok(await screen.findByText(pl.method.metrics.names.macro_f1))
+  assert.ok(screen.getByText('0,71'))
+  assert.equal(screen.queryAllByText(pl.method.metrics.no_run).length, 0)
+})
+
+test('/jak-dziala with no finished run shows the message and no numbers', async (t) => {
+  fakeApi(t, { detail: 'not found' }, 404)
+  openPage('/jak-dziala')
+  assert.ok(await screen.findByText(pl.method.metrics.no_run))
+  assert.equal(screen.queryAllByText(pl.method.metrics.names.macro_f1).length, 0)
 })
 
 test('the footer of every page links to /jak-dziala', async () => {

@@ -1,11 +1,10 @@
 import { formatDate } from '@/components/meritum/copy'
 import pl from '@/copy/pl.json'
-import { LOCALE, METRIC_FRACTION_DIGITS } from './constants'
-import type { EvalRunSummary, MetricKey } from './types'
+import { LOCALE, METRIC_FRACTION_DIGITS, METRIC_KEYS } from './constants'
+import type { EvalRunSummary } from './types'
 
 const { metrics: text } = pl.method
 const { names } = text
-const metricKeys = Object.keys(names) as MetricKey[]
 const number = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: METRIC_FRACTION_DIGITS })
 const [beforeDate, afterDate] = text.run_date.split('{date}')
 
@@ -21,7 +20,7 @@ export function RunMetrics({ run }: { run: EvalRunSummary | null }) {
   if (!run) {
     return <p>{text.no_run}</p>
   }
-  const measured = metricKeys.flatMap((key) => {
+  const measured = METRIC_KEYS.flatMap((key) => {
     const value = run.metrics[key]
     return value === undefined ? [] : [[key, value] as const]
   })
