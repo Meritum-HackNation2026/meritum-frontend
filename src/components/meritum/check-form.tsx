@@ -8,21 +8,26 @@ import { cn } from "@/lib/utils"
 import { fill, t } from "./copy"
 
 const MAX = 4000
+const MAX_URL = 2083 // CheckRequest.url maxLength in the contract
 
 type ErrorKey = keyof typeof t.errors
 
-/** Text or a full http(s) link; a bare "www.x.pl" is rejected with a hint rather than guessed. */
+/**
+ * Text or a full http(s) link of at most 2083 characters; a bare "www.x.pl" or another scheme ("ftp://…")
+ * is rejected with a hint rather than guessed or sent as text.
+ */
 export function toRequest(raw: string, channel: CheckRequest["channel"] = "web"): CheckRequest | ErrorKey {
   const value = raw.trim()
-  if (value.length > MAX) return "too_long"
-  if (/^\S+$/.test(value) && /^(https?:\/\/|www\.)/i.test(value)) {
+  if (/^\S+$/.test(value) && /^([a-z][a-z\d+.-]*:\/\/|www\.)/i.test(value)) {
     try {
       const url = new URL(value)
-      return url.protocol === "http:" || url.protocol === "https:" ? { channel, url: url.href } : "invalid_url"
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "invalid_url"
+      return url.href.length > MAX_URL ? "url_too_long" : { channel, url: url.href }
     } catch {
       return "invalid_url"
     }
   }
+  if (value.length > MAX) return "too_long"
   return value.length < 3 ? "empty" : { channel, text: value }
 }
 
@@ -95,7 +100,7 @@ export function CheckForm({
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <Button type="submit" disabled={pending || value.trim().length < 3} className="h-10 rounded-pill px-6">
+        <Button type="submit" disabled={pending} className="h-10 rounded-pill px-6">
           {pending ? t.form.checking : t.form.submit}
         </Button>
       </div>

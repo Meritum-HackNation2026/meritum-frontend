@@ -1,51 +1,21 @@
-import { type UseQueryResult, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { type Health, healthQuery } from '@/api'
+import { apiCheckSender } from '@/api'
+import { CheckPage } from '@/checks'
 import { AiNotice } from '@/components/ai-notice'
 
 /**
- * Home page: the place of the check form (US-SPR-01); for now it shows the API status.
+ * Home page: the AI notice (AI Act art. 50) above the check form of the web channel
+ * (ADR-08), which sends through the API client. No sign-in is needed.
  *
- * @feature US-SPR-01
+ * @feature US-SPR-01, US-BEZ-07, US-DST-01, F-01, F-21
  */
 export const Route = createFileRoute('/')({ component: Home })
 
-function statusText(health: UseQueryResult<Health>): string {
-  if (health.isPending) {
-    return 'Łączę z API…'
-  }
-  const data = health.data
-  return data?.status === 'ok'
-    ? `API działa (${data.env}), baza danych: ${data.database}`
-    : 'API nie odpowiada albo nie ma połączenia z bazą'
-}
-
-function statusDot(health: UseQueryResult<Health>): string {
-  if (health.isPending) {
-    return 'bg-muted-foreground'
-  }
-  return health.data?.status === 'ok' ? 'bg-verified' : 'bg-destructive'
-}
-
 function Home() {
-  const health = useQuery(healthQuery)
-
   return (
-    <section className="rounded-lg border bg-card p-6">
-      <h1 className="text-title font-semibold">Sprawdź informację</h1>
-      <p className="mt-2 text-body text-muted-foreground">
-        Formularz sprawdzania twierdzeń jest w budowie. Na razie ta strona pokazuje stan systemu.
-      </p>
-      <div className="mt-4">
-        <AiNotice />
-      </div>
-      <p
-        className="mt-6 inline-flex items-center gap-2 rounded-pill border px-3 py-1 text-small"
-        aria-live="polite"
-      >
-        <span aria-hidden="true" className={`size-2 rounded-pill ${statusDot(health)}`} />
-        {statusText(health)}
-      </p>
-    </section>
+    <div className="grid min-w-0 gap-4">
+      <AiNotice />
+      <CheckPage sender={apiCheckSender} />
+    </div>
   )
 }

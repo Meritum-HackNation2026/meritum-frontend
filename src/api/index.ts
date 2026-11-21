@@ -1,1 +1,1 @@
-export { type Health, healthQuery } from './health.ts'
+export { apiCheckSender } from './checks.ts'
