@@ -17,6 +17,13 @@ const result = examples['CheckResult.done'] as NonNullable<AnalysisStatus['resul
 const running: ResultReader = {
   read: () => Promise.resolve({ status: { check_id: 'c_01', steps: recorded.steps } }),
 }
+/** The API after a workflow that failed without output: every step finished, no result. */
+const failedRun: AnalysisStatus = {
+  check_id: 'c_01',
+  steps: recorded.steps.map((step) =>
+    step.status === 'active' || step.status === 'pending' ? { ...step, status: 'failed' } : step,
+  ) as AnalysisStatus['steps'],
+}
 
 function fakeSource() {
   const calls = { watched: [] as string[], stopped: 0 }
@@ -40,9 +47,20 @@ function fakeSource() {
   }
 }
 
-async function startCheck(fake: ReturnType<typeof fakeSource>) {
+/** Runs while the stream is open, then answers as a workflow that failed without output. */
+function stopsAfterStream(): ResultReader {
+  let call = 0
+  return {
+    read: () =>
+      Promise.resolve({
+        status: call++ === 0 ? { check_id: 'c_01', steps: recorded.steps } : failedRun,
+      }),
+  }
+}
+
+async function startCheck(fake: ReturnType<typeof fakeSource>, reader = running) {
   const page = render(
-    <ResultPage checkId="c_01" reader={running} progress={fake.source} pollMs={60_000} />,
+    <ResultPage checkId="c_01" reader={reader} progress={fake.source} pollMs={60_000} />,
   )
   // the subscription starts in an effect, which may run after the strip first renders
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
@@ -111,7 +129,7 @@ test('verdicts show when verify_citations is skipped, as in the backend rule', a
 
 test('a failed verify_citations keeps the verdicts hidden and ends with a message', async () => {
   const fake = fakeSource()
-  await startCheck(fake)
+  await startCheck(fake, stopsAfterStream())
   fake.emit(withVerify('failed'))
   fake.end()
   assert.deepEqual(shownVerdicts(), [])
@@ -130,7 +148,7 @@ test('the result is announced in a polite live region', async () => {
 
 test('a stream that ends without a result shows a message, not a verdict', async () => {
   const fake = fakeSource()
-  await startCheck(fake)
+  await startCheck(fake, stopsAfterStream())
   fake.emit(withVerify('active'))
   fake.end()
   assert.equal((await screen.findByRole('alert')).textContent, pl.status_hint.technical_failure)
@@ -171,4 +189,42 @@ test('leaving the page closes the subscription', async () => {
   assert.equal(fake.calls.stopped, 0)
   page.unmount()
   assert.equal(fake.calls.stopped, 1)
+})
+
+test('a failed read after the stream ended shows its own message and the page asks again', async () => {
+  const fake = fakeSource()
+  const answers = [
+    { status: { check_id: 'c_01', steps: recorded.steps } },
+    'offline',
+    { status: { check_id: 'c_01', steps: recorded.steps, result } },
+  ] as const
+  let call = 0
+  const flaky: ResultReader = {
+    read: () => Promise.resolve(answers[Math.min(call++, 2)] ?? 'busy'),
+  }
+  render(<ResultPage checkId="c_01" reader={flaky} progress={fake.source} pollMs={150} />)
+  await waitFor(() => assert.equal(fake.calls.watched.length, 1))
+  await screen.findByText(pl.analysis.steps.search_corpus)
+  fake.end()
+  assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
+  assert.ok(await screen.findByText(pl.verdict.false))
+})
+
+test('a stream that drops while the check still runs keeps the page reading until the result', async () => {
+  const fake = fakeSource()
+  const answers = [
+    { status: { check_id: 'c_01', steps: recorded.steps } },
+    { status: { check_id: 'c_01', steps: recorded.steps } },
+    { status: { check_id: 'c_01', steps: recorded.steps, result } },
+  ] as const
+  let call = 0
+  const later: ResultReader = {
+    read: () => Promise.resolve(answers[Math.min(call++, 2)] ?? 'busy'),
+  }
+  render(<ResultPage checkId="c_01" reader={later} progress={fake.source} pollMs={20} />)
+  await waitFor(() => assert.equal(fake.calls.watched.length, 1))
+  await screen.findByText(pl.analysis.steps.search_corpus)
+  fake.end()
+  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.deepEqual(screen.queryAllByRole('alert'), [])
 })

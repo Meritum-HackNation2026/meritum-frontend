@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnalysisSteps, ResultCard, t } from '@/components/meritum'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import { CheckResultCard } from '@/evidence'
@@ -8,24 +8,39 @@ import type { ProgressSource, ReadOutcome, ResultReader } from './ports'
 
 type Next = 'again' | 'stop' | 'give_up'
 
+/** Whether the API still reports work in progress: a step waiting or running. */
+function isStillRunning(status: AnalysisStatus): boolean {
+  return status.steps.some((step) => step.status === 'pending' || step.status === 'active')
+}
+
 /**
- * What follows a read: stop at a result, an unknown id or too many failures in a row; give up
- * after the last allowed read; otherwise ask again.
+ * What follows a read: stop at a result, an unknown id or too many failed reads in a row; ask
+ * again after a failed read; give up when the stream ended and every step finished without a
+ * result (the workflow failed), or after the last allowed read; otherwise ask again.
  */
-function nextAfter(outcome: ReadOutcome, failures: number, readsLeft: number): Next {
+function nextAfter(
+  outcome: ReadOutcome,
+  failures: number,
+  readsLeft: number,
+  streamEnded: boolean,
+): Next {
   const hasResult = typeof outcome === 'object' && Boolean(outcome.status.result)
   if (hasResult || outcome === 'not_found' || failures >= MAX_FAILED_READS) {
     return 'stop'
   }
-  return readsLeft > 0 ? 'again' : 'give_up'
+  if (typeof outcome === 'string') {
+    return 'again'
+  }
+  const isFinished = streamEnded && !isStillRunning(outcome.status)
+  return isFinished || readsLeft <= 0 ? 'give_up' : 'again'
 }
 
 /** How the page reads the API: the pause between reads and how many reads it may make. */
 type Polling = { pollMs: number; maxReads: number }
 
 /**
- * Reads the check until it has a result. Once the stream ended without one, a single last read
- * decides: a result, or the technical failure line (as in meritum-frontend#17).
+ * Reads the check until it has a result. Once the stream ended without one, a read whose steps
+ * all finished without a result ends with the technical failure line (as in meritum-frontend#17).
  */
 function useCheckStatus(
   checkId: string,
@@ -37,9 +52,14 @@ function useCheckStatus(
   const [status, setStatus] = useState<AnalysisStatus | null>(null)
   const [gaveUp, setGaveUp] = useState(false)
   const [ended, setEnded] = useState(false)
+  // read by the running poll without restarting it
+  const streamEndedRef = useRef(streamEnded)
+  streamEndedRef.current = streamEnded
+  // reads at once instead of waiting for the timer; a no-op once reading has stopped
+  const readNowRef = useRef<() => void>(() => undefined)
   useEffect(() => {
-    const limit = streamEnded ? 1 : maxReads
     let active = true
+    let waiting = false
     let timer: ReturnType<typeof setTimeout> | undefined
     let failures = 0
     let reads = 0
@@ -55,19 +75,32 @@ function useCheckStatus(
         setStatus(next.status)
       }
       failures = typeof next === 'string' ? failures + 1 : 0
-      const then = nextAfter(next, failures, limit - reads)
-      if (then === 'again') {
+      const then = nextAfter(next, failures, maxReads - reads, streamEndedRef.current)
+      waiting = then === 'again'
+      if (waiting) {
         timer = setTimeout(poll, pollMs)
       }
       setGaveUp(then === 'give_up')
       setEnded(then !== 'again')
+    }
+    readNowRef.current = () => {
+      if (waiting) {
+        waiting = false
+        clearTimeout(timer)
+        poll()
+      }
     }
     poll()
     return () => {
       active = false
       clearTimeout(timer)
     }
-  }, [checkId, reader, pollMs, maxReads, streamEnded])
+  }, [checkId, reader, pollMs, maxReads])
+  useEffect(() => {
+    if (streamEnded) {
+      readNowRef.current()
+    }
+  }, [streamEnded])
   return { outcome, status, gaveUp, ended }
 }
 
@@ -101,8 +134,9 @@ function Card({ result }: { result: CheckResult }) {
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
  * so a screen reader announces the result. Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
- * times in a row; an unknown id stops it. A stream that ends without a result, or `MAX_READS`
- * reads without one, end with the technical failure line after one last read.
+ * times in a row; an unknown id stops it. After the stream ended without a result, a read
+ * whose steps all finished without one, or `MAX_READS` reads, end with the technical failure
+ * line; a dropped stream while steps still run keeps the page reading.
  *
  * @param props.checkId - The id the API gave the accepted check.
  * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
