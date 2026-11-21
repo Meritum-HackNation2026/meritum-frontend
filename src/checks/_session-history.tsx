@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useId } from 'react'
 import { t, VerdictBadge } from '@/components/meritum'
 import type { CheckResult } from '@/contracts/meritum'
 import type { SavedCheck } from './_history'
@@ -56,9 +56,10 @@ export function SessionHistory({
   items: SavedCheck[]
   onOpen: (checkId: string) => void
 }) {
+  const headingId = useId()
   return (
-    <section aria-labelledby="meritum-history" className="grid min-w-0 max-w-180 gap-2">
-      <h2 id="meritum-history" className="text-body font-bold">
+    <section aria-labelledby={headingId} className="grid min-w-0 max-w-180 gap-2">
+      <h2 id={headingId} className="text-body font-bold">
         {t.history.title}
       </h2>
       {items.length === 0 ? (
@@ -66,7 +67,7 @@ export function SessionHistory({
           {t.history.empty}
         </p>
       ) : (
-        <ul aria-labelledby="meritum-history" className="min-w-0 divide-y border-y">
+        <ul aria-labelledby={headingId} className="min-w-0 divide-y border-y">
           {items.map(({ at, result }) => (
             <Entry key={result.check_id} at={at} result={result} onOpen={onOpen} />
           ))}

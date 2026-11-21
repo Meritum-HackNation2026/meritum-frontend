@@ -1,5 +1,5 @@
 import type { CheckResult } from '@/contracts/meritum'
-import { HISTORY_STORAGE_KEY } from './constants'
+import { HISTORY_STORAGE_KEY, RESULT_STATUSES } from './constants'
 
 /**
  * One result kept in this tab's history, with the time it arrived (ISO 8601).
@@ -9,16 +9,24 @@ import { HISTORY_STORAGE_KEY } from './constants'
 export type SavedCheck = { at: string; result: CheckResult }
 
 // Trust boundary: anything can sit under the key (an old version, a hand edit). An entry the
-// page can show has a time and a result with a check id and a status.
-// shortcut: the result's nested shape is not checked; it was written by this page from a
+// page can show has a time and a result with a check id, a known status and claims as a list.
+// shortcut: the claims' own shape is not checked; they were written by this page from a
 // validated API answer, upgrade to a schema check if another writer ever shares the key
-function isSavedCheck(value: unknown): value is SavedCheck {
-  if (typeof value !== 'object' || value === null || !('at' in value) || !('result' in value)) {
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+function isResult(value: unknown): value is CheckResult {
+  if (!isObject(value)) {
     return false
   }
-  const { at, result } = value
-  const isResult = typeof result === 'object' && result !== null && 'check_id' in result
-  return typeof at === 'string' && isResult && typeof result.check_id === 'string'
+  const { check_id: checkId, status, claims } = value
+  const isKnownStatus = typeof status === 'string' && Object.hasOwn(RESULT_STATUSES, status)
+  const hasClaimList = claims === undefined || Array.isArray(claims)
+  return typeof checkId === 'string' && isKnownStatus && hasClaimList
+}
+
+function isSavedCheck(value: unknown): value is SavedCheck {
+  return isObject(value) && typeof value['at'] === 'string' && isResult(value['result'])
 }
 
 function read(): unknown {

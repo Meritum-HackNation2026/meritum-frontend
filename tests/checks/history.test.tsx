@@ -52,7 +52,18 @@ test('forgetting the checks empties the history', () => {
 test('a broken or foreign value under the key reads as an empty history', () => {
   saveCheck(done)
   const [key] = Object.keys(sessionStorage)
-  for (const value of ['not json', '{"a":1}', '[{"at":"x"}]', '[null]']) {
+  const noStatus = '[{"at":"x","result":{"check_id":"c_01"}}]'
+  const badStatus = '[{"at":"x","result":{"check_id":"c_01","status":"maybe"}}]'
+  const badClaims = '[{"at":"x","result":{"check_id":"c_01","status":"done","claims":"x"}}]'
+  for (const value of [
+    'not json',
+    '{"a":1}',
+    '[{"at":"x"}]',
+    '[null]',
+    noStatus,
+    badStatus,
+    badClaims,
+  ]) {
     sessionStorage.setItem(String(key), value)
     assert.deepEqual(savedChecks(), [], value)
   }
