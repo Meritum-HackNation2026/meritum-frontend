@@ -127,3 +127,13 @@ test('an answer whose result is not an object is treated as a busy API', async (
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
   await stopped(fetch)
 })
+
+test('a check that never finishes ends with the technical failure line after the last read', async (t) => {
+  const fetch = fakeApi(t, running)
+  render(
+    <ResultPage checkId="c_01" reader={apiResultReader} progress={idle} pollMs={0} maxReads={3} />,
+  )
+  assert.equal((await screen.findByRole('alert')).textContent, pl.status_hint.technical_failure)
+  assert.equal(fetch.mock.callCount(), 3)
+  assert.equal(screen.queryByText(pl.analysis.title), null)
+})
