@@ -35,3 +35,32 @@ export const LOGIN_PROVIDERS: readonly LoginProvider[] = ['google', 'microsoft']
  * @feature US-MOD-02, F-25
  */
 export const DEFAULT_DISTINCT_ASKERS = 1
+
+/**
+ * An e-mail address as the API accepts it for a staff account (`_StaffEmail` in backend#22):
+ * something, `@`, a domain with a dot, no spaces.
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
+/**
+ * Longest staff e-mail address the API accepts (backend#22).
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const MAX_EMAIL_CHARS = 254
+
+/**
+ * Longest topic name and keyword the API accepts (`HighRiskTopic` in backend#22).
+ *
+ * @feature US-MOD-05, F-20, F-25
+ */
+export const MAX_TOPIC_CHARS = 80
+
+/**
+ * Roles an administrator can grant, in the order of the role picker; moderator is the default.
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const GRANTABLE_ROLES: readonly StaffRole[] = ['moderator', 'analyst', 'admin']

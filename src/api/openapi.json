@@ -185,7 +185,7 @@
           "auth"
         ],
         "summary": "Login",
-        "description": "Send the user to the provider's login page.\n\nArgs:\n    provider: ``google`` or ``microsoft``.\n    request: the request; its session keeps the login in progress.\n    login: the login provider port.\n    settings: the app settings (public address for the callback).\n\nReturns:\n    A redirect to the provider.\n\nRaises:\n    HTTPException: 404 for a provider that is not configured, 502 when the\n        provider's discovery document cannot be read.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "description": "Send the user to the provider's login page.\n\nArgs:\n    provider: ``google`` or ``microsoft``.\n    request: the request; its session keeps the login in progress.\n    login: the login provider port.\n    settings: the app settings (public address for the callback).\n    return_to: the page to open after login; kept with the login in\n        progress, anything but a relative path on this site means ``HOME``.\n\nReturns:\n    A redirect to the provider.\n\nRaises:\n    HTTPException: 404 for a provider that is not configured, 502 when the\n        provider's discovery document cannot be read.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
         "operationId": "login_api_v1_auth_login__provider__get",
         "parameters": [
           {
@@ -196,6 +196,17 @@
               "type": "string",
               "title": "Provider"
             }
+          },
+          {
+            "name": "return_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ReturnPath",
+              "description": "Path on this site to open after login, e.g. /panel. Anything else (another host, //host, a scheme, a backslash, whitespace) means /.",
+              "default": "/"
+            },
+            "description": "Path on this site to open after login, e.g. /panel. Anything else (another host, //host, a scheme, a backslash, whitespace) means /."
           }
         ],
         "responses": {
@@ -226,7 +237,7 @@
           "auth"
         ],
         "summary": "Callback",
-        "description": "Finish the login and start a session.\n\nArgs:\n    provider: the provider name from the path.\n    request: the request with the session cookie.\n    login: the login provider port.\n    code: the authorization code from the provider.\n    state: the state the provider sends back unchanged.\n\nReturns:\n    A redirect to the web app's home page, with a new session.\n\nRaises:\n    HTTPException: 400 when the state does not match the session, or the\n        provider does not confirm the account; no session is created.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "description": "Finish the login and start a session.\n\nArgs:\n    provider: the provider name from the path.\n    request: the request with the session cookie.\n    login: the login provider port.\n    code: the authorization code from the provider.\n    state: the state the provider sends back unchanged.\n\nReturns:\n    A redirect to the page the login started from (``return_to``, else\n    the web app's home page), with a new session.\n\nRaises:\n    HTTPException: 400 when the state does not match the session, or the\n        provider does not confirm the account; no session is created.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
         "operationId": "callback_api_v1_auth_callback__provider__get",
         "parameters": [
           {
@@ -309,7 +320,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "End the session: the cookie is replaced by an expired one.\n\nArgs:\n    request: the request whose session is cleared.\n    _account: the signed-in account (CSRF checked).\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "description": "End the session: the cookie is replaced by an expired one.\n\nA read-only (jury) session may log out too, so this skips ``CsrfUser``.\n\nArgs:\n    request: the request whose session is cleared.\n    _account: the signed-in account (CSRF checked here, 403 on mismatch).\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
         "operationId": "logout_api_v1_auth_logout_post",
         "responses": {
           "204": {
@@ -324,7 +335,7 @@
           "checks"
         ],
         "summary": "Start Check",
-        "description": "Mask personal data, then enqueue the `check` workflow.\n\nArgs:\n    request: text (up to 4000 characters), a full http(s) link or an audio id.\n    jobs: the job queue port.\n    gate: the shared rate limits and the pending-checks threshold.\n    origin: the client address and region the limits count.\n    pii: the personal-data masking gate.\n    readiness: the readiness probe; a service that is not ready refuses checks.\n    session: the random browser session id; no sign-in needed.\n\nReturns:\n    The check id, 422 with a copy key, or 503 NotReady.\n\nRaises:\n    HTTPException: 400 without a valid session or for Discord, SMS and MCP\n        (they come through their adapters with a hashed user id, backend#27),\n        503 when the job queue is unreachable.\n    CheckRefusedError: over a rate limit or with too many pending checks;\n        answered 429 with Retry-After, nothing enqueued.\n\nFeatures:\n    US-SPR-01, US-SPR-07, US-BEZ-02, US-BEZ-03, US-BEZ-04, US-WDR-03, US-WDR-08,\n    F-01, F-20, F-23, F-30",
+        "description": "Mask personal data, then enqueue the `check` workflow.\n\nArgs:\n    request: text (up to 4000 characters), a full http(s) link or an audio id.\n    jobs: the job queue port.\n    gate: the shared rate limits and the pending-checks threshold.\n    origin: the client address and region the limits count.\n    pii: the personal-data masking gate.\n    readiness: the readiness probe; a service that is not ready refuses checks.\n    cache: the result cache; a hit starts no `check` workflow.\n    records: where a hit's CheckRecord goes.\n    settings: the app settings (the channel user hash salt).\n    session: the random browser session id; no sign-in needed.\n\nReturns:\n    The check id, 422 with a copy key, or 503 NotReady.\n\nRaises:\n    HTTPException: 400 without a valid session, or for Discord, SMS and MCP\n        without ``channel_user_id``; 503 when the job queue is unreachable or\n        the hash salt is not configured.\n    CheckRefusedError: over a rate limit or with too many pending checks;\n        answered 429 with Retry-After, nothing enqueued.\n\nFeatures:\n    US-SPR-01, US-SPR-07, US-BEZ-02, US-BEZ-03, US-BEZ-04, US-BEZ-06, US-WTY-08,\n    US-WDR-03, US-WDR-08, US-WTY-03, US-MOD-03, F-01, F-05, F-20, F-23, F-30",
         "operationId": "start_check_api_v1_checks_post",
         "parameters": [
           {
@@ -404,7 +415,7 @@
           "checks"
         ],
         "summary": "Check Status",
-        "description": "Read a check's steps and, once it finished, its result.\n\nArgs:\n    jobs: the job queue port.\n    check_id: the id POST /api/v1/checks returned.\n    response: the response; gets the AI-Disclosure header with a result.\n\nReturns:\n    The steps; ``result`` once the check finished (``ai_disclosure`` is true).\n\nRaises:\n    HTTPException: 404 when the id is unknown.\n\nFeatures:\n    US-SPR-01, US-BEZ-07, F-01, F-21",
+        "description": "Read a check's steps and, once it finished, its result.\n\nArgs:\n    jobs: the job queue port.\n    cache: the result cache; filled with a finished result, read for a hit.\n    check_id: the id POST /api/v1/checks returned.\n    response: the response; gets the AI-Disclosure header with a result.\n\nReturns:\n    The steps; ``result`` once the check finished (``ai_disclosure`` is true).\n\nRaises:\n    HTTPException: 404 when the id is unknown.\n\nFeatures:\n    US-SPR-01, US-BEZ-07, US-WTY-03, F-01, F-05, F-21",
         "operationId": "check_status_api_v1_checks__check_id__get",
         "parameters": [
           {
@@ -576,6 +587,100 @@
         }
       }
     },
+    "/api/v1/auth/jury-links/redeem": {
+      "post": {
+        "tags": [
+          "jury"
+        ],
+        "summary": "Redeem Jury Link",
+        "description": "Exchange the token for a read-only analyst cookie and redirect to evaluation.\n\nArgs:\n    request: the request with the signed session.\n    origin: the client address used for rate limiting.\n    store: link store.\n\nReturns:\n    A redirect to the evaluation page.\n\nRaises:\n    HTTPException: invalid, expired, or rate-limited request, or storage error.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "operationId": "redeem_jury_link_api_v1_auth_jury_links_redeem_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "format": "password",
+                    "title": "Token",
+                    "writeOnly": true
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "title": "JuryRedemption",
+                "description": "Redeem a link by sending its token in the request body.\n\nAttributes:\n    token: the token extracted from the URL fragment.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "303": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/jury-links": {
+      "post": {
+        "tags": [
+          "jury"
+        ],
+        "summary": "Issue Jury Link",
+        "description": "Issue a short-lived link that can be redeemed only once.\n\nArgs:\n    response: outgoing response with caching disabled.\n    store: link store.\n    settings: environment and public URL of the panel.\n    expires_at: end of the evaluation, at most 7 days ahead; 24 hours if absent.\n\nReturns:\n    The URL and its deadline.\n\nRaises:\n    HTTPException: 422 for an invalid deadline or 503 when storage fails.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "operationId": "issue_jury_link_api_v1_staff_jury_links_post",
+        "parameters": [
+          {
+            "name": "expires_at",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expires At"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedJuryLink"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/moderation/cases": {
       "get": {
         "tags": [
@@ -711,7 +816,7 @@
           "checks"
         ],
         "summary": "Check Events",
-        "description": "Stream a check's progress until the workflow ends.\n\nA result reaches the client only once ``verify_citations`` is done or\nskipped, so a preliminary answer never carries a verdict. When the workflow\nfinished, the last event holds the full CheckResult and the stream closes.\nThe response has no AI-Disclosure header: headers go out before the first\nevent, when no result is known yet; ``result.ai_disclosure`` marks it.\n\nArgs:\n    jobs: the job queue port.\n    check_id: the id POST /api/v1/checks returned; 404 when unknown.\n        Opening a stream counts against the address's own stream budget\n        (429 above it).\n\nYields:\n    One AnalysisStatus per progress value, then the final one with ``result``.\n\nFeatures:\n    US-SPR-02, US-BEZ-02, F-09, F-20",
+        "description": "Stream a check's progress until the workflow ends.\n\nA result reaches the client only once ``verify_citations`` is done or\nskipped, so a preliminary answer never carries a verdict. When the workflow\nfinished, the last event holds the full CheckResult and the stream closes.\nThe response has no AI-Disclosure header: headers go out before the first\nevent, when no result is known yet; ``result.ai_disclosure`` marks it.\n\nArgs:\n    jobs: the job queue port.\n    cache: the result cache; a hit has no workflow, only its result.\n    check_id: the id POST /api/v1/checks returned; 404 when unknown.\n        Opening a stream counts against the address's own stream budget\n        (429 above it).\n\nYields:\n    One AnalysisStatus per progress value, then the final one with ``result``.\n\nFeatures:\n    US-SPR-02, US-BEZ-02, US-WTY-03, F-05, F-09, F-20",
         "operationId": "check_events_api_v1_checks__check_id__events_get",
         "parameters": [
           {
@@ -908,7 +1013,7 @@
           "moderation"
         ],
         "summary": "Escalate Claim",
-        "description": "„Przekaż moderatorom”: turn a recommendation into a saved case.\n\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n\nReturns:\n    The case created or joined with its number and escalation.created or\n    escalation.updated; with 503, escalation recommended (no number) and\n    escalation.recommended when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-03, F-24, ADR-22",
+        "description": "„Przekaż moderatorom”: turn a recommendation into a saved case.\n\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n\nReturns:\n    The case created or joined with its number and escalation.created or\n    escalation.updated; with 503, escalation recommended (no number) and\n    escalation.not_saved when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-03, F-24, ADR-22",
         "operationId": "escalate_claim_api_v1_checks__check_id__claims__claim_index__escalate_post",
         "parameters": [
           {
@@ -1047,6 +1152,28 @@
               }
             },
             "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/sms/webhook": {
+      "post": {
+        "tags": [
+          "sms"
+        ],
+        "summary": "Webhook",
+        "description": "Take one gateway event: start a check, delete on USUN, or drop it.\n\nArgs:\n    request: the signed webhook call.\n    settings: the signing key, the gateway number, the salt, GSM-7 mode.\n    jobs: the job queue port.\n    sms: the gateway sender.\n    records: check records; none for the number means first contact.\n    eraser: deletes the number's checks on USUN.\n    pii: masks personal data in the text before it is queued.\n    gate: the shared rate limits and the pending-checks threshold.\n    background: runs the reply after the answer.\n\nReturns:\n    What happened to the event.\n\nRaises:\n    HTTPException: 404 when the gateway is not configured, 401 for a bad or\n        stale signature, 400 for a malformed event, 503 without a hash salt.\n\nFeatures:\n    US-WTY-07, US-BEZ-06, US-BEZ-07, F-32, F-21, F-20",
+        "operationId": "webhook_api_v1_sms_webhook_post",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Received"
+                }
+              }
+            }
           }
         }
       }
@@ -2061,6 +2188,26 @@
         "title": "InvalidCheck",
         "description": "422 answer: what the person must fix, as a key of copy/pl.json.\n\nAttributes:\n    message_key: errors.empty, errors.too_long or errors.invalid_url.\n\nFeatures:\n    US-SPR-01, US-SPR-07, F-01"
       },
+      "IssuedJuryLink": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "expires_at"
+        ],
+        "title": "IssuedJuryLink",
+        "description": "The administrator's sole copy of the shareable link.\n\nAttributes:\n    url: public jury page with the raw token in the URL fragment.\n    expires_at: last moment before the link expires.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+      },
       "JobState": {
         "properties": {
           "workflow_id": {
@@ -2435,6 +2582,31 @@
         "title": "Readiness",
         "description": "Body of GET /api/v1/health: what the API and the worker lack.\n\nAttributes:\n    status: ok when nothing is missing, otherwise degraded.\n    env: the environment name.\n    database: whether the API's database role can run a query.\n    worker: whether the worker published its readiness report.\n    missing_env: names of unset required variables (API and worker).\n    unavailable_providers: providers the API or the worker cannot use.\n\nFeatures:\n    US-WDR-08, US-BEZ-03, F-30"
       },
+      "Received": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "duplicate",
+              "deleted",
+              "rejected",
+              "refused",
+              "ignored"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "Received",
+        "description": "202 answer to the gateway (it only looks at the status code).\n\nAttributes:\n    status: accepted (a check started), duplicate (a retried event),\n        deleted (USUN), rejected (text not checkable), refused (over a\n        limit or the queue is full; no reply, so no SMS cost) or ignored.\n\nFeatures:\n    US-WTY-07, F-32"
+      },
+      "ReturnPath": {
+        "type": "string"
+      },
       "Source": {
         "properties": {
           "id": {
@@ -2601,7 +2773,14 @@
       "StaffMember": {
         "properties": {
           "email": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Email"
           },
           "role": {
@@ -2612,6 +2791,11 @@
               "admin"
             ],
             "title": "Role"
+          },
+          "read_only": {
+            "type": "boolean",
+            "title": "Read Only",
+            "default": false
           }
         },
         "type": "object",
@@ -2620,7 +2804,7 @@
           "role"
         ],
         "title": "StaffMember",
-        "description": "The signed-in person and their role in the panel.\n\nAttributes:\n    email: the verified address from the ID token.\n    role: the role from the configuration or from an administrator.\n\nFeatures:\n    US-MOD-05, F-25"
+        "description": "The signed-in person and their role in the panel.\n\nAttributes:\n    email: the verified address from the ID token, absent for jury.\n    read_only: whether the member has a jury session.\n    role: the role from the configuration or from an administrator.\n\nFeatures:\n    US-MOD-05, F-25"
       },
       "TooManyChecks": {
         "properties": {

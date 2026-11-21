@@ -1,5 +1,5 @@
 import { Link, type LinkProps } from '@tanstack/react-router'
-import { useCallback, useState } from 'react'
+import { type ReactNode, useCallback, useState } from 'react'
 import { fill, t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
 import { CaseDetail } from './_case-detail'
@@ -8,11 +8,11 @@ import { type PanelData, type PanelSection, sectionsFor } from './_session'
 import { SignIn } from './_sign-in'
 import type { StaffApi, StaffSession } from './ports'
 
-// Sections whose page exists today; export (frontend/022) and administration (frontend/021)
-// join here with their pages. Evaluation shows the public run metrics until frontend/011.
+// Sections whose page exists today; export (frontend/022) joins here with its page. Evaluation shows the public run metrics until frontend/011.
 const pages: Partial<Record<PanelSection, { to: NonNullable<LinkProps['to']>; label: string }>> = {
   cases: { to: '/panel', label: t.moderation.queue_title },
   evaluation: { to: '/jak-dziala', label: t.evaluation.title },
+  admin: { to: '/panel/administracja', label: t.staff.admin.title },
 }
 
 const notices: Record<Exclude<StaffSession['kind'], 'member'>, string | null> = {
@@ -39,12 +39,14 @@ function CasesSection({ cases }: { cases: PanelData['cases'] }) {
 /**
  * The moderator panel (DESIGN_SYSTEM.md 6.5): the sign-in page for anyone without a staff role,
  * otherwise the member's address and role, sign-out, the navigation of their role's sections
- * and, for moderators and administrators, the case queue with the open case below it.
+ * and the page's own content: by default, for moderators and administrators, the case queue
+ * with the open case below it.
  * Notifications (`case_assigned` toasts and the inbox) come from the layout's bell.
  *
  * @param props.data - The session and cases from `loadPanel`.
  * @param props.api - The staff API (login addresses, sign-out).
  * @param props.onSignedOut - Reloads the panel after sign-out.
+ * @param props.children - Another panel page in place of the cases (e.g. administration).
  * @returns The panel.
  * @feature US-MOD-05, US-MOD-02, US-POW-05, F-25, F-26
  */
@@ -52,10 +54,12 @@ export function Panel({
   data,
   api,
   onSignedOut,
+  children,
 }: {
-  data: PanelData
+  data: Pick<PanelData, 'session'> & Partial<Pick<PanelData, 'cases'>>
   api: StaffApi
   onSignedOut: () => void
+  children?: ReactNode
 }) {
   const [isSignedOut, setSignedOut] = useState(false)
   const signOut = useCallback(async () => {
@@ -92,14 +96,16 @@ export function Panel({
             })}
           </ul>
         </nav>
-        <p className="text-small text-muted-foreground">
-          {fill(t.staff.sign_in.signed_in_as, { email: session.email, role })}
-        </p>
+        {session.email && (
+          <p className="text-small text-muted-foreground">
+            {fill(t.staff.sign_in.signed_in_as, { email: session.email, role })}
+          </p>
+        )}
         <Button variant="ghost" size="sm" className="rounded-pill" onClick={signOut}>
           {t.account.sign_out}
         </Button>
       </div>
-      {sections.includes('cases') && <CasesSection cases={data.cases} />}
+      {children ?? (sections.includes('cases') && <CasesSection cases={data.cases ?? null} />)}
     </div>
   )
 }

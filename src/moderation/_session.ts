@@ -1,6 +1,6 @@
 import type { ModeratorCase } from '@/contracts/meritum'
 import { SECTION_ROLES } from './constants'
-import type { StaffApi, StaffRole, StaffSession } from './ports'
+import type { AdminApi, RiskTopic, StaffAccount, StaffApi, StaffRole, StaffSession } from './ports'
 
 /**
  * One section of the panel navigation.
@@ -49,4 +49,34 @@ export async function loadPanel(api: StaffApi): Promise<PanelData> {
   const seesCases = session.kind === 'member' && sectionsFor(session.role).includes('cases')
   const cases = seesCases ? await api.cases() : null
   return typeof cases === 'string' ? { session: { kind: cases }, cases: null } : { session, cases }
+}
+
+/**
+ * What the administration page shows once loaded: the session and, for an administrator, the
+ * accounts and topics (null when the API did not give them).
+ *
+ * @feature US-MOD-05, F-20, F-25
+ */
+export interface AdminData {
+  session: StaffSession
+  accounts: StaffAccount[] | null
+  topics: RiskTopic[] | null
+}
+
+/**
+ * Reads the session first and the accounts and topics only for an administrator, so no other
+ * role ever gets them.
+ *
+ * @param staff - The staff API.
+ * @param admin - The administration API.
+ * @returns The session, accounts and topics.
+ * @feature US-MOD-05, F-20, F-25
+ */
+export async function loadAdmin(staff: StaffApi, admin: AdminApi): Promise<AdminData> {
+  const session = await staff.session()
+  if (session.kind !== 'member' || !sectionsFor(session.role).includes('admin')) {
+    return { session, accounts: null, topics: null }
+  }
+  const [accounts, topics] = await Promise.all([admin.accounts(), admin.topics()])
+  return { session, accounts, topics }
 }

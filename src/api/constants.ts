@@ -120,6 +120,13 @@ export const HTTP_UNAUTHORIZED = 401
 export const HTTP_FORBIDDEN = 403
 
 /**
+ * HTTP status of a staff write the API refused as invalid (e.g. an address it does not accept).
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const HTTP_UNPROCESSABLE = 422
+
+/**
  * Header that repeats the session's CSRF token on state-changing staff requests (backend#15).
  *
  * @feature US-MOD-05, F-25
