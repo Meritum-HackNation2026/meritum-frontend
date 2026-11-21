@@ -1,17 +1,22 @@
 import type { Notification } from '@/contracts/meritum'
 
 /**
- * Every `Notification.kind` of the contract; an event with any other kind is ignored.
+ * Every `Notification.kind` of the contract, plus the end of an evaluation run; an event with
+ * any other kind is ignored.
  *
- * @feature US-POW-01, US-POW-04, F-26
+ * shortcut: `eval_run_done` is added by hand until meritum-core#36 puts it in the contract;
+ * drop the extra type on sync.
+ *
+ * @feature US-POW-01, US-POW-04, US-POW-05, F-26
  */
-export const NOTIFICATION_KINDS: readonly Notification['kind'][] = [
+export const NOTIFICATION_KINDS: readonly (Notification['kind'] | 'eval_run_done')[] = [
   'check_progress',
   'check_done',
   'moderator_answer',
   'new_evidence',
   'case_assigned',
   'system',
+  'eval_run_done',
 ]
 
 /**
