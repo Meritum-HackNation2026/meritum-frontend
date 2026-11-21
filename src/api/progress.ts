@@ -1,12 +1,11 @@
 import type { ProgressSource } from '@/checks'
 import type { AnalysisStatus } from '@/contracts/meritum'
-import pl from '@/copy/pl.json'
-import { CHECKS_ENDPOINT, STEP_STATUSES } from './constants'
+import { CHECKS_ENDPOINT, STEP_CODES, STEP_STATUSES } from './constants'
 
 function isStep(value: unknown): boolean {
   const { code, status } = (value ?? {}) as { code?: unknown; status?: unknown }
-  const isKnownCode = typeof code === 'string' && Object.hasOwn(pl.analysis.steps, code)
-  return isKnownCode && typeof status === 'string' && STEP_STATUSES.includes(status)
+  const isKnownCode = typeof code === 'string' && Object.hasOwn(STEP_CODES, code)
+  return isKnownCode && typeof status === 'string' && Object.hasOwn(STEP_STATUSES, status)
 }
 
 function parseStatus(data: string): AnalysisStatus | null {

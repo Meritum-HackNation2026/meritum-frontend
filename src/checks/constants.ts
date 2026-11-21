@@ -1,3 +1,5 @@
+import type { AnalysisStep } from '@/contracts/meritum'
+
 /**
  * Days a check record is kept before it is deleted (ADR-13); shown next to the form.
  *
@@ -25,3 +27,10 @@ export const MAX_TEXT_CHARS = 4000
  * @feature US-SPR-02, F-09
  */
 export const VERIFY_STEP = 'verify_citations'
+
+/**
+ * The strip of an accepted check before the first streamed status: the request was received.
+ *
+ * @feature US-SPR-02, F-09
+ */
+export const RECEIVED_STEPS: readonly AnalysisStep[] = [{ code: 'receive', status: 'done' }]

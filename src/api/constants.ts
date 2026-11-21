@@ -1,3 +1,5 @@
+import type { AnalysisStep } from '@/contracts/meritum'
+
 /**
  * Endpoint that accepts a `CheckRequest` and starts a check (meritum-backend#16).
  *
@@ -27,8 +29,36 @@ export const SESSION_STORAGE_KEY = 'meritum.session'
 export const HTTP_TOO_MANY_REQUESTS = 429
 
 /**
- * The five step statuses of `AnalysisStep` in the contract; a streamed event with any other is dropped.
+ * The twelve step codes of `AnalysisStep` in the contract; `tsc` fails when the contract adds or
+ * drops one. A streamed event with any other code is dropped.
  *
  * @feature US-SPR-02, F-09
  */
-export const STEP_STATUSES: readonly string[] = ['pending', 'active', 'done', 'skipped', 'failed']
+export const STEP_CODES = {
+  receive: true,
+  fetch_url: true,
+  transcribe_audio: true,
+  screen_injection: true,
+  extract_claims: true,
+  search_corpus: true,
+  search_web: true,
+  search_fact_checks: true,
+  assess_evidence: true,
+  verify_citations: true,
+  write_answer: true,
+  save_record: true,
+} as const satisfies Record<AnalysisStep['code'], true>
+
+/**
+ * The five step statuses of `AnalysisStep` in the contract; `tsc` fails when the contract adds or
+ * drops one. A streamed event with any other status is dropped.
+ *
+ * @feature US-SPR-02, F-09
+ */
+export const STEP_STATUSES = {
+  pending: true,
+  active: true,
+  done: true,
+  skipped: true,
+  failed: true,
+} as const satisfies Record<AnalysisStep['status'], true>

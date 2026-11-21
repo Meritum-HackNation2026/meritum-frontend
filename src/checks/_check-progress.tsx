@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AnalysisSteps, ResultCard, t } from '@/components/meritum'
-import type { AnalysisStatus, AnalysisStep } from '@/contracts/meritum'
+import type { AnalysisStatus } from '@/contracts/meritum'
 import { isDraft, shownResult } from './_progress'
+import { RECEIVED_STEPS } from './constants'
 import type { ProgressSource } from './ports'
-
-const received: AnalysisStep[] = [{ code: 'receive', status: 'done' }]
 
 /**
  * Progress of one accepted check (DESIGN_SYSTEM.md 6.3): the `AnalysisSteps` strip fed by the
@@ -36,7 +35,10 @@ export function CheckProgress({ checkId, source }: { checkId: string; source: Pr
   const result = status && shownResult(status)
   return (
     <>
-      <AnalysisSteps steps={status?.steps ?? received} draft={status !== null && isDraft(status)} />
+      <AnalysisSteps
+        steps={status?.steps ?? [...RECEIVED_STEPS]}
+        draft={status !== null && isDraft(status)}
+      />
       {lost && (
         <p role="alert" className="text-small text-muted-foreground">
           {t.status_hint.technical_failure}

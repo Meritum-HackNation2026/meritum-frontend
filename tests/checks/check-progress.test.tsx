@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CheckPage, type CheckSender, type ProgressSource } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, AnalysisStep } from '@/contracts/meritum'
@@ -38,13 +38,14 @@ function fakeSource() {
   }
 }
 
-async function startCheck(source: ProgressSource) {
-  const page = render(<CheckPage sender={accepted} progress={source} />)
+async function startCheck(fake: ReturnType<typeof fakeSource>) {
+  const page = render(<CheckPage sender={accepted} progress={fake.source} />)
   fireEvent.change(screen.getByLabelText(pl.form.input_label), {
     target: { value: 'Od stycznia nie zapłacisz w sklepie gotówką' },
   })
   fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
-  await screen.findByText(pl.analysis.title)
+  // the subscription starts in an effect, which may run after the strip first renders
+  await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   return page
 }
 
@@ -66,29 +67,31 @@ function withVerify(status: AnalysisStep['status']): AnalysisStatus {
 
 test('an accepted check subscribes to the progress of its id', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   assert.deepEqual(fake.calls.watched, ['c_01'])
 })
 
 test('three research steps reported as active show as active at once', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   fake.emit(recorded)
   for (const code of ['search_corpus', 'search_web', 'search_fact_checks'] as const) {
     assert.equal(stepText(code), `${pl.analysis.steps[code]}, w toku`)
   }
 })
 
-test('a skipped link download is marked with a word, not only a colour', async () => {
+test('a skipped link download is struck through and named "pominięte" for screen readers', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   fake.emit(recorded)
   assert.equal(stepText('fetch_url'), `${pl.analysis.steps.fetch_url}, pominięte`)
+  const step = screen.getByText(pl.analysis.steps.fetch_url).closest('li')
+  assert.equal(step?.classList.contains('line-through'), true)
 })
 
 test('a streamed answer shows no verdict until verify_citations is done', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   fake.emit(withVerify('active'))
   assert.deepEqual(shownVerdicts(), [])
   assert.equal(screen.queryAllByText(pl.analysis.draft).length, 1)
@@ -97,9 +100,25 @@ test('a streamed answer shows no verdict until verify_citations is done', async 
   assert.equal(screen.queryAllByText(pl.analysis.draft).length, 0)
 })
 
+test('verdicts show when verify_citations is skipped, as in the backend rule', async () => {
+  const fake = fakeSource()
+  await startCheck(fake)
+  fake.emit(withVerify('skipped'))
+  assert.deepEqual(shownVerdicts().sort(), [pl.verdict.confirmed, pl.verdict.false].sort())
+})
+
+test('a failed verify_citations keeps the verdicts hidden and ends with a message', async () => {
+  const fake = fakeSource()
+  await startCheck(fake)
+  fake.emit(withVerify('failed'))
+  fake.end()
+  assert.deepEqual(shownVerdicts(), [])
+  assert.equal(screen.getByRole('alert').textContent, pl.status_hint.technical_failure)
+})
+
 test('the result is announced in a polite live region', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   fake.emit(withVerify('done'))
   fake.end()
   const card = screen.getByRole('region', { name: 'Meritum: wynik sprawdzenia' })
@@ -109,7 +128,7 @@ test('the result is announced in a polite live region', async () => {
 
 test('a stream that ends without a result shows a message, not a verdict', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   fake.emit(withVerify('active'))
   fake.end()
   assert.equal(screen.getByRole('alert').textContent, pl.status_hint.technical_failure)
@@ -118,7 +137,7 @@ test('a stream that ends without a result shows a message, not a verdict', async
 
 test('a result without verdicts shows at once and ends without a message', async () => {
   const fake = fakeSource()
-  await startCheck(fake.source)
+  await startCheck(fake)
   const outOfScope = { check_id: 'c_01', status: 'out_of_scope', corpus_version: '1' } as const
   fake.emit({ check_id: 'c_01', steps: recorded.steps, result: outOfScope })
   fake.end()
@@ -128,7 +147,7 @@ test('a result without verdicts shows at once and ends without a message', async
 
 test('leaving the page closes the subscription', async () => {
   const fake = fakeSource()
-  const page = await startCheck(fake.source)
+  const page = await startCheck(fake)
   assert.equal(fake.calls.stopped, 0)
   page.unmount()
   assert.equal(fake.calls.stopped, 1)
