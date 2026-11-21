@@ -5,7 +5,7 @@
  * @feature US-SPR-09, US-BEZ-05, F-01, F-20
  */
 import assert from 'node:assert/strict'
-import { beforeEach, type TestContext, test } from 'node:test'
+import { type TestContext, test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { saveCheck, savedChecks } from '@/checks'
@@ -20,24 +20,25 @@ const abstain = examples['CheckResult.abstain'] as CheckResult
 // no session id: the adapter drops notifications addressed to another session
 const notification = { ...examples.Notification, session_id: undefined }
 
+const methodOf = (input: unknown, init?: RequestInit) =>
+  input instanceof Request ? input.method : (init?.method ?? 'GET')
+
 /** Answers every call: `deleteStatus` for the session delete, the inbox list otherwise. */
 function fakeApi(t: TestContext, deleteStatus = 202) {
   return t.mock.method(globalThis, 'fetch', (input: unknown, init?: RequestInit) => {
     const path = requestPath(input)
-    const method = input instanceof Request ? input.method : (init?.method ?? 'GET')
     if (path.startsWith('/api/v1/sessions/')) {
       return Promise.resolve(new Response(JSON.stringify({ deleted: 2 }), { status: deleteStatus }))
     }
-    const body = method === 'GET' ? [notification] : null
+    const body = methodOf(input, init) === 'GET' ? [notification] : null
     return Promise.resolve(new Response(JSON.stringify(body)))
   })
 }
 
 function calls(fetch: ReturnType<typeof fakeApi>) {
-  return fetch.mock.calls.map(({ arguments: [input, init] }) => {
-    const method = input instanceof Request ? input.method : (init?.method ?? 'GET')
-    return `${method} ${requestPath(input)}`
-  })
+  return fetch.mock.calls.map(
+    ({ arguments: [input, init] }) => `${methodOf(input, init)} ${requestPath(input)}`,
+  )
 }
 
 function renderAt(path: string) {
@@ -48,10 +49,6 @@ function renderAt(path: string) {
   render(<RouterProvider router={router} />)
   return router
 }
-
-beforeEach(() => {
-  sessionStorage.clear()
-})
 
 test('powrót do wyniku: the first entry opens its card without asking the API', async (t) => {
   const fetch = fakeApi(t)

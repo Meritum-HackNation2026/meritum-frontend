@@ -79,3 +79,10 @@ export const MAX_READS = 120
  * @feature US-SPR-09, US-BEZ-05, F-01, F-20
  */
 export const HISTORY_STORAGE_KEY = 'meritum.history'
+
+/**
+ * Locale of the times in the history list under the form.
+ *
+ * @feature US-SPR-09, F-01
+ */
+export const LOCALE = 'pl-PL'

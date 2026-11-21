@@ -5,17 +5,13 @@
  * @feature US-SPR-09, US-BEZ-05, F-01, F-20
  */
 import assert from 'node:assert/strict'
-import { beforeEach, test } from 'node:test'
+import { test } from 'node:test'
 import { findSavedCheck, forgetChecks, saveCheck, savedChecks } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { CheckResult } from '@/contracts/meritum'
 
 const done = examples['CheckResult.done'] as CheckResult
 const abstain = examples['CheckResult.abstain'] as CheckResult
-
-beforeEach(() => {
-  sessionStorage.clear()
-})
 
 test('an empty tab has no saved checks', () => {
   assert.deepEqual(savedChecks(), [])

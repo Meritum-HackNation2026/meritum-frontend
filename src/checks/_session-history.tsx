@@ -2,16 +2,17 @@ import { useCallback } from 'react'
 import { t, VerdictBadge } from '@/components/meritum'
 import type { CheckResult } from '@/contracts/meritum'
 import type { SavedCheck } from './_history'
+import { LOCALE } from './constants'
 
-const time = new Intl.DateTimeFormat('pl-PL', { hour: '2-digit', minute: '2-digit' })
+const timeFormat = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' })
 
-/** The check as the user will recognise it: its main claim, or the status word without one. */
+/** The check as the user will recognise it: its main claim, else its status word or message. */
 function labelOf(result: CheckResult): string {
   const claim = result.claims?.[0]?.claim
   if (claim) {
     return claim
   }
-  return result.status === 'done' ? result.check_id : t.status[result.status]
+  return result.status === 'done' ? (result.message ?? result.check_id) : t.status[result.status]
 }
 
 /** One saved check: its label, the verdict as a word and the time; a click opens it. */
@@ -31,7 +32,7 @@ function Entry({ at, result, onOpen }: SavedCheck & { onOpen: (checkId: string) 
           dateTime={at}
           className="shrink-0 text-right font-mono text-meta text-muted-foreground"
         >
-          {time.format(new Date(at))}
+          {timeFormat.format(new Date(at))}
         </time>
       </button>
     </li>

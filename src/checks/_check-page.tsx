@@ -8,8 +8,8 @@ import { SessionHistory } from './_session-history'
 import { RETENTION_DAYS } from './constants'
 import type { CheckSender, SendOutcome, SessionEraser } from './ports'
 
-/** „Usuń moje sprawdzenia”: the confirmation dialog, the deletion and its outcome. */
-function useErase(eraser: SessionEraser, onErased: () => Promise<void> | void) {
+/** This tab's history and „Usuń moje sprawdzenia”: the confirmation, the deletion, its outcome. */
+function useSessionHistory(eraser: SessionEraser, onErased: () => Promise<void> | void) {
   const [confirming, setConfirming] = useState(false)
   const [erased, setErased] = useState<boolean | null>(null)
   const [items, setItems] = useState(savedChecks)
@@ -57,7 +57,10 @@ export function CheckPage({
 }) {
   const [sending, setSending] = useState(false)
   const [outcome, setOutcome] = useState<SendOutcome | ErrorKey | null>(null)
-  const { confirming, setConfirming, ask, erased, items, erase } = useErase(eraser, onErased)
+  const { confirming, setConfirming, ask, erased, items, erase } = useSessionHistory(
+    eraser,
+    onErased,
+  )
 
   const submit = useCallback(
     async (form: CheckRequest) => {
