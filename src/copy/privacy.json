@@ -1,5 +1,5 @@
 {
-  "$comment": "Privacy policies per channel and the processor register (pl). Single source for the frontend, the Discord bot, the extension, the SMS adapter and README. Facts from the product document and the team decisions on PR #20: ADR-13, ADR-14, US-BEZ-06, US-BEZ-07, US-WDR-03. policies.<channel>.processors lists ids from processors.items; planned_processors lists ids from processors.planned_items. channel_privacy in pl.json is the short in-channel summary of the same rules. Tone: DESIGN_SYSTEM.md section 8. controller and external_mcp_clients are shown in every policy. policies.web.sign_in is a web-only subsection (title, scopes, purpose, retention) about Google or Microsoft sign-in (design-system#28). Decisions from the team on PR #20 (2026-11-21).",
+  "$comment": "Privacy policies per channel and the processor register (pl). Single source for the frontend, the Discord bot, the extension, the SMS adapter and README. Facts from the product document and the team decisions on PR #20: ADR-13, ADR-14, US-BEZ-06, US-BEZ-07, US-WDR-03. policies.<channel>.processors lists ids from processors.items; planned_processors lists ids from processors.planned_items. channel_privacy in pl.json is the short in-channel summary of the same rules. Tone: DESIGN_SYSTEM.md section 8. controller and external_mcp_clients are shown in every policy. policies.web.sign_in is a web-only subsection (title, scopes, purpose, retention) about Google or Microsoft sign-in (design-system#28). The extension deletes checks from its popup by a random session id (meritum-extension#24, design-system#31). Decisions from the team on PR #20 (2026-11-21).",
   "controller": {
     "$comment": "Shown at the top of every policy. contact: team address decided on PR #20.",
     "title": "Kto odpowiada za dane",
@@ -12,7 +12,7 @@
     "web": {
       "title": "Polityka prywatności strony Meritum",
       "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy imię i nazwisko, adres e-mail i identyfikator konta. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
-      "purpose": "Dane służą tylko do sprawdzenia informacji, odpowiedzi i pokazania twojej historii sprawdzeń.",
+      "purpose": "Dane służą tylko do sprawdzenia informacji, odpowiedzi, policzenia powtórzeń pytań i pokazania twojej historii sprawdzeń.",
       "retention": "Historię sprawdzeń i powiadomienia usuwamy automatycznie po 30 dniach, a wcześniej, jeśli usuniesz historię albo konto. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia. Logowanie jest opcjonalne. Dane konta przechowujemy do kliknięcia „Usuń konto”.",
       "deletion": "Przycisk „Usuń moje sprawdzenia” usuwa zapisy twojej sesji. Po zalogowaniu „Usuń moją historię” usuwa historię, a „Usuń konto” także konto.",
       "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
@@ -44,10 +44,10 @@
     },
     "extension": {
       "title": "Polityka prywatności wtyczki Meritum",
-      "data": "Wtyczka wysyła tekst posta i jego adres dopiero po kliknięciu „Sprawdź”. Nie skanuje automatycznie feedu. W okienku wtyczki wysyła tylko to, co wkleisz. Oczywiste dane osobowe ukrywamy przed analizą.",
-      "purpose": "Dane służą tylko do sprawdzenia informacji i pokazania wyniku pod postem albo w okienku.",
+      "data": "Wtyczka wysyła tekst posta i jego adres dopiero po kliknięciu „Sprawdź”. Nie skanuje automatycznie feedu. W okienku wtyczki wysyła tylko to, co wkleisz. Z każdym sprawdzeniem wysyła losowy identyfikator sesji, zapisany tylko w przeglądarce. Oczywiste dane osobowe ukrywamy przed analizą.",
+      "purpose": "Dane służą tylko do sprawdzenia informacji, policzenia powtórzeń pytań i pokazania wyniku pod postem albo w okienku.",
       "retention": "Zapis sprawdzenia usuwamy automatycznie po 30 dniach.",
-      "deletion": "Wtyczka nie pobiera ani nie przekazuje twojego identyfikatora z serwisów społecznościowych. Bez niego nie możemy powiązać wcześniejszych sprawdzeń z tobą, więc zapis znika sam po 30 dniach.",
+      "deletion": "Przycisk „Usuń moje sprawdzenia” w okienku wtyczki usuwa sprawdzenia wysłane z tej wtyczki. Wtyczka dostaje wtedy nowy losowy identyfikator. Nie pobiera ani nie przekazuje twojego identyfikatora z serwisów społecznościowych.",
       "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
       "ip_addresses": "Adres IP i region możemy przetwarzać, żeby liczyć limit zapytań i chronić usługę przed DDoS i innymi atakami. Licznik limitu zapytań trzymamy tylko przez czas okna limitu (minuty albo godziny), bez trwałego zapisu. Logi techniczne i bezpieczeństwa z adresem IP usuwamy automatycznie po 14 dniach. Cloudflare przechowuje swoje logi według własnej polityki retencji.",
       "processors_lead": "Dane tego kanału przetwarzają te podmioty:",
