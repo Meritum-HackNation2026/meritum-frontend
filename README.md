@@ -2,10 +2,10 @@
 
 Aplikacja webowa Meritum: React, TypeScript, Vite, Tailwind CSS v4, Biome, pnpm. W produkcji to statyczny build w kontenerze nginx, który przekazuje `/api` do [meritum-backend](https://github.com/Meritum-HackNation2026/meritum-backend) tego samego środowiska, więc front i API mają jeden adres i nie potrzebują CORS.
 
-| Środowisko | Gałąź | Adres | Kontener | `/api` trafia do |
-| --- | --- | --- | --- | --- |
-| dev | `develop` | https://meritum-dev.gburek.app | `meritum-web-dev` | `meritum-api-dev:8000` |
-| prd | `main` | https://meritum.gburek.app | `meritum-web-prd` | `meritum-api-prd:8000` |
+| Środowisko | Gałąź     | Adres                          | Kontener          | `/api` trafia do       |
+| ---------- | --------- | ------------------------------ | ----------------- | ---------------------- |
+| dev        | `develop` | https://meritum-dev.gburek.app | `meritum-web-dev` | `meritum-api-dev:8000` |
+| prd        | `main`    | https://meritum.gburek.app     | `meritum-web-prd` | `meritum-api-prd:8000` |
 
 Droga żądania: Cloudflare → tunel na dellpromaxgb10 → `meritum-gateway` (nginx platformy, `172.17.0.1:18095`) → `meritum-web-<env>:8080` → dla `/api/*` dalej do API.
 
