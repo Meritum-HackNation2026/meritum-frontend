@@ -307,6 +307,7 @@
     "url_too_long": "Link jest za długi. Wklej adres do 2083 znaków albo sam tekst.",
     "too_long": "Tekst jest za długi. Wklej najwyżej 4000 znaków albo sam link.",
     "rate_limited": "Za dużo sprawdzeń w krótkim czasie. Spróbuj za minutę.",
+    "rate_limited_daily": "Na dziś wykorzystano limit wysłanych nagrań. Spróbuj później.",
     "busy": "Mamy teraz bardzo dużo pytań. Spróbuj za kilka minut. To nie jest ocena treści.",
     "offline": "Brak połączenia. Spróbuj, gdy wrócisz do sieci.",
     "unsupported_site": "Przycisk „Sprawdź” działa na X, Facebooku, Instagramie, Reddicie i TikToku. Tekst z innych stron wklej w okienku wtyczki.",
