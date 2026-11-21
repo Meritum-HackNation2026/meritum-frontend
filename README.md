@@ -16,8 +16,11 @@ pnpm install
 pnpm dev          # http://localhost:5173, /api idzie do backendu na :8000
 API_PROXY=https://meritum-dev.gburek.app pnpm dev   # to samo na żywym API dev, bez lokalnego backendu
 pnpm check        # Biome
+pnpm test && pnpm depcruise && pnpm knip   # architektura, granice importów, martwy kod
 pnpm build        # tsc + vite build -> dist/
 ```
+
+Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).
 
 Obraz lokalnie: `docker build -t meritum-web .`, potem `docker run -p 8080:8080 -e API_UPSTREAM=host.docker.internal:8000 meritum-web` (nginx rozwiązuje nazwę przez DNS Dockera, więc poza siecią Dockera `/api` nie zadziała; do pracy nad UI wystarczy `pnpm dev`).
 

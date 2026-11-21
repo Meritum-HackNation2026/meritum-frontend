@@ -1,0 +1,15 @@
+// Dead code and unused dependencies (docs/architecture.md). Run: pnpm knip
+{
+  "$schema": "./node_modules/knip/schema-jsonc.json",
+  "entry": ["tests/architecture/*.test.ts"],
+  // Copies owned by other tools or repos: shadcn components and design-system components.
+  "ignore": ["src/components/ui/**", "src/components/meritum/**"],
+  "ignoreDependencies": [
+    // Used by the shadcn components in src/components/ui (ignored above).
+    "class-variance-authority",
+    "lucide-react",
+    "radix-ui",
+    // dependency-cruiser's TypeScript parser (parser: "swc" in .dependency-cruiser.cjs).
+    "@swc/core"
+  ]
+}

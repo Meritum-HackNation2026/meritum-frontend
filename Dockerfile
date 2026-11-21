@@ -3,7 +3,7 @@
 # 2. runtime: unprivileged nginx on :8080 serving dist, /api proxied to API_UPSTREAM
 FROM node:26-slim AS build
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm install --global "$(node -p "require('./package.json').packageManager")" \
  && pnpm install --frozen-lockfile
 COPY . ./

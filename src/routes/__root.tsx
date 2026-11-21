@@ -1,6 +1,11 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
 
+/**
+ * Layout of every page: the Meritum header and the page below it.
+ *
+ * @feature US-SPR-01, US-DST-01
+ */
 export const Route = createRootRoute({ component: Layout })
 
 function Layout() {
