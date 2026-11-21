@@ -15,6 +15,7 @@ import { Route as PrywatnoscIndexRouteImport } from './routes/prywatnosc/index'
 import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/discord'
 import { Route as PrywatnoscSmsRouteImport } from './routes/prywatnosc/sms'
 import { Route as PrywatnoscWtyczkaRouteImport } from './routes/prywatnosc/wtyczka'
+import { Route as SprawdzenieCheckIdRouteImport } from './routes/sprawdzenie/$checkId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const PrywatnoscWtyczkaRoute = PrywatnoscWtyczkaRouteImport.update({
   path: '/prywatnosc/wtyczka',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SprawdzenieCheckIdRoute = SprawdzenieCheckIdRouteImport.update({
+  id: '/sprawdzenie/$checkId',
+  path: '/sprawdzenie/$checkId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
   '/prywatnosc/': typeof PrywatnoscIndexRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
   '/prywatnosc': typeof PrywatnoscIndexRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
   '/prywatnosc/': typeof PrywatnoscIndexRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
+    | '/sprawdzenie/$checkId'
     | '/prywatnosc/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
+    | '/sprawdzenie/$checkId'
     | '/prywatnosc'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
+    | '/sprawdzenie/$checkId'
     | '/prywatnosc/'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
   PrywatnoscSmsRoute: typeof PrywatnoscSmsRoute
   PrywatnoscWtyczkaRoute: typeof PrywatnoscWtyczkaRoute
+  SprawdzenieCheckIdRoute: typeof SprawdzenieCheckIdRoute
   PrywatnoscIndexRoute: typeof PrywatnoscIndexRoute
 }
 
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrywatnoscWtyczkaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sprawdzenie/$checkId': {
+      id: '/sprawdzenie/$checkId'
+      path: '/sprawdzenie/$checkId'
+      fullPath: '/sprawdzenie/$checkId'
+      preLoaderRoute: typeof SprawdzenieCheckIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,
   PrywatnoscSmsRoute: PrywatnoscSmsRoute,
   PrywatnoscWtyczkaRoute: PrywatnoscWtyczkaRoute,
+  SprawdzenieCheckIdRoute: SprawdzenieCheckIdRoute,
   PrywatnoscIndexRoute: PrywatnoscIndexRoute,
 }
 export const routeTree = rootRouteImport

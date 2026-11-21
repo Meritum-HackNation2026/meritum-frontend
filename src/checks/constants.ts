@@ -34,3 +34,26 @@ export const VERIFY_STEP = 'verify_citations'
  * @feature US-SPR-02, F-09
  */
 export const RECEIVED_STEPS: readonly AnalysisStep[] = [{ code: 'receive', status: 'done' }]
+
+/**
+ * Pause between two reads of a running check on the result page; the API itself waits a moment
+ * for new steps before it answers.
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const POLL_INTERVAL_MS = 1500
+
+/**
+ * Failed reads in a row after which the result page stops asking the API; the message stays.
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const MAX_FAILED_READS = 5
+
+/**
+ * Most reads of one check before the result page gives up with the technical failure line: a
+ * check whose workflow failed has no result and would otherwise be read forever (about 3 min).
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const MAX_READS = 120

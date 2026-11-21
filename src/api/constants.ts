@@ -94,3 +94,10 @@ export const NOTIFICATIONS_ENDPOINT = '/api/v1/notifications'
  * @feature US-POW-01, F-26
  */
 export const SESSION_QUERY_PARAM = 'session'
+
+/**
+ * HTTP status of GET /api/v1/checks/{id} for an unknown check id.
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const HTTP_NOT_FOUND = 404
