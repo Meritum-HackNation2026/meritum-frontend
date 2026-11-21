@@ -20,11 +20,25 @@ function nextAfter(outcome: ReadOutcome, failures: number, readsLeft: number): N
   return readsLeft > 0 ? 'again' : 'give_up'
 }
 
-function useCheckStatus(checkId: string, reader: ResultReader, pollMs: number, maxReads: number) {
+/** How the page reads the API: the pause between reads and how many reads it may make. */
+type Polling = { pollMs: number; maxReads: number }
+
+/**
+ * Reads the check until it has a result. Once the stream ended without one, a single last read
+ * decides: a result, or the technical failure line (as in meritum-frontend#17).
+ */
+function useCheckStatus(
+  checkId: string,
+  reader: ResultReader,
+  { pollMs, maxReads }: Polling,
+  streamEnded: boolean,
+) {
   const [outcome, setOutcome] = useState<ReadOutcome | null>(null)
   const [status, setStatus] = useState<AnalysisStatus | null>(null)
   const [gaveUp, setGaveUp] = useState(false)
+  const [ended, setEnded] = useState(false)
   useEffect(() => {
+    const limit = streamEnded ? 1 : maxReads
     let active = true
     let timer: ReturnType<typeof setTimeout> | undefined
     let failures = 0
@@ -41,26 +55,28 @@ function useCheckStatus(checkId: string, reader: ResultReader, pollMs: number, m
         setStatus(next.status)
       }
       failures = typeof next === 'string' ? failures + 1 : 0
-      const then = nextAfter(next, failures, maxReads - reads)
+      const then = nextAfter(next, failures, limit - reads)
       if (then === 'again') {
         timer = setTimeout(poll, pollMs)
       }
       setGaveUp(then === 'give_up')
+      setEnded(then !== 'again')
     }
     poll()
     return () => {
       active = false
       clearTimeout(timer)
     }
-  }, [checkId, reader, pollMs, maxReads])
-  return { outcome, status, gaveUp }
+  }, [checkId, reader, pollMs, maxReads, streamEnded])
+  return { outcome, status, gaveUp, ended }
 }
 
-/** The latest status streamed over SSE; the API read stays the fallback when the stream ends. */
+/** The latest status streamed over SSE and whether the stream has ended. */
 function useStreamedStatus(checkId: string, progress: ProgressSource) {
   const [streamed, setStreamed] = useState<AnalysisStatus | null>(null)
-  useEffect(() => progress.watch(checkId, setStreamed, () => undefined), [checkId, progress])
-  return streamed
+  const [closed, setClosed] = useState(false)
+  useEffect(() => progress.watch(checkId, setStreamed, () => setClosed(true)), [checkId, progress])
+  return { streamed, closed }
 }
 
 function errorText(outcome: ReadOutcome | null, gaveUp: boolean): string | null {
@@ -85,8 +101,8 @@ function Card({ result }: { result: CheckResult }) {
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
  * so a screen reader announces the result. Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
- * times in a row; an unknown id stops it, and so does a check with no result after
- * `MAX_READS` reads (its workflow failed), with the technical failure line.
+ * times in a row; an unknown id stops it. A stream that ends without a result, or `MAX_READS`
+ * reads without one, end with the technical failure line after one last read.
  *
  * @param props.checkId - The id the API gave the accepted check.
  * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
@@ -109,13 +125,16 @@ export function ResultPage({
   pollMs?: number
   maxReads?: number
 }) {
-  const { outcome, status, gaveUp } = useCheckStatus(checkId, reader, pollMs, maxReads)
-  const streamed = useStreamedStatus(checkId, progress)
+  const { streamed, closed } = useStreamedStatus(checkId, progress)
+  const streamedResult = streamed && shownResult(streamed)
+  const polling = { pollMs, maxReads }
+  const read = useCheckStatus(checkId, reader, polling, closed && !streamedResult)
+  const { outcome, status, gaveUp, ended } = read
   const live = streamed ?? status
   // GET already holds back early verdicts (backend `without_early_verdict`); the stream does not
-  const result = (streamed && shownResult(streamed)) ?? status?.result ?? null
+  const result = streamedResult ?? status?.result ?? null
   const error = errorText(outcome, gaveUp)
-  const isRunning = !(result || gaveUp || outcome === 'not_found')
+  const isRunning = !(result || ended)
   return (
     <div className="grid min-w-0 gap-4">
       {isRunning && (

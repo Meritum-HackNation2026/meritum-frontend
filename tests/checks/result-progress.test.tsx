@@ -109,12 +109,13 @@ test('verdicts show when verify_citations is skipped, as in the backend rule', a
   assert.deepEqual(shownVerdicts().sort(), [pl.verdict.confirmed, pl.verdict.false].sort())
 })
 
-test('a failed verify_citations keeps the verdicts hidden', async () => {
+test('a failed verify_citations keeps the verdicts hidden and ends with a message', async () => {
   const fake = fakeSource()
   await startCheck(fake)
   fake.emit(withVerify('failed'))
   fake.end()
   assert.deepEqual(shownVerdicts(), [])
+  assert.equal((await screen.findByRole('alert')).textContent, pl.status_hint.technical_failure)
 })
 
 test('the result is announced in a polite live region', async () => {
@@ -127,13 +128,31 @@ test('the result is announced in a polite live region', async () => {
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
 
-test('a stream that ends without a result shows no verdict and keeps the steps', async () => {
+test('a stream that ends without a result shows a message, not a verdict', async () => {
   const fake = fakeSource()
   await startCheck(fake)
   fake.emit(withVerify('active'))
   fake.end()
+  assert.equal((await screen.findByRole('alert')).textContent, pl.status_hint.technical_failure)
   assert.deepEqual(shownVerdicts(), [])
-  assert.ok(screen.getByText(pl.analysis.steps.verify_citations))
+  assert.equal(screen.queryByText(pl.analysis.title), null)
+})
+
+test('a stream that ends early still shows the result the API has by then', async () => {
+  const fake = fakeSource()
+  let reads = 0
+  const finishing: ResultReader = {
+    read: () =>
+      Promise.resolve({
+        status: { check_id: 'c_01', steps: recorded.steps, ...(reads++ > 0 ? { result } : {}) },
+      }),
+  }
+  render(<ResultPage checkId="c_01" reader={finishing} progress={fake.source} pollMs={60_000} />)
+  await waitFor(() => assert.equal(fake.calls.watched.length, 1))
+  await screen.findByText(pl.analysis.steps.search_corpus)
+  fake.end()
+  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
 
 test('a result without verdicts shows at once and ends without a message', async () => {

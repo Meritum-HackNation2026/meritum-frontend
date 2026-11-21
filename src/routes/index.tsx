@@ -9,7 +9,7 @@ import { AiNotice } from '@/components/ai-notice'
  * (ADR-08), which sends through the API client and opens the result page of an accepted
  * check. No sign-in is needed.
  *
- * @feature US-SPR-01, US-SPR-02, US-BEZ-07, US-DST-01, F-01, F-09, F-21
+ * @feature US-SPR-01, US-BEZ-07, US-DST-01, F-01, F-21
  */
 export const Route = createFileRoute('/')({ component: Home })
 

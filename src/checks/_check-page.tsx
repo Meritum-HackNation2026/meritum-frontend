@@ -12,7 +12,7 @@ import type { CheckSender, SendOutcome } from './ports'
  * @param props.sender - Sends the request to the API (the `src/api` adapter in the app).
  * @param props.onAccepted - Called with the id of an accepted check.
  * @returns The check page.
- * @feature US-SPR-01, US-SPR-02, US-BEZ-07, US-DST-01, F-01, F-09, F-21
+ * @feature US-SPR-01, US-BEZ-07, US-DST-01, F-01, F-21
  */
 export function CheckPage({
   sender,
