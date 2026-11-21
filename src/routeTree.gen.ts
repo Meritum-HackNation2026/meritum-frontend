@@ -10,33 +10,89 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrywatnoscIndexRouteImport } from './routes/prywatnosc/index'
+import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/discord'
+import { Route as PrywatnoscSmsRouteImport } from './routes/prywatnosc/sms'
+import { Route as PrywatnoscWtyczkaRouteImport } from './routes/prywatnosc/wtyczka'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrywatnoscIndexRoute = PrywatnoscIndexRouteImport.update({
+  id: '/prywatnosc/',
+  path: '/prywatnosc/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscDiscordRoute = PrywatnoscDiscordRouteImport.update({
+  id: '/prywatnosc/discord',
+  path: '/prywatnosc/discord',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscSmsRoute = PrywatnoscSmsRouteImport.update({
+  id: '/prywatnosc/sms',
+  path: '/prywatnosc/sms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscWtyczkaRoute = PrywatnoscWtyczkaRouteImport.update({
+  id: '/prywatnosc/wtyczka',
+  path: '/prywatnosc/wtyczka',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
+  '/prywatnosc/sms': typeof PrywatnoscSmsRoute
+  '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/prywatnosc/': typeof PrywatnoscIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
+  '/prywatnosc/sms': typeof PrywatnoscSmsRoute
+  '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/prywatnosc': typeof PrywatnoscIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
+  '/prywatnosc/sms': typeof PrywatnoscSmsRoute
+  '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/prywatnosc/': typeof PrywatnoscIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/prywatnosc/discord'
+    | '/prywatnosc/sms'
+    | '/prywatnosc/wtyczka'
+    | '/prywatnosc/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/prywatnosc/discord'
+    | '/prywatnosc/sms'
+    | '/prywatnosc/wtyczka'
+    | '/prywatnosc'
+  id:
+    | '__root__'
+    | '/'
+    | '/prywatnosc/discord'
+    | '/prywatnosc/sms'
+    | '/prywatnosc/wtyczka'
+    | '/prywatnosc/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
+  PrywatnoscSmsRoute: typeof PrywatnoscSmsRoute
+  PrywatnoscWtyczkaRoute: typeof PrywatnoscWtyczkaRoute
+  PrywatnoscIndexRoute: typeof PrywatnoscIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +104,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prywatnosc/': {
+      id: '/prywatnosc/'
+      path: '/prywatnosc'
+      fullPath: '/prywatnosc/'
+      preLoaderRoute: typeof PrywatnoscIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/discord': {
+      id: '/prywatnosc/discord'
+      path: '/prywatnosc/discord'
+      fullPath: '/prywatnosc/discord'
+      preLoaderRoute: typeof PrywatnoscDiscordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/sms': {
+      id: '/prywatnosc/sms'
+      path: '/prywatnosc/sms'
+      fullPath: '/prywatnosc/sms'
+      preLoaderRoute: typeof PrywatnoscSmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/wtyczka': {
+      id: '/prywatnosc/wtyczka'
+      path: '/prywatnosc/wtyczka'
+      fullPath: '/prywatnosc/wtyczka'
+      preLoaderRoute: typeof PrywatnoscWtyczkaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,
+  PrywatnoscSmsRoute: PrywatnoscSmsRoute,
+  PrywatnoscWtyczkaRoute: PrywatnoscWtyczkaRoute,
+  PrywatnoscIndexRoute: PrywatnoscIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

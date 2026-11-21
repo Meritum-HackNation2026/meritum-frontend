@@ -1,6 +1,7 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { type Health, healthQuery } from '@/api'
+import { AiNotice } from '@/components/ai-notice'
 
 /**
  * Home page: the place of the check form (US-SPR-01); for now it shows the API status.
@@ -35,6 +36,9 @@ function Home() {
       <p className="mt-2 text-body text-muted-foreground">
         Formularz sprawdzania twierdzeń jest w budowie. Na razie ta strona pokazuje stan systemu.
       </p>
+      <div className="mt-4">
+        <AiNotice />
+      </div>
       <p
         className="mt-6 inline-flex items-center gap-2 rounded-pill border px-3 py-1 text-small"
         aria-live="polite"
