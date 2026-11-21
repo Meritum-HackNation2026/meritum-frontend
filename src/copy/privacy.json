@@ -1,0 +1,264 @@
+{
+  "$comment": "Privacy policies per channel and the processor register (pl). Single source for the frontend, the Discord bot, the extension, the SMS adapter and README. Facts from the product document and the team decisions on PR #20: ADR-13, ADR-14, US-BEZ-06, US-BEZ-07, US-WDR-03. policies.<channel>.processors lists ids from processors.items; planned_processors lists ids from processors.planned_items. channel_privacy in pl.json is the short in-channel summary of the same rules. Tone: DESIGN_SYSTEM.md section 8. controller and external_mcp_clients are shown in every policy. Decisions from the team on PR #20 (2026-11-21).",
+  "controller": {
+    "$comment": "Shown at the top of every policy. contact: team address decided on PR #20.",
+    "title": "Kto odpowiada za dane",
+    "name": "Administratorem danych jest Zespół Meritum, który prowadzi instancję demonstracyjną na HackNation 2026.",
+    "no_partnership": "Projekt nie ma partnerstwa z MSZ.",
+    "deployment": "Jeśli Meritum zostanie wdrożone pilotażowo albo produkcyjnie, administratorem będzie podmiot wdrażający.",
+    "contact": "Pytania o dane i wnioski wyślij na adres cyprian@gburek.dev."
+  },
+  "policies": {
+    "web": {
+      "title": "Polityka prywatności strony Meritum",
+      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy identyfikator konta i historię sprawdzeń z ukrytymi danymi osobowymi.",
+      "purpose": "Dane służą tylko do sprawdzenia informacji, odpowiedzi i pokazania twojej historii sprawdzeń.",
+      "retention": "Historię sprawdzeń i powiadomienia usuwamy automatycznie po 30 dniach, a wcześniej, jeśli usuniesz historię albo konto. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia. Logowanie jest opcjonalne. Identyfikator konta przechowujemy do kliknięcia „Usuń konto”.",
+      "deletion": "Przycisk „Usuń moje sprawdzenia” usuwa zapisy twojej sesji. Po zalogowaniu „Usuń moją historię” usuwa historię, a „Usuń konto” także konto.",
+      "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
+      "ip_addresses": "Adres IP i region możemy przetwarzać, żeby liczyć limit zapytań i chronić usługę przed DDoS i innymi atakami. Licznik limitu zapytań trzymamy tylko przez czas okna limitu (minuty albo godziny), bez trwałego zapisu. Logi techniczne i bezpieczeństwa z adresem IP usuwamy automatycznie po 14 dniach. Cloudflare przechowuje swoje logi według własnej polityki retencji.",
+      "processors_lead": "Dane strony przetwarzają te podmioty:",
+      "processors": ["team_server", "gcp_europe_central2", "cloud_storage", "cloudflare", "vertex_ai", "mistral_vertex", "vertex_ai_embeddings", "model_armor", "sensitive_data_protection", "speech_to_text", "vertex_ai_search", "searxng", "linkup", "crawl4ai", "firecrawl", "fact_check_tools", "sign_in", "moderator_notifications"],
+      "planned_processors_lead": "Po włączeniu planowanych funkcji dołączą do nich:",
+      "planned_processors": ["cloudflare_workers_ai", "vertex_ai_ranking"]
+    },
+    "discord": {
+      "title": "Polityka prywatności bota Meritum na Discordzie",
+      "data": "Discord przekazuje nam twoją nazwę i identyfikator użytkownika, wiadomość do bota i wiadomość głosową. Oczywiste dane osobowe w treści ukrywamy przed analizą.",
+      "purpose": "Nazwę i identyfikator przetwarzamy tylko po to, żeby odpowiedzieć i policzyć powtórzenia.",
+      "retention": "Nazwę i identyfikator przechowujemy wyłącznie jako skrót z solą przez 30 dni. Ten skrót jest też identyfikatorem sesji. Zapis sprawdzenia usuwamy automatycznie po 30 dniach. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia.",
+      "moderators": "Twoja nazwa i identyfikator nigdy nie trafiają do moderatorów.",
+      "deletion": "Napisz /usun-moje-dane, a usuniemy zapisy sprawdzeń dla twojego identyfikatora.",
+      "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
+      "ip_addresses": "Adres IP i region możemy przetwarzać, żeby liczyć limit zapytań i chronić usługę przed DDoS i innymi atakami. Licznik limitu zapytań trzymamy tylko przez czas okna limitu (minuty albo godziny), bez trwałego zapisu. Logi techniczne i bezpieczeństwa z adresem IP usuwamy automatycznie po 14 dniach. Cloudflare przechowuje swoje logi według własnej polityki retencji.",
+      "processors_lead": "Dane tego kanału przetwarzają te podmioty:",
+      "processors": ["discord", "team_server", "gcp_europe_central2", "cloud_storage", "cloudflare", "vertex_ai", "mistral_vertex", "vertex_ai_embeddings", "model_armor", "sensitive_data_protection", "speech_to_text", "vertex_ai_search", "searxng", "linkup", "crawl4ai", "firecrawl", "fact_check_tools", "moderator_notifications"],
+      "planned_processors_lead": "Po włączeniu planowanych funkcji dołączą do nich:",
+      "planned_processors": ["cloudflare_workers_ai", "vertex_ai_ranking"]
+    },
+    "extension": {
+      "title": "Polityka prywatności wtyczki Meritum",
+      "data": "Wtyczka wysyła tekst posta i jego adres dopiero po kliknięciu „Sprawdź”. Nie skanuje automatycznie feedu. W okienku wtyczki wysyła tylko to, co wkleisz. Oczywiste dane osobowe ukrywamy przed analizą.",
+      "purpose": "Dane służą tylko do sprawdzenia informacji i pokazania wyniku pod postem albo w okienku.",
+      "retention": "Zapis sprawdzenia usuwamy automatycznie po 30 dniach.",
+      "deletion": "Wtyczka nie pobiera ani nie przekazuje twojego identyfikatora z serwisów społecznościowych. Bez niego nie możemy powiązać wcześniejszych sprawdzeń z tobą, więc zapis znika sam po 30 dniach.",
+      "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
+      "ip_addresses": "Adres IP i region możemy przetwarzać, żeby liczyć limit zapytań i chronić usługę przed DDoS i innymi atakami. Licznik limitu zapytań trzymamy tylko przez czas okna limitu (minuty albo godziny), bez trwałego zapisu. Logi techniczne i bezpieczeństwa z adresem IP usuwamy automatycznie po 14 dniach. Cloudflare przechowuje swoje logi według własnej polityki retencji.",
+      "processors_lead": "Dane tego kanału przetwarzają te podmioty:",
+      "processors": ["team_server", "gcp_europe_central2", "cloudflare", "vertex_ai", "mistral_vertex", "vertex_ai_embeddings", "model_armor", "sensitive_data_protection", "vertex_ai_search", "searxng", "linkup", "crawl4ai", "firecrawl", "fact_check_tools", "moderator_notifications"],
+      "planned_processors_lead": "Po włączeniu planowanych funkcji dołączą do nich:",
+      "planned_processors": ["cloudflare_workers_ai", "vertex_ai_ranking"]
+    },
+    "sms": {
+      "title": "Polityka prywatności kanału SMS Meritum",
+      "fees": "Usługa jest bezpłatna. Obowiązują standardowe opłaty operatora za SMS według twojej taryfy.",
+      "data": "Bramka SMS przekazuje nam twój numer telefonu i treść SMS-a. Oczywiste dane osobowe w treści ukrywamy przed analizą.",
+      "purpose": "Numer telefonu przetwarzamy tylko po to, żeby odpowiedzieć i policzyć powtórzenia.",
+      "retention": "Numer przechowujemy wyłącznie jako skrót z solą przez 30 dni. Ten skrót jest też identyfikatorem sesji. Zapis sprawdzenia usuwamy automatycznie po 30 dniach.",
+      "moderators": "Twój numer telefonu nigdy nie trafia do moderatorów.",
+      "deletion": "Wyślij SMS ze słowem USUN, a usuniemy zapisy sprawdzeń z tego numeru.",
+      "telemetry": "Telemetrię użycia przetwarzamy tylko do zbiorczych, liczbowych miar o wszystkich użytkownikach.",
+      "ip_addresses": "Adres IP i region możemy przetwarzać, żeby liczyć limit zapytań i chronić usługę przed DDoS i innymi atakami. Licznik limitu zapytań trzymamy tylko przez czas okna limitu (minuty albo godziny), bez trwałego zapisu. Logi techniczne i bezpieczeństwa z adresem IP usuwamy automatycznie po 14 dniach. Cloudflare przechowuje swoje logi według własnej polityki retencji.",
+      "processors_lead": "Dane tego kanału przetwarzają te podmioty:",
+      "processors": ["team_server", "gcp_europe_central2", "cloudflare", "vertex_ai", "mistral_vertex", "vertex_ai_embeddings", "model_armor", "sensitive_data_protection", "vertex_ai_search", "searxng", "linkup", "crawl4ai", "firecrawl", "fact_check_tools", "moderator_notifications"],
+      "planned_processors_lead": "Po włączeniu planowanych funkcji dołączą do nich:",
+      "planned_processors": ["sms_gateway", "cloudflare_workers_ai", "vertex_ai_ranking"]
+    }
+  },
+  "external_mcp_clients": {
+    "$comment": "Not processors: the user adds the Meritum MCP server to a chat app of their choice (US-WTY-09, ADR-17). Shown in every policy and next to the register.",
+    "title": "Zewnętrzni klienci MCP: odrębni administratorzy wybierani przez użytkownika",
+    "text": "ChatGPT, claude.ai i inne aplikacje czatu, które łączą się z naszym serwerem MCP, nie są naszymi podmiotami przetwarzającymi. Korzystasz z nich na własnym koncie i to ty kierujesz zapytanie do Meritum. Nie powierzamy im danych. Przetwarzanie i region po stronie aplikacji czatu zależą od regulaminu i planu u jej dostawcy, często poza EOG. Nie mamy na to wpływu."
+  },
+  "processors": {
+    "$comment": "ADR-14 register, also printed in README. items: active processors; planned_items: the SMS gateway and ADR-35 candidates not chosen yet. 'opcja' entries run only when that adapter is switched on. Order follows ADR-14.",
+    "title": "Rejestr podmiotów przetwarzających",
+    "lead": "Lista firm i usług, przez które przechodzą dane. Mówi, co przetwarzamy w UE, a co poza nią.",
+    "columns": {
+      "name": "Podmiot",
+      "region": "Kraj lub region",
+      "data": "Jakie dane",
+      "purpose": "Po co"
+    },
+    "items": [
+      {
+        "id": "team_server",
+        "name": "Serwer zespołu (on-prem)",
+        "region": "GCP europe-central2 (Warszawa, Polska)",
+        "data": "Wszystko, co dziś przetwarza demo: API, worker, PostgreSQL z zapisami przebiegu, sprawami i korpusem",
+        "purpose": "Obecne demo (meritum.gburek.app) do czasu migracji do GCP"
+      },
+      {
+        "id": "cloudflare",
+        "name": "Cloudflare",
+        "region": "USA",
+        "data": "Całe żądania i odpowiedzi, w tym treść pytań i adresy IP, bo tunel kończy TLS",
+        "purpose": "Tunel do serwera zespołu, TLS, ochrona przed DDoS i limity"
+      },
+      {
+        "id": "gcp_europe_central2",
+        "name": "GCP europe-central2 (docelowo)",
+        "region": "UE (Warszawa)",
+        "data": "API, worker, PostgreSQL z zapisami przebiegu, sprawami i korpusem",
+        "purpose": "Docelowe demo"
+      },
+      {
+        "id": "vertex_ai",
+        "name": "Vertex AI",
+        "region": "GCP, region UE, w którym jest dostępny wybrany model",
+        "data": "Zamaskowane pytanie, fragmenty źródeł, odpowiedzi modelu",
+        "purpose": "Wyodrębnianie twierdzeń, ocena wymowy, odpowiedź"
+      },
+      {
+        "id": "model_armor",
+        "name": "Model Armor (kandydat)",
+        "region": "GCP, multi-region eu",
+        "data": "Treść każdego wywołania modelu przed wysłaniem",
+        "purpose": "Wykrywanie wstrzyknięć przed modelem"
+      },
+      {
+        "id": "sensitive_data_protection",
+        "name": "Google Sensitive Data Protection",
+        "region": "GCP, region UE",
+        "data": "Wejście użytkownika przed maskowaniem i wyniki kroków",
+        "purpose": "Maskowanie danych osobowych"
+      },
+      {
+        "id": "cloud_storage",
+        "name": "Cloud Storage (prywatny bucket)",
+        "region": "GCP europe-central2 (Warszawa)",
+        "data": "Pliki audio i obrazy ze sprawdzeń",
+        "purpose": "Przechowywanie plików przez czas życia zapisu sprawdzenia"
+      },
+      {
+        "id": "crawl4ai",
+        "name": "Crawl4AI (u nas)",
+        "region": "Nasz serwer",
+        "data": "Adresy i treść pobieranych stron",
+        "purpose": "Pobieranie stron, które wyświetlają się dopiero po uruchomieniu JavaScriptu"
+      },
+      {
+        "id": "firecrawl",
+        "name": "Firecrawl (opcja)",
+        "region": "USA",
+        "data": "Adresy i treść pobieranych stron",
+        "purpose": "Opcjonalne hostowane pobieranie stron. Regulamin (§8.d) daje Firecrawl nieodwołalną licencję do przesłanych treści; obowiązuje prawo Kalifornii."
+      },
+      {
+        "id": "vertex_ai_search",
+        "name": "Vertex AI Search",
+        "region": "GCP, lokalizacja global (poza gwarancją UE)",
+        "data": "Zapytania zbudowane z zamaskowanych twierdzeń",
+        "purpose": "Wyszukiwanie na żywo w domenach katalogu"
+      },
+      {
+        "id": "searxng",
+        "name": "SearXNG (u nas)",
+        "region": "Nasz serwer; zapytania trafiają dalej do wyszukiwarek, z których korzysta, także spoza UE",
+        "data": "Zapytania zbudowane z zamaskowanych twierdzeń",
+        "purpose": "Zapasowe wyszukiwanie na żywo"
+      },
+      {
+        "id": "linkup",
+        "name": "Linkup (opcja)",
+        "region": "Francja; bez umowy Enterprise zapytania mogą trafić do US, EU, CA albo APAC",
+        "data": "Zapytania zbudowane z zamaskowanych twierdzeń",
+        "purpose": "Opcjonalne wyszukiwanie na żywo"
+      },
+      {
+        "id": "mistral_vertex",
+        "name": "Mistral w Vertex AI (opcja)",
+        "region": "GCP europe-west4",
+        "data": "Zamaskowane pytanie, fragmenty źródeł, odpowiedzi modelu",
+        "purpose": "Opcjonalny model od dostawcy z UE"
+      },
+      {
+        "id": "fact_check_tools",
+        "name": "Google Fact Check Tools API",
+        "region": "Google, poza gwarancją EOG, global (USA)",
+        "data": "Zapytania z twierdzeniami",
+        "purpose": "Znajdowanie artykułów fact-checkerów i ich ocen jako kontekstu"
+      },
+      {
+        "id": "discord",
+        "name": "Discord",
+        "region": "USA",
+        "data": "Nazwa i identyfikator użytkownika, wiadomość do bota, wiadomość głosowa i odpowiedź",
+        "purpose": "Kanał Discord"
+      },
+      {
+        "id": "sign_in",
+        "name": "Google i Microsoft (logowanie)",
+        "region": "USA",
+        "data": "Identyfikator konta",
+        "purpose": "Opcjonalne logowanie, jeśli starczy czasu"
+      },
+      {
+        "id": "speech_to_text",
+        "name": "Google Speech-to-Text v2 (Chirp 3)",
+        "region": "GCP, multi-region eu",
+        "data": "Pliki audio i transkrypcje",
+        "purpose": "Weryfikacja nagrań"
+      },
+      {
+        "id": "vertex_ai_embeddings",
+        "name": "Vertex AI (embeddingi)",
+        "region": "GCP, region UE (docelowo europe-central2 albo inny dostępny region UE)",
+        "data": "Zamaskowane twierdzenia, fragmenty źródeł, opisy incydentów",
+        "purpose": "Wyszukiwanie, podobieństwo spraw i incydentów"
+      },
+      {
+        "id": "euvsdisinfo_mcp",
+        "name": "Serwer MCP EUvsDisinfo (Vercel)",
+        "region": "USA",
+        "data": "Token i nasze zapytania o kolejne strony bazy, bez danych użytkowników",
+        "purpose": "Pobieranie lokalnej kopii bazy EUvsDisinfo"
+      },
+      {
+        "id": "moderator_notifications",
+        "name": "Powiadomienia moderatora: Cloudflare Email Workers, Gmail API albo webhook (np. Google Chat)",
+        "region": "Cloudflare albo Google, poza gwarancją EOG",
+        "data": "Adres e-mail moderatora, numer i streszczenie sprawy",
+        "purpose": "Powiadomienia moderatora"
+      },
+      {
+        "id": "github",
+        "name": "GitHub",
+        "region": "USA",
+        "data": "Kod, zgłoszenia i logi CI, bez danych użytkowników",
+        "purpose": "Repozytoria i CI"
+      },
+      {
+        "id": "jasnopis",
+        "name": "Jasnopis (jeśli przez API)",
+        "region": "Do sprawdzenia",
+        "data": "Anonimowe próbki odpowiedzi z ewaluacji, bez danych osobowych użytkowników",
+        "purpose": "Ocena zrozumiałości tekstu"
+      }
+    ],
+    "planned_lead": "Integracje planowane albo opcjonalne. Dostawcę i region uzupełnimy, zanim włączymy daną funkcję.",
+    "planned_items": [
+      {
+        "id": "cloudflare_workers_ai",
+        "name": "Cloudflare Workers AI (kandydat)",
+        "region": "Cloudflare, poza UE; region do sprawdzenia",
+        "data": "Wejście użytkownika, pobrane strony i fragmenty źródeł",
+        "purpose": "Klasyfikator wstrzyknięć i reranker, jeśli wygrają w ewaluacji"
+      },
+      {
+        "id": "vertex_ai_ranking",
+        "name": "Vertex AI ranking API (kandydat)",
+        "region": "GCP, region do sprawdzenia",
+        "data": "Zamaskowane twierdzenia i fragmenty źródeł",
+        "purpose": "Kolejność fragmentów przed modelem (reranking)"
+      },
+      {
+        "id": "sms_gateway",
+        "name": "Bramka SMS",
+        "region": "Do wyboru",
+        "data": "Numer telefonu, treść SMS-a i odpowiedź",
+        "purpose": "Kanał SMS, jeśli starczy czasu"
+      }
+    ]
+  }
+}

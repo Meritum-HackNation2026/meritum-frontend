@@ -57,14 +57,20 @@
     "deleted": "Usunęliśmy zapisy twoich sprawdzeń."
   },
   "extension": {
-    "$comment": "popup_* show the popup's connection to the Meritum server; {api} is its address or version (design-system#16).",
+    "$comment": "popup_* show the popup's connection to the Meritum server; {api} is its address or version (design-system#16); popup_delete* delete the checks sent from this extension (design-system#22).",
     "check": "Sprawdź",
     "checked": "Sprawdzono",
     "popup_title": "Sprawdź tekst albo link",
     "page_hint": "Wysyłamy treść posta dopiero po kliknięciu „Sprawdź”.",
     "popup_connecting": "Łączymy z serwerem Meritum…",
     "popup_api_ok": "Połączono z serwerem Meritum ({api}).",
-    "popup_api_down": "Serwer Meritum nie odpowiada. Spróbuj za kilka minut."
+    "popup_api_down": "Serwer Meritum nie odpowiada. Spróbuj za kilka minut.",
+    "popup_delete": "Usuń moje sprawdzenia",
+    "popup_delete_confirm": "Usunąć sprawdzenia wysłane z tej wtyczki? Tego nie da się cofnąć.",
+    "popup_delete_yes": "Usuń",
+    "popup_delete_cancel": "Anuluj",
+    "popup_deleted": "Usunęliśmy sprawdzenia wysłane z tej wtyczki.",
+    "popup_delete_failed": "Nie udało się usunąć sprawdzeń. Spróbuj za kilka minut."
   },
   "result": {
     "label": "Meritum",
@@ -307,10 +313,11 @@
     "audio_too_long": "Nagranie jest za długie. Wyślij najwyżej {max_minutes} min albo je przytnij."
   },
   "ai_notice": {
-    "$comment": "AI Act art. 50: shown at first contact in every channel. sms must fit one UCS-2 SMS (70 characters).",
+    "$comment": "AI Act art. 50: shown at first contact in every channel. first_contact: above the web form field and in the extension popup; discord: first bot reply; sms: first SMS to a new number, must fit one UCS-2 SMS (70 characters); mcp: in every MCP tool result. The result card line is result.ai_disclosure.",
     "first_contact": "Odpowiada system AI. Sprawdza informacje w opisanych źródłach i pokazuje cytaty, ale może się mylić.",
     "discord": "Jestem botem Meritum, systemem AI. Sprawdzam informacje w opisanych źródłach i podaję cytaty.",
-    "sms": "Odpowiada system AI Meritum. Sprawdzamy w źródłach."
+    "sms": "Odpowiada system AI Meritum. Sprawdzamy w źródłach.",
+    "mcp": "Wynik przygotował system AI Meritum. Sprawdza informacje w opisanych źródłach i podaje cytaty, ale może się mylić."
   },
   "discord": {
     "$comment": "Message content max 2000 characters (API limit for bots). First message: summary with a link; then one message per claim. Never split inside a citation.",
