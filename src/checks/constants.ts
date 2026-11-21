@@ -71,3 +71,11 @@ export const MAX_FAILED_READS = 5
  * @feature US-SPR-01, F-01
  */
 export const MAX_READS = 120
+
+/**
+ * sessionStorage key holding this tab's checked results, newest first (ADR-13): the history
+ * under the form lives as long as the browser tab.
+ *
+ * @feature US-SPR-09, US-BEZ-05, F-01, F-20
+ */
+export const HISTORY_STORAGE_KEY = 'meritum.history'

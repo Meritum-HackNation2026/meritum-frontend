@@ -51,6 +51,21 @@ export interface ProgressSource {
 }
 
 /**
+ * Deletes this tab's check records and notifications on the server („Usuń moje sprawdzenia”).
+ *
+ * @feature US-BEZ-05, F-20
+ */
+export interface SessionEraser {
+  /**
+   * Asks the API to delete the session's records; never throws.
+   *
+   * @returns True once the API accepted the deletion, false when it could not be reached or
+   * refused.
+   */
+  erase(): Promise<boolean>
+}
+
+/**
  * What GET /api/v1/checks/{id} said: the check's steps (with `result` once it finished), an
  * unknown id, or the `errors` key of copy/pl.json for a failed request.
  *

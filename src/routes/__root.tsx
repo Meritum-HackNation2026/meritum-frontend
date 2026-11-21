@@ -5,7 +5,7 @@ import { MeritumMark } from '@/components/meritum/meritum-mark'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
-import { createInbox, Notifications } from '@/notifications'
+import { createInbox, InboxContext, Notifications } from '@/notifications'
 
 /**
  * Layout of every page: the Meritum header with the notifications bell, the page below it and
@@ -42,7 +42,9 @@ function Layout() {
           </div>
         </header>
         <main className="mx-auto max-w-3xl px-4 py-8">
-          <Outlet />
+          <InboxContext value={inbox}>
+            <Outlet />
+          </InboxContext>
         </main>
         <footer className="border-t">
           <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">

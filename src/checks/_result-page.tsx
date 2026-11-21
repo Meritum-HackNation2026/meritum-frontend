@@ -3,6 +3,7 @@ import { AnalysisSteps, t } from '@/components/meritum'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import { CheckResultCard } from '@/evidence'
 import type { Handoff } from '@/moderation'
+import { findSavedCheck, saveCheck } from './_history'
 import { isDraft, shownResult } from './_progress'
 import { ResultState } from './_result-state'
 import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
@@ -135,40 +136,23 @@ function Card({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
   )
 }
 
-/**
- * The result page of one check: live steps streamed over SSE while it runs (the API read
- * fills in when the stream is silent), then the result card in a polite `aria-live` region,
- * so a screen reader announces the result. Verdicts wait for verified citations. A failed
- * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
- * times in a row; an unknown id stops it. After the stream ended without a result, a read
- * showing a failed step with nothing left running ends with the technical failure line; a run
- * that crashed with a step still `active`, or a check still queued, keeps the page reading
- * until the result or `MAX_READS` reads, which also end with that line.
- *
- * @param props.checkId - The id the API gave the accepted check.
- * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
- * @param props.progress - Streams the steps (the `src/api` SSE adapter in the app).
- * @param props.handoff - Hands claims of the result to the moderators (the `src/api` adapter).
- * @param props.pollMs - Pause between reads; tests pass a short one.
- * @param props.maxReads - Reads before giving up; tests pass a small one.
- * @returns The result page.
- * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-BEZ-07, F-01, F-09, F-17, F-21
- */
-export function ResultPage({
-  checkId,
-  reader,
-  progress,
-  handoff,
-  pollMs = POLL_INTERVAL_MS,
-  maxReads = MAX_READS,
-}: {
+type ResultPageProps = {
   checkId: string
   reader: ResultReader
   progress: ProgressSource
   handoff: Handoff
   pollMs?: number
   maxReads?: number
-}) {
+}
+
+function LiveResult({
+  checkId,
+  reader,
+  progress,
+  handoff,
+  pollMs = POLL_INTERVAL_MS,
+  maxReads = MAX_READS,
+}: ResultPageProps) {
   const { streamed, closed } = useStreamedStatus(checkId, progress)
   const streamedResult = streamed && shownResult(streamed)
   const polling = { pollMs, maxReads }
@@ -179,6 +163,11 @@ export function ResultPage({
   const result = streamedResult ?? status?.result ?? null
   const error = errorText(outcome, gaveUp)
   const isRunning = !(result || ended)
+  useEffect(() => {
+    if (result) {
+      saveCheck(result)
+    }
+  }, [result])
   return (
     <div className="grid min-w-0 gap-4">
       {isRunning && (
@@ -197,4 +186,30 @@ export function ResultPage({
       </div>
     </div>
   )
+}
+
+/**
+ * The result page of one check: live steps streamed over SSE while it runs (the API read
+ * fills in when the stream is silent), then the result card in a polite `aria-live` region,
+ * so a screen reader announces the result. Verdicts wait for verified citations. A failed
+ * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
+ * times in a row; an unknown id stops it. After the stream ended without a result, a read
+ * showing a failed step with nothing left running ends with the technical failure line; a run
+ * that crashed with a step still `active`, or a check still queued, keeps the page reading
+ * until the result or `MAX_READS` reads, which also end with that line. A shown result is kept
+ * in this tab's history; a check already in it opens from there, with no call to the API.
+ *
+ * @param props.checkId - The id the API gave the accepted check.
+ * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
+ * @param props.progress - Streams the steps (the `src/api` SSE adapter in the app).
+ * @param props.handoff - Hands claims of the result to the moderators (the `src/api` adapter).
+ * @param props.pollMs - Pause between reads; tests pass a short one.
+ * @param props.maxReads - Reads before giving up; tests pass a small one.
+ * @returns The result page.
+ * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-09, US-BEZ-07, F-01, F-09, F-17, F-21
+ */
+export function ResultPage(props: ResultPageProps) {
+  // read once: the page of a check this tab already has opens without the API
+  const [saved] = useState(() => findSavedCheck(props.checkId))
+  return saved ? <Card result={saved} handoff={props.handoff} /> : <LiveResult {...props} />
 }

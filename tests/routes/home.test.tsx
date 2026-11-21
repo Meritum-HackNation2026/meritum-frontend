@@ -1,8 +1,9 @@
 /**
  * The home page: the AI notice stands above the check form's field and nothing asks for a
- * sign-in (US-BEZ-07, AI Act art. 50).
+ * sign-in (US-BEZ-07, AI Act art. 50); besides „Sprawdź” the only button deletes the session's
+ * checks (US-BEZ-05).
  *
- * @feature US-SPR-01, US-BEZ-07, F-21
+ * @feature US-SPR-01, US-BEZ-05, US-BEZ-07, F-20, F-21
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -11,7 +12,7 @@ import { render, screen, within } from '@testing-library/react'
 import pl from '@/copy/pl.json'
 import { routeTree } from '@/routeTree.gen'
 
-test('the AI notice stands above the field and the only button is "Sprawdź"', async () => {
+test('the AI notice stands above the field and no button asks for a sign-in', async () => {
   const history = createMemoryHistory({ initialEntries: ['/'] })
   render(<RouterProvider router={createRouter({ routeTree, history })} />)
   const main = await screen.findByRole('main')
@@ -22,5 +23,5 @@ test('the AI notice stands above the field and the only button is "Sprawdź"', a
   const buttons = within(main)
     .queryAllByRole('button')
     .map((button) => button.textContent)
-  assert.deepEqual(buttons, [pl.form.submit])
+  assert.deepEqual(buttons, [pl.form.submit, pl.form.delete_session])
 })
