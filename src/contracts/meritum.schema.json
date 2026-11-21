@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Meritum contracts",
-  "x-contract-version": 4,
+  "x-contract-version": 5,
   "$defs": {
     "CheckRequest": {
       "additionalProperties": false,
@@ -91,6 +91,21 @@
           "default": null,
           "description": "Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.",
           "title": "Channel User Id"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Web and extension only: random id kept in the browser session; the API copies it to CheckRecord.session_id.",
+          "title": "Request Session Id"
         }
       },
       "required": [
@@ -1581,6 +1596,16 @@
           "title": "Tier",
           "type": "string"
         },
+        "role": {
+          "default": "evidence",
+          "description": "source_status: a list (sanctions, CERT warnings) that ingest skips; a check uses it only for a neutral source-status warning, never as evidence.",
+          "enum": [
+            "evidence",
+            "source_status"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
         "license": {
           "maxLength": 120,
           "minLength": 2,
@@ -1588,22 +1613,23 @@
           "type": "string"
         },
         "ingest": {
-          "description": "mcp: the local EUvsDisinfo copy; api: Google Fact Check Tools, used only to discover URLs and show the rating as context.",
+          "description": "mcp: the local EUvsDisinfo copy; api: a public API (IMGW, GIOS, Sejm ELI, dane.gov.pl, statistics) ingested into the corpus; live: queried at check time (Fact Check API, short-lived measurements), never in the corpus snapshot.",
           "enum": [
             "static",
             "rss",
             "sitemap",
             "web_search",
             "mcp",
-            "api"
+            "api",
+            "live"
           ],
           "title": "Ingest",
           "type": "string"
         },
-        "refresh_hours": {
+        "refresh_minutes": {
           "anyOf": [
             {
-              "minimum": 1,
+              "minimum": 15,
               "type": "integer"
             },
             {
@@ -1611,7 +1637,7 @@
             }
           ],
           "default": null,
-          "title": "Refresh Hours"
+          "title": "Refresh Minutes"
         },
         "validity": {
           "default": "expires",

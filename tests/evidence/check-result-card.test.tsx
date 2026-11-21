@@ -42,15 +42,12 @@ test('a false claim shows the word "Fałszywe" on its badge', () => {
 
 test('a citation shows title as a link, publisher, date and the verbatim fragment', () => {
   const claim = renderClaim(claimWith({}))
+  assert.ok(claim.getAllByRole('time').some((time) => time.textContent === sourceDate))
   const citation = falseClaim?.citations?.[0]
   assert.ok(citation)
   const link = claim.getByRole('link', { name: citation.source.title })
   assert.equal(link.getAttribute('href'), citation.source.url)
-  assert.ok(
-    claim.getByText(
-      `Kancelaria Sejmu (ISAP), ${sourceDate}. Akt prawny, źródło urzędowe lub pierwotne.`,
-    ),
-  )
+  assert.ok(claim.getByText('Kancelaria Sejmu (ISAP). Akt prawny, źródło urzędowe lub pierwotne.'))
   assert.equal(
     claim.getByRole('blockquote').textContent,
     `${pl.result.fragment}: „${citation.fragment}”`,

@@ -109,8 +109,8 @@ test('a skipped link download is struck through and named "pominięte" for scree
   await startCheck(fake)
   fake.emit(recorded)
   assert.equal(stepText('fetch_url'), `${pl.analysis.steps.fetch_url}, pominięte`)
-  const step = screen.getByText(pl.analysis.steps.fetch_url).closest('li')
-  assert.equal(step?.classList.contains('line-through'), true)
+  const name = screen.getByText(pl.analysis.steps.fetch_url)
+  assert.equal(name.classList.contains('line-through'), true)
 })
 
 test('a streamed answer shows no verdict until verify_citations is done', async () => {

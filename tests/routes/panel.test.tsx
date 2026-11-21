@@ -117,7 +117,8 @@ test('a case with a paraphrase counts 2 questions and shows both claims (scenari
   for (const { claim } of dieselCase.claims) {
     assert.ok(text.includes(claim))
   }
-  assert.ok(text.includes('2 różnych pytających'))
+  // Polish plural from moderation.askers (meritum-design-system#65): 2 takes the „few” form
+  assert.ok(text.includes('2 różne osoby pytające'))
   assert.ok(text.includes('Temat rozpoznany po słowach kluczowych'))
   assert.equal(
     within(detail).getByRole('link', { name: 'c_02' }).getAttribute('href'),

@@ -43,9 +43,9 @@
     "session_expired": "Minął czas logowania. Zaloguj się ponownie, żeby zobaczyć historię."
   },
   "sms": {
-    "$comment": "Polish characters force UCS-2: one SMS holds 70 characters. reply carries only the main claim's verdict and a link; transliteration to GSM-7 (160 characters) is an option. reply and failure must fit; fees is shown on the website and in README too.",
+    "$comment": "Polish characters force UCS-2: one SMS holds 70 characters. reply carries only the main claim's verdict (operators often filter links in SMS). Transliteration to GSM-7 (160 characters) is an option. reply and failure must fit; fees is shown on the website and in README too.",
     "fees": "Usługa jest bezpłatna. Operator może pobrać standardową opłatę za SMS według twojej taryfy.",
-    "reply": "{verdict}. Wynik: {link}",
+    "reply": "{verdict}",
     "too_long": "Za długi tekst. Wyślij krótszy albo sam link.",
     "failure": "Nie udało się sprawdzić. To nie jest ocena. Spróbuj później.",
     "delete_hint": "Wyślij USUN, a usuniemy zapisy sprawdzeń z tego numeru."
@@ -103,8 +103,15 @@
     "ai_disclosure": "Odpowiedź przygotował system z użyciem AI. Sprawdź źródła sam: linki prowadzą do oryginałów.",
     "via_web": "znalezione w wyszukiwaniu w zatwierdzonych serwisach",
     "superseded": "Ten dowód zastąpił nowszy dokument z {date}.",
+    "superseded_undated": "Ten dowód zastąpił nowszy dokument.",
     "timeline_title": "Oś czasu dowodów",
     "what_would_change": "Co zmieniłoby werdykt",
+    "stance": {
+      "$comment": "Citation.stance: headings of the citation groups on the evidence timeline (DESIGN_SYSTEM.md 6.4). Never a verdict word.",
+      "supports": "Wspierają twierdzenie",
+      "refutes": "Przeczą twierdzeniu",
+      "context": "Dają kontekst"
+    },
     "transcript": "Transkrypcja nagrania",
     "transcript_hint": "Transkrypcję przygotował system automatycznie. Może zawierać błędy.",
     "claim_review": "Według {publisher}: „{rating}”.",
@@ -182,9 +189,11 @@
     "image_search_not_run": "Nie szukaliśmy wcześniejszych wystąpień tego obrazu. Nie wiemy, czy pojawił się już gdzie indziej."
   },
   "escalation": {
+    "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown on HTTP 503 when „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case (no case_id, no case number). Backend will send it instead of escalation.recommended once meritum-backend picks up this key.",
     "recommended": "Ta sprawa nadaje się do sprawdzenia przez moderatora. Nie została jeszcze przekazana.",
     "created": "Przekazaliśmy sprawę moderatorom (sprawa {case}).",
-    "updated": "Dołączyliśmy twoje pytanie do istniejącej sprawy {case}."
+    "updated": "Dołączyliśmy twoje pytanie do istniejącej sprawy {case}.",
+    "not_saved": "Sprawy nie zapisaliśmy u moderatorów. Spróbuj jeszcze raz."
   },
   "source_warning": {
     "eu_sanctioned_entity": "Ta treść pochodzi od podmiotu z listy sankcji UE ({entity}). To informacja o źródle, a nie ocena samej treści."
@@ -274,7 +283,13 @@
       "repeated_unanswered": "powtarzające się pytanie bez odpowiedzi",
       "user_dispute": "zgłoszenie błędu przez użytkownika"
     },
-    "similar": "{count} podobnych pytań",
+    "similar": {
+      "$comment": "All questions in the case (sum of checks over its claims), the first one included. Pick the form with Intl.PluralRules('pl').select(count).",
+      "one": "{count} podobne pytanie",
+      "few": "{count} podobne pytania",
+      "many": "{count} podobnych pytań",
+      "other": "{count} podobnego pytania"
+    },
     "high_risk_by": {
       "embeddings": "temat rozpoznany po podobieństwie do listy administratora",
       "keywords": "temat rozpoznany po słowach kluczowych"
@@ -289,7 +304,13 @@
       "answered": "z odpowiedzią",
       "closed": "zamknięta"
     },
-    "askers": "{count} różnych pytających"
+    "askers": {
+      "$comment": "Distinct askers in the case. Pick the form with Intl.PluralRules('pl').select(count).",
+      "one": "{count} osoba pytająca",
+      "few": "{count} różne osoby pytające",
+      "many": "{count} różnych osób pytających",
+      "other": "{count} różnej osoby pytającej"
+    }
   },
   "staff": {
     "$comment": "Staff panel. sign_in: meritum-frontend#24 (frontend/010) and meritum-backend#15; admin: meritum-frontend#31 (frontend/021). Sign-in buttons reuse account.sign_in_google, account.sign_in_microsoft and account.sign_out; role names are in moderation.role.",
@@ -350,7 +371,8 @@
     "offline": "Brak połączenia. Spróbuj, gdy wrócisz do sieci.",
     "unsupported_site": "Przycisk „Sprawdź” działa na X, Facebooku, Instagramie, Reddicie i TikToku. Tekst z innych stron wklej w okienku wtyczki.",
     "audio_too_large": "Plik jest za duży. Wyślij nagranie do {max_mb} MB albo je przytnij.",
-    "audio_too_long": "Nagranie jest za długie. Wyślij najwyżej {max_minutes} min albo je przytnij."
+    "audio_too_long": "Nagranie jest za długie. Wyślij najwyżej {max_minutes} min albo je przytnij.",
+    "check_not_found": "Nie mamy zapisanego wyniku pod tym adresem. Zapis mógł zostać usunięty albo adres jest nieprawidłowy. To nie jest ocena treści. Wklej treść jeszcze raz i kliknij „Sprawdź”."
   },
   "ai_notice": {
     "$comment": "AI Act art. 50: shown at first contact in every channel. first_contact: above the web form field and in the extension popup; discord: first bot reply; sms: first SMS to a new number, must fit one UCS-2 SMS (70 characters); mcp: in every MCP tool result. The result card line is result.ai_disclosure.",
@@ -442,8 +464,8 @@
       "text": [
         "Meritum buduje Zespół Meritum na HackNation 2026, w konkursie MSZ „Prawdowid”.",
         "Projekt nie ma partnerstw z MSZ ani z organizacjami fact-checkingowymi.",
-        "Aplikacja działa na serwerze zespołu w Polsce. Główny model językowy i model wektorów gemini-embedding-001 działają w Vertex AI w Warszawie (Google Cloud, europe-central2).",
-        "Część dostawców działa poza UE albo bez gwarancji przetwarzania w UE, na przykład Cloudflare i wyszukiwarka Vertex AI Search. Pełny wykaz jest w polityce prywatności.",
+        "Aplikacja działa na serwerze zespołu w Polsce. Model wektorów gemini-embedding-001 działa w Vertex AI w Warszawie (Google Cloud, europe-central2).",
+        "Model językowy Claude Haiku 5.5 od Anthropic działa poza UE. Łączymy się z nim przez OpenRouter z ustawieniem, w którym pytania i odpowiedzi nie są rutynowo przechowywane. Poza UE działają też na przykład Cloudflare i wyszukiwarka Vertex AI Search. Pełny wykaz jest w polityce prywatności.",
         "Na koniec prac udostępnimy publicznie wszystkie repozytoria i system."
       ]
     },

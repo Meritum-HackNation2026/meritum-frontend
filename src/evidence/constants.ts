@@ -1,4 +1,4 @@
-import type { Verdict } from '@/contracts/meritum'
+import type { Stance, Validity, Verdict } from '@/contracts/meritum'
 import copy from '@/copy/pl.json'
 import type { MetricKey } from './types'
 
@@ -34,3 +34,23 @@ export const METRIC_FRACTION_DIGITS = 2
  * @feature US-ZRD-12, F-29
  */
 export const METRIC_KEYS = Object.keys(copy.method.metrics.names) as MetricKey[]
+
+/**
+ * Order of the citation groups on the evidence timeline: what supports the claim, what refutes
+ * it, then context (DESIGN_SYSTEM.md 6.4).
+ *
+ * @feature US-ZRD-11, US-ZRD-04, F-17
+ */
+export const STANCE_ORDER: readonly Stance[] = ['supports', 'refutes', 'context']
+
+/**
+ * Validity of evidence whose age never makes it stale: a law in force, a page updated in place
+ * and an event that happened once (ADR-25). Only such evidence never gets the old-source warning.
+ *
+ * @feature US-ZRD-05, US-ZRD-10, F-17
+ */
+export const AGE_EXEMPT_VALIDITY: ReadonlySet<Validity> = new Set<Validity>([
+  'in_force',
+  'updated_in_place',
+  'past_event',
+])

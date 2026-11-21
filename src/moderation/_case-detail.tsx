@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { fill, t } from '@/components/meritum'
+import { plural, t } from '@/components/meritum'
 import type { ModeratorCase } from '@/contracts/meritum'
 import { DEFAULT_DISTINCT_ASKERS } from './constants'
 
@@ -47,7 +47,7 @@ export function CaseDetail({ moderatorCase: c }: { moderatorCase: ModeratorCase 
         </p>
       )}
       <p className="text-small text-muted-foreground tabular-nums">
-        {fill(copy.askers, { count: c.distinct_askers ?? DEFAULT_DISTINCT_ASKERS })}
+        {plural(copy.askers, c.distinct_askers ?? DEFAULT_DISTINCT_ASKERS)}
       </p>
       <ol className="grid gap-3">
         {c.claims.map((claim) => (
