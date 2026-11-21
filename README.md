@@ -28,6 +28,37 @@ Trasy są w `src/routes/` (TanStack Router, trasy w plikach); `src/routeTree.gen
 
 Konfiguracja nginx: `deploy/nginx.conf.template` (SPA z fallbackiem na `index.html`, długi cache dla `/assets/`, `/healthz`).
 
+## Testy komponentów
+
+`pnpm test` to `node --test` na `tests/**/*.test.{ts,tsx}`. Pliki TSX ładuje `tsx` (ustawienia `jsx` i aliasu `@/` bierze z `tsconfig.test.json`), a `tests/setup-dom.ts` daje każdemu plikowi DOM z happy-dom i po każdym teście odmontowuje to, co test wyrenderował. `tsc -b` (w `pnpm build`) sprawdza typy testów TSX.
+
+Test komponentu leży w `tests/` w tej samej ścieżce co komponent w `src/` (`tests/<domena>/<komponent>.test.tsx`, np. `tests/components/meritum/meritum-mark.test.tsx`), renderuje komponent przez `@testing-library/react` i szuka elementów tak jak czytelnik: po roli i po tekście z `copy/pl.json` (plik przyjdzie z design-systemu w #10; do tego czasu przykład porównuje nazwę „Meritum”, wpisaną w komponencie).
+
+```tsx
+import assert from 'node:assert/strict'
+import { test } from 'node:test'
+import { render, screen } from '@testing-library/react'
+import { MeritumLabel } from '@/components/meritum/meritum-mark'
+import { Button } from '@/components/ui/button'
+
+test('the Meritum label shows its name as text and hides the mark from screen readers', () => {
+  render(<MeritumLabel />)
+  const mark = screen.getByText('Meritum').querySelector('svg')
+  assert.equal(mark?.getAttribute('aria-hidden'), 'true')
+})
+
+test('a button holding the Meritum label is named by the label text', () => {
+  render(
+    <Button>
+      <MeritumLabel />
+    </Button>,
+  )
+  assert.equal(screen.getAllByRole('button', { name: 'Meritum' }).length, 1)
+})
+```
+
+W asercjach porównuj tekst, liczby albo wartości logiczne, nie elementy DOM: gdy `assert.equal(element, null)` nie przejdzie, Node próbuje wypisać cały obiekt happy-dom i test wisi zamiast się wywrócić. Kontrole architektury (JSDoc z `@feature`, stałe w `constants.ts`, 250 linii) obejmują też pliki w `tests/`. Skrypt ustawia zmienną `TSX_TSCONFIG_PATH` w składni powłoki POSIX (Linux, macOS). Testy e2e w przeglądarce nie trafiają do CI: uruchamia się je ręcznie albo lokalnym skryptem.
+
 ## CI/CD
 
 `.github/workflows/ci.yml`: `verify` (Biome, typy, build) na runnerach GCP, `deploy` na `dellpromaxgb10` tylko z `develop` i `main`, po zielonym `verify`. `deploy/deploy.sh` buduje obraz na hoście, podmienia kontener i sprawdza stronę przez gateway. Krok „Public check” sprawdza adres publiczny i ostrzega, gdy trasy w Cloudflare jeszcze nie ma.
