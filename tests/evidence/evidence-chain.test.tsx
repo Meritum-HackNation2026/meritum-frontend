@@ -140,3 +140,14 @@ test('a conflict without a note on what differs says the sources disagree, with 
   assert.ok(hasText(pl.result.agreement.conflicting))
   assert.equal(hasText('Różnica:'), false)
 })
+
+test('a claim that cannot be verified still shows its sources on the timeline', () => {
+  const context = citation(
+    'ctx',
+    { stance: 'context', validity: 'expires' },
+    '2024-05-01T00:00:00Z',
+  )
+  const claim = renderClaim({ verdict: 'not_verifiable', strength: null, citations: [context] })
+  assert.ok(claim.getByRole('heading', { name: pl.result.timeline_title }))
+  assert.ok(claim.getByRole('link', { name: 'Dokument ctx' }))
+})

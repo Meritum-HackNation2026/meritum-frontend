@@ -58,13 +58,19 @@ test('a law in force is never old evidence, so it gets no warning, even next to 
   assert.equal(hasText(pl.result.archival), false)
 })
 
-test('a decisive verdict whose newest agreeing source is a law in force gets no warning', () => {
-  assert.ok(base?.strength)
-  const premises = { ...base.strength.premises, validity: 'in_force' as const }
-  const news = citation('news', { stance: 'refutes', validity: 'expires' }, '2020-01-01T00:00:00Z')
-  renderClaim({ archival: true, strength: { level: 'moderate', premises }, citations: [news] })
-  assert.equal(hasText(pl.result.archival), false)
-})
+for (const validity of ['in_force', 'updated_in_place', 'past_event'] as const) {
+  test(`a decisive verdict whose newest agreeing source is ${validity} gets no warning`, () => {
+    assert.ok(base?.strength)
+    const premises = { ...base.strength.premises, validity }
+    const news = citation(
+      'news',
+      { stance: 'refutes', validity: 'expires' },
+      '2020-01-01T00:00:00Z',
+    )
+    renderClaim({ archival: true, strength: { level: 'moderate', premises }, citations: [news] })
+    assert.equal(hasText(pl.result.archival), false)
+  })
+}
 
 test('evidence that can go out of date next to a law still gets the warning', () => {
   const law = citation('law', { stance: 'refutes', validity: 'in_force' }, '1997-07-16T00:00:00Z')

@@ -2,7 +2,6 @@ import { fill, formatDate, t } from '@/components/meritum'
 import type { ClaimResult } from '@/contracts/meritum'
 import { cn } from '@/lib/utils'
 import { type StanceGroup, stanceGroups, type TimelineEntry } from './_chain'
-import { DECISIVE_VERDICTS } from './constants'
 
 function sourceLine({ citation }: TimelineEntry): string {
   const { publisher, kind, tier, via } = citation.source
@@ -73,7 +72,8 @@ function Group({ group, isWide }: { group: StanceGroup; isWide: boolean }) {
  * (supporting, refuting, context), each group oldest first with its publication date in Azeret
  * Mono. Evidence the result marks as superseded says so in words. When reliable sources disagree
  * on an unsettled claim, the two sides stand side by side under the note on what differs and
- * context goes below them; an unsettled claim without both sides shows no quotes.
+ * context goes below them; an unsettled claim (`insufficient_evidence`) without both sides shows
+ * no quotes, every other verdict shows its citations.
  *
  * @param props.claim - One claim result from the API.
  * @param props.isConflict - Reliable sources disagree (`isConflict` of the claim).
@@ -88,8 +88,9 @@ export function EvidenceTimeline({
   isConflict: boolean
 }) {
   const groups = stanceGroups(claim)
-  const isDecisive = DECISIVE_VERDICTS.has(claim.verdict)
-  if (!(isDecisive || isConflict) || groups.length === 0) {
+  // unsettled claims show quotes only when both sides stand next to each other
+  const isHiddenUnsettled = claim.verdict === 'insufficient_evidence' && !isConflict
+  if (isHiddenUnsettled || groups.length === 0) {
     return null
   }
   const difference = claim.unresolved
