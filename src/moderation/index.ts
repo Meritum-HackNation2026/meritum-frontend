@@ -4,4 +4,11 @@ export { Panel } from './_panel'
 export { PanelLink } from './_panel-link'
 export { ReportError } from './_report-error'
 export { loadAdmin, loadPanel, sectionsFor } from './_session'
-export type { AdminApi, AdminOutcome, Handoff, HandoffOutcome, StaffApi } from './ports'
+export type {
+  AdminApi,
+  AdminOutcome,
+  Handoff,
+  HandoffOutcome,
+  StaffApi,
+  StaffSession,
+} from './ports'
