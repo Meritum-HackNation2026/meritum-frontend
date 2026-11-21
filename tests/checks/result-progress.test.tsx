@@ -228,3 +228,21 @@ test('a stream that drops while the check still runs keeps the page reading unti
   assert.ok(await screen.findByText(pl.verdict.false))
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
+
+test('a check still in the queue when the stream drops keeps the page reading until the result', async () => {
+  const fake = fakeSource()
+  const queued = {
+    status: { check_id: 'c_01', steps: [{ code: 'receive', status: 'done' }] },
+  } as const
+  const answers = [queued, queued, { status: { check_id: 'c_01', steps: recorded.steps, result } }]
+  let call = 0
+  const later: ResultReader = {
+    read: () => Promise.resolve(answers[Math.min(call++, 2)] ?? queued),
+  }
+  render(<ResultPage checkId="c_01" reader={later} progress={fake.source} pollMs={20} />)
+  await waitFor(() => assert.equal(fake.calls.watched.length, 1))
+  await screen.findByText(pl.analysis.steps.receive)
+  fake.end()
+  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.deepEqual(screen.queryAllByRole('alert'), [])
+})

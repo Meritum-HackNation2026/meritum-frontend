@@ -8,15 +8,19 @@ import type { ProgressSource, ReadOutcome, ResultReader } from './ports'
 
 type Next = 'again' | 'stop' | 'give_up'
 
-/** Whether the API still reports work in progress: a step waiting or running. */
-function isStillRunning(status: AnalysisStatus): boolean {
-  return status.steps.some((step) => step.status === 'pending' || step.status === 'active')
+/**
+ * Whether the API reports a run that failed: a step `failed` and none waiting or running. A
+ * check still in the queue reports only `receive` as done, so it does not count as failed.
+ */
+function hasFailed(status: AnalysisStatus): boolean {
+  const isRunning = status.steps.some((s) => s.status === 'pending' || s.status === 'active')
+  return !isRunning && status.steps.some((s) => s.status === 'failed')
 }
 
 /**
  * What follows a read: stop at a result, an unknown id or too many failed reads in a row; ask
- * again after a failed read; give up when the stream ended and every step finished without a
- * result (the workflow failed), or after the last allowed read; otherwise ask again.
+ * again after a failed read; give up when the stream ended and the steps show a failed run
+ * without a result, or after the last allowed read; otherwise ask again.
  */
 function nextAfter(
   outcome: ReadOutcome,
@@ -31,16 +35,16 @@ function nextAfter(
   if (typeof outcome === 'string') {
     return 'again'
   }
-  const isFinished = streamEnded && !isStillRunning(outcome.status)
-  return isFinished || readsLeft <= 0 ? 'give_up' : 'again'
+  const isFailed = streamEnded && hasFailed(outcome.status)
+  return isFailed || readsLeft <= 0 ? 'give_up' : 'again'
 }
 
 /** How the page reads the API: the pause between reads and how many reads it may make. */
 type Polling = { pollMs: number; maxReads: number }
 
 /**
- * Reads the check until it has a result. Once the stream ended without one, a read whose steps
- * all finished without a result ends with the technical failure line (as in meritum-frontend#17).
+ * Reads the check until it has a result. Once the stream ended without one, a read showing a
+ * failed run ends with the technical failure line (as in meritum-frontend#17).
  */
 function useCheckStatus(
   checkId: string,
@@ -54,7 +58,9 @@ function useCheckStatus(
   const [ended, setEnded] = useState(false)
   // read by the running poll without restarting it
   const streamEndedRef = useRef(streamEnded)
-  streamEndedRef.current = streamEnded
+  useEffect(() => {
+    streamEndedRef.current = streamEnded
+  }, [streamEnded])
   // reads at once instead of waiting for the timer; a no-op once reading has stopped
   const readNowRef = useRef<() => void>(() => undefined)
   useEffect(() => {
@@ -135,8 +141,9 @@ function Card({ result }: { result: CheckResult }) {
  * so a screen reader announces the result. Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
  * times in a row; an unknown id stops it. After the stream ended without a result, a read
- * whose steps all finished without one, or `MAX_READS` reads, end with the technical failure
- * line; a dropped stream while steps still run keeps the page reading.
+ * showing a failed step with nothing left running ends with the technical failure line; a run
+ * that crashed with a step still `active`, or a check still queued, keeps the page reading
+ * until the result or `MAX_READS` reads, which also end with that line.
  *
  * @param props.checkId - The id the API gave the accepted check.
  * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
