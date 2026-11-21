@@ -6,7 +6,13 @@ import type { ModeratorCase } from '@/contracts/meritum'
  *
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
-export type HandoffOutcome = { caseId: string } | 'rate_limited' | 'busy' | 'offline'
+export type HandoffOutcome =
+  | { caseId: string }
+  | 'rate_limited_handoff'
+  | 'handoff_not_found'
+  | 'handoff_rejected'
+  | 'busy'
+  | 'offline'
 
 /**
  * Hands one claim of a finished check to the moderators.

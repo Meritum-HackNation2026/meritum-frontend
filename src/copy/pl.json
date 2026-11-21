@@ -130,6 +130,7 @@
     },
     "euvsdisinfo_disclaimer": "Publikacje EUvsDisinfo nie są oficjalnym stanowiskiem UE. Wpis w bazie nie znaczy, że dany serwis jest powiązany z Kremlem.",
     "report_error": "Zgłoś błąd",
+    "report_error_send": "Wyślij zgłoszenie",
     "report_error_reason": "Co jest nie tak? (opcjonalnie)",
     "report_error_done": "Dziękujemy. Zgłoszenie trafiło do moderatorów (sprawa {case}). Odpowiedź przyjdzie jako powiadomienie.",
     "escalate": "Przekaż moderatorom",
@@ -189,10 +190,10 @@
     "image_search_not_run": "Nie szukaliśmy wcześniejszych wystąpień tego obrazu. Nie wiemy, czy pojawił się już gdzie indziej."
   },
   "escalation": {
-    "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown on HTTP 503 when „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case (no case_id, no case number). Backend will send it instead of escalation.recommended once meritum-backend picks up this key.",
+    "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown on HTTP 503 when „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case (no case_id, no case number). Backend will send it instead of escalation.recommended once meritum-backend picks up this key. updated has the same text as created and the frontend shows created in both states, so the citizen never learns that someone else asked the same (meritum-frontend#23).",
     "recommended": "Ta sprawa nadaje się do sprawdzenia przez moderatora. Nie została jeszcze przekazana.",
     "created": "Przekazaliśmy sprawę moderatorom (sprawa {case}).",
-    "updated": "Dołączyliśmy twoje pytanie do istniejącej sprawy {case}.",
+    "updated": "Przekazaliśmy sprawę moderatorom (sprawa {case}).",
     "not_saved": "Sprawy nie zapisaliśmy u moderatorów. Spróbuj jeszcze raz."
   },
   "source_warning": {
@@ -372,7 +373,10 @@
     "unsupported_site": "Przycisk „Sprawdź” działa na X, Facebooku, Instagramie, Reddicie i TikToku. Tekst z innych stron wklej w okienku wtyczki.",
     "audio_too_large": "Plik jest za duży. Wyślij nagranie do {max_mb} MB albo je przytnij.",
     "audio_too_long": "Nagranie jest za długie. Wyślij najwyżej {max_minutes} min albo je przytnij.",
-    "check_not_found": "Nie mamy zapisanego wyniku pod tym adresem. Zapis mógł zostać usunięty albo adres jest nieprawidłowy. To nie jest ocena treści. Wklej treść jeszcze raz i kliknij „Sprawdź”."
+    "check_not_found": "Nie mamy zapisanego wyniku pod tym adresem. Zapis mógł zostać usunięty albo adres jest nieprawidłowy. To nie jest ocena treści. Wklej treść jeszcze raz i kliknij „Sprawdź”.",
+    "rate_limited_handoff": "Za dużo zgłoszeń w krótkim czasie. Spróbuj za minutę.",
+    "handoff_not_found": "Tego wyniku nie da się już przekazać, bo nie mamy go zapisanego. Sprawdź treść jeszcze raz.",
+    "handoff_rejected": "Nie udało się zapisać uzasadnienia. Skróć je do 4000 znaków i wyślij jeszcze raz."
   },
   "ai_notice": {
     "$comment": "AI Act art. 50: shown at first contact in every channel. first_contact: above the web form field and in the extension popup; discord: first bot reply; sms: first SMS to a new number, must fit one UCS-2 SMS (70 characters); mcp: in every MCP tool result. The result card line is result.ai_disclosure.",

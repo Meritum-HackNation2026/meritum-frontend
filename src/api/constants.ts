@@ -1,5 +1,6 @@
 import type { UploadOutcome } from '@/checks'
 import type { AnalysisStep } from '@/contracts/meritum'
+import type { HandoffOutcome } from '@/moderation'
 
 /**
  * Endpoint that accepts a `CheckRequest` and starts a check (meritum-backend#16).
@@ -97,9 +98,10 @@ export const NOTIFICATIONS_ENDPOINT = '/api/v1/notifications'
 export const SESSION_QUERY_PARAM = 'session'
 
 /**
- * HTTP status of GET /api/v1/checks/{id} for an unknown check id.
+ * HTTP status of GET /api/v1/checks/{id} for an unknown check id, and of a hand-off whose check
+ * is not finished or has no such claim.
  *
- * @feature US-SPR-01, F-01
+ * @feature US-SPR-01, F-01, US-MOD-03, US-MOD-06, F-24
  */
 export const HTTP_NOT_FOUND = 404
 
@@ -152,3 +154,23 @@ export const DAILY_LIMIT_KEY = 'errors.rate_limited_daily'
  * @feature US-SPR-11, F-08
  */
 export const UNKNOWN_AUDIO_TYPE = 'application/octet-stream'
+
+/**
+ * HTTP status of a request the API refused as invalid, such as an over-long justification.
+ *
+ * @feature US-MOD-06, F-24
+ */
+const HTTP_UNPROCESSABLE_CONTENT = 422
+
+/**
+ * Refusals of the hand-off endpoints by HTTP status: 429 the hand-off limit, 404 a check that is
+ * gone or has no such claim, 422 a justification the API refused; any other answer without a
+ * saved case is `busy`.
+ *
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
+ */
+export const HANDOFF_REFUSALS = {
+  [HTTP_TOO_MANY_REQUESTS]: 'rate_limited_handoff',
+  [HTTP_NOT_FOUND]: 'handoff_not_found',
+  [HTTP_UNPROCESSABLE_CONTENT]: 'handoff_rejected',
+} as const satisfies Record<number, Exclude<HandoffOutcome, object | 'busy' | 'offline'>>
