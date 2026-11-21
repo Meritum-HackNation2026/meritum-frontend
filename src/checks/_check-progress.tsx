@@ -45,6 +45,8 @@ export function CheckProgress({ checkId, source }: { checkId: string; source: Pr
         </p>
       )}
       <div aria-live="polite" className="min-w-0">
+        {/* shortcut: design-system ResultCard until CheckResultCard (src/evidence) shows
+            non-verdict states; swap this line once meritum-frontend#25 lands */}
         {result && <ResultCard result={result} />}
       </div>
     </>
