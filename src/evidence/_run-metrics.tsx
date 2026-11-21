@@ -1,11 +1,11 @@
+import { formatDate } from '@/components/meritum/copy'
 import pl from '@/copy/pl.json'
-import { LOCALE, METRIC_FRACTION_DIGITS, TIME_ZONE } from './constants'
+import { LOCALE, METRIC_FRACTION_DIGITS } from './constants'
 import type { EvalRunSummary, MetricKey } from './types'
 
 const { metrics: text } = pl.method
 const { names } = text
 const metricKeys = Object.keys(names) as MetricKey[]
-const date = new Intl.DateTimeFormat(LOCALE, { dateStyle: 'long', timeZone: TIME_ZONE })
 const number = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: METRIC_FRACTION_DIGITS })
 const [beforeDate, afterDate] = text.run_date.split('{date}')
 
@@ -30,13 +30,13 @@ export function RunMetrics({ run }: { run: EvalRunSummary | null }) {
       <p>
         {beforeDate}
         <time dateTime={run.finished_at} className="font-mono">
-          {date.format(new Date(run.finished_at))}
+          {formatDate(run.finished_at)}
         </time>
         {afterDate}
       </p>
-      <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[1fr_auto]">
+      <dl className="divide-y rounded-lg border">
         {measured.map(([key, value]) => (
-          <div key={key} className="contents">
+          <div key={key} className="flex justify-between gap-4 px-3 py-2">
             <dt>{names[key]}</dt>
             <dd className="font-mono">{number.format(value)}</dd>
           </div>

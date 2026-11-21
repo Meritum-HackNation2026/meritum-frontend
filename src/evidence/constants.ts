@@ -12,18 +12,11 @@ export const DECISIVE_VERDICTS: ReadonlySet<Verdict> = new Set<Verdict>([
 ])
 
 /**
- * Locale of dates and numbers on the "Jak działa Meritum" page.
+ * Locale of numbers on the "Jak działa Meritum" page.
  *
  * @feature US-ZRD-12, F-29
  */
 export const LOCALE = 'pl-PL'
-
-/**
- * Time zone of the evaluation run date: the team and the app are in Poland.
- *
- * @feature US-ZRD-12, F-29
- */
-export const TIME_ZONE = 'Europe/Warsaw'
 
 /**
  * Most decimal places a metric value shows.
