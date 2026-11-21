@@ -29,7 +29,7 @@ async function handOff(call: () => Promise<Answer>): Promise<HandoffOutcome> {
  * `offline`, HTTP 429 is `rate_limited`, and a 503 or any answer without a saved case number is
  * `busy`. A blank justification is sent as none.
  *
- * @feature US-MOD-03, US-MOD-06, F-24, ADR-22
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 export const apiHandoff: Handoff = {
   escalate(checkId, claimIndex) {

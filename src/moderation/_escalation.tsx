@@ -27,7 +27,7 @@ function passedText(caseId: string): string {
  * @param props.result - The check result from the API.
  * @param props.handoff - Sends the hand-off (the `src/api` adapter in the app).
  * @returns The hand-off line, or null.
- * @feature US-MOD-03, F-24, ADR-22
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 export function EscalationLine({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
   const { caseId, error, pending, send } = useHandoff(() =>
@@ -39,18 +39,21 @@ export function EscalationLine({ result, handoff }: { result: CheckResult; hando
   }
   if (caseId) {
     return (
-      <p ref={focusOnMount} tabIndex={-1} className="text-small text-foreground outline-none">
+      <p ref={focusOnMount} tabIndex={-1} className="text-small text-foreground">
         {passedText(caseId)}
       </p>
     )
   }
-  if (escalation.state !== 'recommended' && escalation.case_id) {
-    return <p className="text-small text-foreground">{passedText(escalation.case_id)}</p>
+  if (escalation.state !== 'recommended') {
+    // a saved case without its number shows nothing rather than a number or a promise
+    return escalation.case_id ? (
+      <p className="text-small text-foreground">{passedText(escalation.case_id)}</p>
+    ) : null
   }
   return (
     <div className="grid justify-items-start gap-2">
       <p className="text-small text-foreground text-pretty">{t.escalation.recommended}</p>
-      <Button type="button" variant="outline" disabled={pending} onClick={send}>
+      <Button type="button" variant="outline" aria-disabled={pending} onClick={send}>
         {t.result.escalate}
       </Button>
       {error && (

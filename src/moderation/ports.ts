@@ -2,14 +2,14 @@
  * What a hand-off to the moderators gave: the number of the saved case (created or joined,
  * shown the same), or the `errors` key of copy/pl.json when no case was saved.
  *
- * @feature US-MOD-03, US-MOD-06, F-24, ADR-22
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 export type HandoffOutcome = { caseId: string } | 'rate_limited' | 'busy' | 'offline'
 
 /**
  * Hands one claim of a finished check to the moderators.
  *
- * @feature US-MOD-03, US-MOD-06, F-24, ADR-22
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 export interface Handoff {
   /**

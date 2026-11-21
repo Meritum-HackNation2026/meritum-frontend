@@ -24,7 +24,7 @@ import type { Handoff } from './ports'
  * @param props.claimIndex - The claim's position in the result.
  * @param props.handoff - Sends the dispute (the `src/api` adapter in the app).
  * @returns The report button, its form, or the confirmation.
- * @feature US-MOD-06, F-24, ADR-22
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 export function ReportError({
   checkId,
@@ -63,7 +63,7 @@ export function ReportError({
   )
   if (caseId) {
     return (
-      <p ref={focusOnMount} tabIndex={-1} className="mt-3 text-small text-pretty outline-none">
+      <p ref={focusOnMount} tabIndex={-1} className="mt-3 text-small text-pretty">
         {fill(t.result.report_error_done, { case: caseId })}
       </p>
     )
@@ -94,7 +94,12 @@ export function ReportError({
             onChange={edit}
             autoFocus
           />
-          <Button type="submit" variant="outline" disabled={pending} className="justify-self-start">
+          <Button
+            type="submit"
+            variant="outline"
+            aria-disabled={pending}
+            className="justify-self-start"
+          >
             {t.result.report_error}
           </Button>
           {error && (

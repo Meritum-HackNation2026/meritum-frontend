@@ -57,6 +57,23 @@ test('a created and a joined case read the same, so nobody learns who else asked
   }
 })
 
+test('a saved case whose number is missing shows neither a number nor the button', () => {
+  const result: CheckResult = { ...abstain, escalation: { state: 'created' } }
+  render(<CheckResultCard result={result} handoff={fakeHandoff().handoff} />)
+  assert.equal(hasText(pl.escalation.recommended), false)
+  assert.equal(screen.queryAllByRole('button', { name: pl.result.escalate }).length, 0)
+})
+
+test('a second click while the hand-off is out sends nothing more', async () => {
+  const { handoff, calls } = fakeHandoff({ caseId: '#S-12' })
+  render(<CheckResultCard result={recommended} handoff={handoff} />)
+  const button = screen.getByRole('button', { name: pl.result.escalate })
+  fireEvent.click(button)
+  fireEvent.click(button)
+  await screen.findByText(passed)
+  assert.equal(calls.length, 1)
+})
+
 test('a result without escalation shows no hand-off line', () => {
   render(<CheckResultCard result={done} handoff={fakeHandoff().handoff} />)
   assert.equal(hasText(pl.escalation.recommended), false)

@@ -2,7 +2,7 @@
  * The hand-off adapter of `src/api` („Przekaż moderatorom”, „Zgłoś błąd”) behind a fake `fetch`:
  * a case number only from an answer that saved the case.
  *
- * @feature US-MOD-03, US-MOD-06, F-24, ADR-22
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
@@ -44,6 +44,14 @@ test('a 503 without a saved case gives no case number', async (t) => {
 
 test('an answer that claims success without a case number gives no case number', async (t) => {
   fakeApi(t, { status: 200, body: notSaved })
+  assert.equal(await apiHandoff.escalate('c_01', 0), 'busy')
+})
+
+test('a success that is still only a recommendation gives no case number', async (t) => {
+  fakeApi(t, {
+    status: 200,
+    body: { ...notSaved, escalation: { state: 'recommended', case_id: '#S-9' } },
+  })
   assert.equal(await apiHandoff.escalate('c_01', 0), 'busy')
 })
 

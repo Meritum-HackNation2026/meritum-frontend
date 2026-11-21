@@ -2,7 +2,7 @@
  * A fake hand-off port for tests of the result card and page: records each call and answers
  * every one with the same outcome.
  *
- * @feature US-MOD-03, US-MOD-06, F-24
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 import type { Handoff, HandoffOutcome } from '@/moderation'
 
@@ -18,7 +18,7 @@ type HandoffCall = {
  *
  * @param outcome - What every hand-off gives; `busy` when the test never hands anything off.
  * @returns The port and the list of calls it received.
- * @feature US-MOD-03, US-MOD-06, F-24
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
 export function fakeHandoff(outcome: HandoffOutcome = 'busy') {
   const calls: HandoffCall[] = []
