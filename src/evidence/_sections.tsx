@@ -1,6 +1,7 @@
 import { CitationItem, StrengthMeter, t, VerdictBadge } from '@/components/meritum'
 import type {
   Citation,
+  Claim,
   ClaimResult,
   Explanation,
   Technique,
@@ -10,18 +11,26 @@ import type {
 import { DECISIVE_VERDICTS } from './constants'
 
 /**
- * The verdict as a word on a badge in its colour (red only for „Fałszywe”) and its hint.
+ * The claim with its verdict as a word on a badge in its colour (red only for „Fałszywe”),
+ * then the verdict's hint. The row wraps, so long labels move below the claim.
  *
+ * @param props.claim - The claim text.
  * @param props.verdict - The claim's verdict.
  * @returns The verdict section.
  * @feature US-SPR-04, F-17
  */
-export function VerdictSection({ verdict }: { verdict: Verdict }) {
+export function VerdictSection({ claim, verdict }: { claim: Claim; verdict: Verdict }) {
   return (
-    <div className="mt-1.5">
-      <VerdictBadge verdict={verdict} />
-      <p className="mt-1 text-small text-muted-foreground">{t.verdict_hint[verdict]}</p>
-    </div>
+    <>
+      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+        <h3 className="min-w-0 flex-1 basis-48 font-bold text-body text-pretty">
+          <span className="sr-only">{t.result.claim}: </span>
+          {claim}
+        </h3>
+        <VerdictBadge verdict={verdict} />
+      </div>
+      <p className="mt-0.5 text-small text-muted-foreground">{t.verdict_hint[verdict]}</p>
+    </>
   )
 }
 
@@ -34,22 +43,31 @@ export function VerdictSection({ verdict }: { verdict: Verdict }) {
  */
 export function ExplanationSection({ explanation }: { explanation: Explanation }) {
   return (
-    <section aria-label={t.result.explanation} className="mt-2.5">
+    <div className="mt-2.5">
+      <h4 className="sr-only">{t.result.explanation}</h4>
       <p className="text-body text-pretty">{explanation}</p>
       <p className="mt-1 text-meta text-muted-foreground">{t.result.explanation_hint}</p>
-    </section>
+    </div>
   )
 }
 
 /**
  * Verbatim quotes, each with title, publisher, date and link taken from `Citation.source`.
+ * Insufficient evidence shows no quotes; its conflicting sources are meritum-frontend#26.
  *
+ * @param props.verdict - The claim's verdict.
  * @param props.citations - The claim's citations; nothing renders when there are none.
  * @returns The citations section, or null.
  * @feature US-ZRD-01, US-ZRD-02, F-17
  */
-export function CitationsSection({ citations }: { citations: readonly Citation[] }) {
-  if (citations.length === 0) {
+export function CitationsSection({
+  verdict,
+  citations,
+}: {
+  verdict: Verdict
+  citations: readonly Citation[]
+}) {
+  if (verdict === 'insufficient_evidence' || citations.length === 0) {
     return null
   }
   return (

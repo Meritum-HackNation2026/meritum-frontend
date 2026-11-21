@@ -57,10 +57,29 @@ test('strength "umiarkowana" comes with its premises', () => {
 
 test('the explanation stands in its own block with the AI note, and the card has the AI line', () => {
   const claim = renderClaim(claimWith({}))
-  const block = claim.getByRole('region', { name: pl.result.explanation })
+  const block = claim.getByRole('heading', { name: pl.result.explanation }).parentElement
+  assert.ok(block)
   assert.equal(within(block).getByText(falseClaim?.explanation ?? '').tagName, 'P')
   assert.ok(within(block).getByText(pl.result.explanation_hint))
+  assert.equal(within(block).queryAllByRole('blockquote').length, 0)
   assert.ok(screen.getByText(pl.result.ai_disclosure))
+})
+
+test('strength is ink-coloured with three level bars, two of them filled for "moderate"', () => {
+  const claim = renderClaim(claimWith({}))
+  const title = claim.getByText(`${pl.result.strength_title}: ${pl.strength.moderate}`)
+  const bars = [...(title.querySelector('[aria-hidden="true"]')?.children ?? [])]
+  assert.equal(bars.length, 3)
+  assert.deepEqual(
+    bars.map((bar) => bar.className.includes('bg-foreground')),
+    [true, true, false],
+  )
+})
+
+test('insufficient evidence with sources still shows no quotes', () => {
+  const claim = renderClaim(claimWith({ verdict: 'insufficient_evidence' }))
+  assert.equal(claim.queryAllByRole('blockquote').length, 0)
+  assert.equal(claim.queryByText(pl.result.sources_title), null)
 })
 
 test('insufficient evidence shows what is unresolved, with no strength and no citations', () => {
@@ -111,8 +130,9 @@ for (const [verdict, shown] of [
   })
 }
 
-test('the long label "Brak wystarczających dowodów" is never cut', () => {
+test('the long label "Brak wystarczających dowodów" is whole and can wrap below the claim', () => {
   const claim = renderClaim(claimWith({ verdict: 'insufficient_evidence', strength: null }))
   const badge = claim.getByText('Brak wystarczających dowodów')
-  assert.equal(badge.className.includes('truncate'), false)
+  assert.equal(badge.textContent, 'Brak wystarczających dowodów')
+  assert.equal(badge.parentElement?.className.includes('flex-wrap'), true)
 })

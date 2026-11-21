@@ -28,7 +28,7 @@ export function CheckResultCard({ result }: { result: CheckResult }) {
       <footer className="mt-3 grid gap-1.5 border-t border-border px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
         <Limitations items={result.limitations ?? []} />
         <p>{t.result.ai_disclosure}</p>
-        {/* actions (meritum-frontend#23) */}
+        {/* actions and escalation (meritum-frontend#23) */}
       </footer>
     </section>
   )

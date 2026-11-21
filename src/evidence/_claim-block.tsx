@@ -1,4 +1,3 @@
-import { t } from '@/components/meritum'
 import type { ClaimResult } from '@/contracts/meritum'
 import {
   CitationsSection,
@@ -20,18 +19,14 @@ import {
 export function ClaimBlock({ claim }: { claim: ClaimResult }) {
   return (
     <article className="border-b border-border/70 px-3.5 py-3 last-of-type:border-b-0">
-      <h3 className="font-bold text-body text-pretty">
-        <span className="sr-only">{t.result.claim}: </span>
-        {claim.claim}
-      </h3>
-      <VerdictSection verdict={claim.verdict} />
+      <VerdictSection claim={claim.claim} verdict={claim.verdict} />
       <ExplanationSection explanation={claim.explanation} />
-      <CitationsSection citations={claim.citations ?? []} />
+      <CitationsSection verdict={claim.verdict} citations={claim.citations ?? []} />
       <StrengthSection claim={claim} />
-      {/* evidence timeline and source conflict (meritum-frontend#26) */}
+      {/* evidence timeline, archival evidence and source conflict (meritum-frontend#26) */}
       <UnresolvedSection unresolved={claim.unresolved} />
       <TechniqueSection technique={claim.technique} />
-      {/* fact-checker and incident context (meritum-frontend#35) */}
+      {/* fact-checker, incident and source-warning context (meritum-frontend#35) */}
     </article>
   )
 }
