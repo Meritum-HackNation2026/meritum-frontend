@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react'
+import { CircleAlert } from 'lucide-react'
 import { MeritumLabel, t } from '@/components/meritum'
 import type { CheckResult } from '@/contracts/meritum'
 
@@ -42,7 +42,7 @@ export function ResultState({
         <MeritumLabel />
       </header>
       <div className="flex items-start gap-2.5 px-3.5 pt-2.5 pb-3.5">
-        <Info aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted-foreground" />
+        <CircleAlert aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted-foreground" />
         <div className="min-w-0">
           <h2 className="text-body font-bold">{t.status[status]}</h2>
           <p className="text-body text-pretty">{stateLine(status, failureCode)}</p>

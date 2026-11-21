@@ -16,7 +16,7 @@ import pl from '@/copy/pl.json'
 /** A progress stream that never reports, so only the read drives the page. */
 const idle: ProgressSource = { watch: () => () => undefined }
 
-const rawKey = 'status_hint.technical_failure'
+const leakedCopyKey = 'status_hint.technical_failure'
 
 function renderResult(result: CheckResult) {
   const reader: ResultReader = {
@@ -28,8 +28,8 @@ function renderResult(result: CheckResult) {
   render(<ResultPage checkId={result.check_id} reader={reader} progress={idle} />)
 }
 
-function result(status: CheckResult['status'], extra: Partial<CheckResult> = {}): CheckResult {
-  return { check_id: 'c_09', status, corpus_version: '1', message: rawKey, ...extra }
+function nonVerdict(status: CheckResult['status'], extra: Partial<CheckResult> = {}): CheckResult {
+  return { check_id: 'c_09', status, corpus_version: '1', message: leakedCopyKey, ...extra }
 }
 
 const verdictWords = Object.values(pl.verdict)
@@ -39,7 +39,7 @@ function assertNoVerdict() {
     assert.equal(screen.queryByText(word), null, `verdict "${word}" is shown`)
   }
   assert.equal(screen.queryByRole('article'), null)
-  assert.equal(screen.queryByText(rawKey), null)
+  assert.equal(screen.queryByText(leakedCopyKey), null)
 }
 
 test('a technical failure says the check failed and is not a rating, from its failure code', async () => {
@@ -51,14 +51,14 @@ test('a technical failure says the check failed and is not a rating, from its fa
 })
 
 test('a technical failure without a code shows the general failure line', async () => {
-  renderResult(result('technical_failure'))
+  renderResult(nonVerdict('technical_failure'))
   assert.ok(await screen.findByText(pl.status.technical_failure))
   assert.ok(screen.getByText(pl.status_hint.technical_failure))
   assertNoVerdict()
 })
 
 test('out of scope says what we check instead, not a verdict', async () => {
-  renderResult(result('out_of_scope', { message: 'Obrazów nie obsługujemy.' }))
+  renderResult(nonVerdict('out_of_scope', { message: 'Obrazów nie obsługujemy.' }))
   assert.ok(await screen.findByText(pl.status.out_of_scope))
   assert.ok(screen.getByText(pl.status_hint.out_of_scope))
   assert.equal(screen.queryByText('Obrazów nie obsługujemy.'), null)
@@ -66,7 +66,7 @@ test('out of scope says what we check instead, not a verdict', async () => {
 })
 
 test('"czy to prawda?" asks to write the claim to check', async () => {
-  renderResult(result('needs_clarification', { message: 'czy to prawda?' }))
+  renderResult(nonVerdict('needs_clarification', { message: 'czy to prawda?' }))
   assert.ok(await screen.findByText(pl.status.needs_clarification))
   assert.ok(screen.getByText(pl.status_hint.needs_clarification))
   assertNoVerdict()
