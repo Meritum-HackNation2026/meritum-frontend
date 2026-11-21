@@ -26,6 +26,9 @@ export interface Inbox {
   clear(): Promise<void>
 }
 
+const newestFirst = (a: Notification, b: Notification) =>
+  Date.parse(b.created_at) - Date.parse(a.created_at)
+
 /**
  * Builds the inbox over the notifications API. Invalid events, unknown kinds and repeated ids
  * are ignored.
@@ -49,7 +52,8 @@ export function createInbox(api: NotificationsApi): Inbox {
       return null
     }
     const notification: Notification = { ...parsed, status: parsed.status ?? 'unread' }
-    set([notification, ...items])
+    // The stream may deliver before the saved inbox loads, so keep the order by date.
+    set([notification, ...items].toSorted(newestFirst))
     return notification
   }
 
@@ -68,13 +72,16 @@ export function createInbox(api: NotificationsApi): Inbox {
         }
       })
       const loaded = api.list().then((saved) => {
-        for (const value of saved.toReversed()) {
+        for (const value of saved) {
           add(value)
         }
       })
       return { loaded, close }
     },
     markRead(id) {
+      if (!items.some((item) => item.id === id && item.status !== 'read')) {
+        return
+      }
       set(items.map((item) => (item.id === id ? { ...item, status: 'read' } : item)))
       api.markRead(id)
     },

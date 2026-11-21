@@ -21,7 +21,7 @@ const send = async (path: string, method: string): Promise<Response | null> => {
     return await fetch(`${NOTIFICATIONS_ENDPOINT}${path}`, {
       method,
       headers: { [SESSION_HEADER]: sessionId() },
-      keepalive: true,
+      keepalive: method !== 'GET', // a read mark still goes out when the click leaves the page
     })
   } catch {
     return null

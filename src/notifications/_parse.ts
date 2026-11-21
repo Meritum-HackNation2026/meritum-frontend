@@ -1,17 +1,20 @@
 import { fill, t } from '@/components/meritum'
 import type { Notification } from '@/contracts/meritum'
-import { NOTIFICATION_KINDS } from './constants'
+import { IN_APP_PATH, NOTIFICATION_KINDS } from './constants'
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
-/** Only a path inside the app: no other site, no `javascript:` (`//host` is another site too). */
-const isInAppPath = (link: unknown): link is string =>
-  typeof link === 'string' && link.startsWith('/') && !link.startsWith('//')
+const isInAppPath = (link: unknown): boolean => typeof link === 'string' && IN_APP_PATH.test(link)
+
+const isOptionalId = (value: unknown): boolean =>
+  value === undefined || value === null || typeof value === 'string'
+
+const optionalIds = ['session_id', 'user_id', 'check_id', 'case_id'] as const
 
 /**
- * Validates one event from the API (a trust boundary): a known kind, string ids and dates,
- * and a link inside the app.
+ * Validates one event from the API (a trust boundary): a known kind and status, string ids and
+ * dates, and a link inside the app.
  *
  * @param value - Parsed JSON of one stream event or inbox entry.
  * @returns The notification, or null when it must be ignored.
@@ -21,10 +24,12 @@ export function parseNotification(value: unknown): Notification | null {
   if (!isRecord(value)) {
     return null
   }
-  const { id, kind, link, created_at: createdAt, retention_until: retentionUntil } = value
+  const { id, kind, status, link, created_at: createdAt, retention_until: retentionUntil } = value
   const isKnownKind = NOTIFICATION_KINDS.some((known) => known === kind)
+  const isKnownStatus = status === undefined || status === 'unread' || status === 'read'
   const hasDates = typeof createdAt === 'string' && typeof retentionUntil === 'string'
-  if (typeof id !== 'string' || !isKnownKind || !hasDates || !isInAppPath(link)) {
+  const hasIds = typeof id === 'string' && optionalIds.every((key) => isOptionalId(value[key]))
+  if (!(hasIds && isKnownKind && isKnownStatus && hasDates && isInAppPath(link))) {
     return null
   }
   return value as unknown as Notification

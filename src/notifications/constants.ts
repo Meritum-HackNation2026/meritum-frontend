@@ -12,7 +12,7 @@ export const NOTIFICATION_KINDS: readonly Notification['kind'][] = [
   'new_evidence',
   'case_assigned',
   'system',
-] as const
+]
 
 /**
  * Days a notification is kept (`retention_until`), the same as a check record (ADR-13, ADR-29).
@@ -20,3 +20,11 @@ export const NOTIFICATION_KINDS: readonly Notification['kind'][] = [
  * @feature US-POW-04, F-26
  */
 export const NOTIFICATION_RETENTION_DAYS = 30
+
+/**
+ * A path inside the app: one leading `/`, then no `/` or `\` right after it (browsers read
+ * `//host` and `/\host` as another site) and no backslash, space or control character anywhere.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const IN_APP_PATH = /^\/(?![/\\])[^\\\s\p{Cc}]*$/u

@@ -1,6 +1,13 @@
 import { useRouter } from '@tanstack/react-router'
 import { Bell } from 'lucide-react'
-import { type MouseEvent, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { Toaster, toast } from 'sonner'
 import { fill, formatDate, t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
@@ -11,6 +18,10 @@ import { notificationText } from './_parse'
 import { NOTIFICATION_RETENTION_DAYS } from './constants'
 
 const copy = t.notifications
+const toastOptions = { style: { transitionTimingFunction: 'var(--ease-out-meritum)' } }
+
+const progressToastId = ({ kind, check_id: checkId }: Notification) =>
+  kind === 'check_progress' && checkId ? `check_progress:${checkId}` : null
 const linkStyle =
   'rounded-md underline-offset-3 hover:underline focus-visible:outline-2 focus-visible:outline-ring'
 
@@ -28,10 +39,13 @@ function NotificationLink({
   const { id, link } = notification
   const open = useCallback(
     (event: MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault()
       inbox.markRead(id)
       onOpened()
-      router.navigate({ href: link })
+      const opensElsewhere = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey
+      if (!opensElsewhere) {
+        event.preventDefault()
+        router.navigate({ href: link })
+      }
     },
     [inbox, id, link, onOpened, router],
   )
@@ -106,13 +120,15 @@ export function Notifications({ inbox }: { inbox: Inbox }) {
   const unread = inbox.unread()
   const [isOpen, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
+  const titleId = useId()
   const unreadText = fill(copy.unread, { count: unread })
 
   useEffect(() => {
     const showToast = (notification: Notification) =>
       toast.custom(
         (id) => <NotificationToast toastId={id} notification={notification} inbox={inbox} />,
-        { id: notification.id },
+        // Progress of one check updates a single toast instead of stacking a new one per step.
+        { id: progressToastId(notification) ?? notification.id },
       )
     return inbox.connect(showToast).close
   }, [inbox])
@@ -135,8 +151,10 @@ export function Notifications({ inbox }: { inbox: Inbox }) {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="rounded-xl shadow-float">
-          <h2 className="text-body font-semibold">{copy.title}</h2>
+        <PopoverContent align="end" aria-labelledby={titleId} className="rounded-xl shadow-float">
+          <h2 id={titleId} className="text-body font-semibold">
+            {copy.title}
+          </h2>
           <p className="text-small text-muted-foreground">{unreadText}</p>
           {items.length === 0 ? (
             <p className="text-small">{copy.empty}</p>
@@ -152,7 +170,7 @@ export function Notifications({ inbox }: { inbox: Inbox }) {
           </p>
         </PopoverContent>
       </Popover>
-      <Toaster theme="system" containerAriaLabel={copy.title} />
+      <Toaster theme="system" containerAriaLabel={copy.title} toastOptions={toastOptions} />
     </>
   )
 }

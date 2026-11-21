@@ -79,6 +79,11 @@ test('an unknown kind, a malformed event and an off-site link are ignored', () =
   push('not json at all')
   push({ ...checkDone, id: 'n_04', link: 'https://example.com/' })
   push({ ...checkDone, id: 'n_05', link: '//example.com/' })
+  push({ ...checkDone, id: 'n_06', link: '/\\example.com/' })
+  push({ ...checkDone, id: 'n_07', link: '/\t/example.com/' })
+  push({ ...checkDone, id: 'n_08', link: 'javascript:alert(1)' })
+  push({ ...checkDone, id: 'n_09', case_id: { evil: true } })
+  push({ ...checkDone, id: 'n_10', status: 'archived' })
   assert.deepEqual(announced, [])
   assert.equal(inbox.items().length, 0)
 })
@@ -132,6 +137,20 @@ test('each kind gets its text from copy/pl.json', () => {
   assert.equal(text({ kind: 'system' }), pl.notifications.title)
 })
 
-test('parseNotification keeps a valid contract notification as is', () => {
+test('parseNotification keeps a valid notification and drops one without a date', () => {
   assert.deepEqual(parseNotification(checkDone), checkDone)
+  assert.equal(parseNotification({ ...checkDone, created_at: undefined }), null)
+})
+
+test('the inbox lists newest first even when the stream beats the saved inbox', async () => {
+  const older = { ...checkDone, id: 'n_00', created_at: '2026-11-20T09:00:00+01:00' }
+  const { api, push } = fakeApi([older])
+  const inbox = createInbox(api)
+  const connection = inbox.connect(() => undefined)
+  push(checkDone)
+  await connection.loaded
+  assert.deepEqual(
+    inbox.items().map((item) => item.id),
+    ['n_01', 'n_00'],
+  )
 })

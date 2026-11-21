@@ -76,13 +76,24 @@ function bell() {
 }
 
 test('check_done on another page shows a toast linking to the result', async () => {
-  await openApp('/prywatnosc')
+  const router = await openApp('/prywatnosc')
   assert.match(FakeEventSource.last?.url ?? '', streamUrl)
   act(() => FakeEventSource.last?.emit(checkDone))
   const toastLink = await screen.findByRole('link', { name: pl.notifications.kind.check_done })
   assert.equal(toastLink.getAttribute('href'), '/sprawdzenia/c_02')
   fireEvent.click(toastLink)
+  assert.equal(router.state.location.pathname, '/sprawdzenia/c_02')
   assert.ok(requests.includes('POST /api/v1/notifications/n_01/read'))
+})
+
+test('progress of one check updates a single toast', async () => {
+  await openApp('/')
+  const progress = { ...checkDone, kind: 'check_progress', link: '/' }
+  act(() => FakeEventSource.last?.emit({ ...progress, id: 'n_11' }))
+  act(() => FakeEventSource.last?.emit({ ...progress, id: 'n_12' }))
+  await screen.findAllByRole('link', { name: 'Sprawdzenie trwa' })
+  const toaster = screen.getByRole('region', { name: new RegExp(pl.notifications.title) })
+  assert.equal(within(toaster).getAllByRole('link').length, 1)
 })
 
 test('the saved inbox of this session counts its unread ones; other sessions are dropped', async () => {
