@@ -304,6 +304,7 @@
   "errors": {
     "empty": "Wklej tekst (co najmniej 3 znaki) albo link.",
     "invalid_url": "To nie wygląda na adres strony. Wklej pełny link zaczynający się od http:// albo https://.",
+    "url_too_long": "Link jest za długi. Wklej adres do 2083 znaków albo sam tekst.",
     "too_long": "Tekst jest za długi. Wklej najwyżej 4000 znaków albo sam link.",
     "rate_limited": "Za dużo sprawdzeń w krótkim czasie. Spróbuj za minutę.",
     "busy": "Mamy teraz bardzo dużo pytań. Spróbuj za kilka minut. To nie jest ocena treści.",

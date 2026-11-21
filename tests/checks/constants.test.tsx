@@ -20,3 +20,10 @@ test('text shorter than MIN_TEXT_CHARS is refused as empty', () => {
   assert.equal(toRequest('a'.repeat(MIN_TEXT_CHARS - 1)), 'empty')
   assert.equal(typeof toRequest('a'.repeat(MIN_TEXT_CHARS)), 'object')
 })
+
+test('a link is refused as url_too_long above 2083 characters, even above 4000', () => {
+  const link = (length: number) => `https://example.com/${'a'.repeat(length - 20)}`
+  assert.equal(typeof toRequest(link(2083)), 'object')
+  assert.equal(toRequest(link(2084)), 'url_too_long')
+  assert.equal(toRequest(link(4100)), 'url_too_long')
+})

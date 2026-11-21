@@ -26,8 +26,9 @@ function typeAndCheck(value: string) {
 for (const [input, message] of [
   ['ab', pl.errors.empty],
   ['ftp://example.com', pl.errors.invalid_url],
+  [`https://example.com/${'a'.repeat(2100)}`, pl.errors.url_too_long],
 ] as const) {
-  test(`"${input}" shows a Polish message under the field and sends nothing`, (t) => {
+  test(`"${input.slice(0, 30)}" shows a Polish message under the field and sends nothing`, (t) => {
     const fetch = fakeApi(t)
     render(<CheckPage sender={apiCheckSender} />)
     typeAndCheck(input)
