@@ -1,11 +1,13 @@
 import { useCallback, useState } from 'react'
 import { CheckForm } from '@/components/meritum'
 import type { CheckRequest } from '@/contracts/meritum'
+import { type ErrorKey, validateCheck } from './_request'
 import { RETENTION_DAYS } from './constants'
 import type { CheckSender, SendOutcome } from './ports'
 
 /**
- * The web check form (ADR-08): the design-system `CheckForm`, without sign-in. API errors,
+ * The web check form (ADR-08): the design-system `CheckForm`, without sign-in. The request is
+ * checked with zod (`validateCheck`) before it is sent. API errors,
  * rate limit included, show under the field as a message, never as a verdict; an accepted
  * check is handed on by its id, to open its result page.
  *
@@ -22,10 +24,15 @@ export function CheckPage({
   onAccepted: (checkId: string) => void
 }) {
   const [sending, setSending] = useState(false)
-  const [outcome, setOutcome] = useState<SendOutcome | null>(null)
+  const [outcome, setOutcome] = useState<SendOutcome | ErrorKey | null>(null)
 
   const submit = useCallback(
-    async (request: CheckRequest) => {
+    async (form: CheckRequest) => {
+      const request = validateCheck(form)
+      if (typeof request === 'string') {
+        setOutcome(request)
+        return
+      }
       setSending(true)
       setOutcome(null)
       try {

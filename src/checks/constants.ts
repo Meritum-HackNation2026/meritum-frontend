@@ -22,6 +22,13 @@ export const MIN_TEXT_CHARS = 3
 export const MAX_TEXT_CHARS = 4000
 
 /**
+ * Longest link the form accepts: `maxLength` of `CheckRequest.url` in the contract.
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const MAX_URL_CHARS = 2083
+
+/**
  * The step after which a streamed answer may show verdicts (ADR-20): citations are verified.
  *
  * @feature US-SPR-02, F-09
