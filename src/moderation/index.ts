@@ -1,3 +1,5 @@
 export { EscalationLine } from './_escalation'
+export { Panel } from './_panel'
 export { ReportError } from './_report-error'
-export type { Handoff, HandoffOutcome } from './ports'
+export { loadPanel, sectionsFor } from './_session'
+export type { Handoff, HandoffOutcome, StaffApi } from './ports'

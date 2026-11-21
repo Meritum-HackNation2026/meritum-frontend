@@ -2,6 +2,7 @@ import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
 import { useState } from 'react'
 import { apiNotifications } from '@/api'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
 import { createInbox, Notifications } from '@/notifications'
@@ -26,32 +27,35 @@ const footerLinks = [
 
 function Layout() {
   const [inbox] = useState(() => createInbox(apiNotifications))
+  // components/meritum/README.md: hints (InfoButton) need one TooltipProvider around the app
   return (
-    <div className="min-h-dvh">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <MeritumMark className="size-7" />
-          <div>
-            <p className="text-body font-semibold">Meritum</p>
-            <p className="text-small text-muted-foreground">obywatelski radar dezinformacji</p>
+    <TooltipProvider>
+      <div className="min-h-dvh">
+        <header className="border-b bg-card">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+            <MeritumMark className="size-7" />
+            <div>
+              <p className="text-body font-semibold">Meritum</p>
+              <p className="text-small text-muted-foreground">obywatelski radar dezinformacji</p>
+            </div>
+            <Notifications inbox={inbox} />
           </div>
-          <Notifications inbox={inbox} />
-        </div>
-      </header>
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <Outlet />
-      </main>
-      <footer className="border-t">
-        <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
-          {footerLinks.map(([to, title]) => (
-            <li key={to}>
-              <Link to={to} className="underline underline-offset-3">
-                {title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </footer>
-    </div>
+        </header>
+        <main className="mx-auto max-w-3xl px-4 py-8">
+          <Outlet />
+        </main>
+        <footer className="border-t">
+          <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
+            {footerLinks.map(([to, title]) => (
+              <li key={to}>
+                <Link to={to} className="underline underline-offset-3">
+                  {title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </footer>
+      </div>
+    </TooltipProvider>
   )
 }
