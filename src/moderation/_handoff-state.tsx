@@ -2,6 +2,14 @@ import { useState } from 'react'
 import { t } from '@/components/meritum'
 import type { HandoffOutcome } from './ports'
 
+// A server failure gets the technical line of `escalation`, never the overload text of `errors.busy`.
+function outcomeText(outcome: HandoffOutcome | null): string | null {
+  if (typeof outcome !== 'string') {
+    return null
+  }
+  return outcome === 'not_saved' ? t.escalation.not_saved : t.errors[outcome]
+}
+
 /**
  * One hand-off as the card tracks it: the saved case number, the error to show, and whether
  * the request is still out. A new request clears the previous error; one already out blocks it.
@@ -35,7 +43,7 @@ export function useHandoff(
     }
   }
   const caseId = typeof outcome === 'object' && outcome !== null ? outcome.caseId : null
-  const error = typeof outcome === 'string' ? t.errors[outcome] : null
+  const error = outcomeText(outcome)
   return { caseId, error, pending, send }
 }
 

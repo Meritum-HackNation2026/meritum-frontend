@@ -172,7 +172,7 @@ const HTTP_UNPROCESSABLE_CONTENT = 422
 /**
  * Refusals of the hand-off endpoints by HTTP status: 429 the hand-off limit, 404 a check that is
  * gone or has no such claim, 422 a justification the API refused; any other answer without a
- * saved case is `busy`.
+ * saved case is `not_saved`.
  *
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
@@ -180,4 +180,4 @@ export const HANDOFF_REFUSALS = {
   [HTTP_TOO_MANY_REQUESTS]: 'rate_limited_handoff',
   [HTTP_NOT_FOUND]: 'handoff_not_found',
   [HTTP_UNPROCESSABLE_CONTENT]: 'handoff_rejected',
-} as const satisfies Record<number, Exclude<HandoffOutcome, object | 'busy' | 'offline'>>
+} as const satisfies Record<number, Exclude<HandoffOutcome, object | 'not_saved' | 'offline'>>

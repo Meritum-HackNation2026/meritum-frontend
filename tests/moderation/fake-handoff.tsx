@@ -16,11 +16,11 @@ type HandoffCall = {
 /**
  * A hand-off port that answers every call with `outcome`.
  *
- * @param outcome - What every hand-off gives; `busy` when the test never hands anything off.
+ * @param outcome - What every hand-off gives; `not_saved` when the test never hands anything off.
  * @returns The port and the list of calls it received.
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
-export function fakeHandoff(outcome: HandoffOutcome = 'busy') {
+export function fakeHandoff(outcome: HandoffOutcome = 'not_saved') {
   const calls: HandoffCall[] = []
   const handoff: Handoff = {
     escalate(checkId, claimIndex) {

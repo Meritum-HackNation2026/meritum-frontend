@@ -75,10 +75,19 @@ test('a recommendation without claims shows the hint but no button to press', ()
 test('a failed save shows neither a number nor that the case was passed on', async () => {
   render(<CheckResultCard result={recommended} handoff={fakeHandoff().handoff} />)
   fireEvent.click(screen.getByRole('button', { name: pl.result.escalate }))
-  assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
+  assert.equal((await screen.findByRole('alert')).textContent, pl.escalation.not_saved)
   assert.equal(hasText('#S-'), false)
   assert.ok(screen.getByText(pl.escalation.recommended))
   assert.ok(screen.getByRole('button', { name: pl.result.escalate }))
+})
+
+test('a server failure of a report shows the technical text, not the overload one', async () => {
+  render(<CheckResultCard result={abstain} handoff={fakeHandoff('not_saved').handoff} />)
+  const claim = within(screen.getByRole('article'))
+  fireEvent.click(claim.getByRole('button', { name: pl.result.report_error }))
+  fireEvent.click(claim.getByRole('button', { name: pl.result.report_error_send }))
+  assert.equal((await screen.findByRole('alert')).textContent, pl.escalation.not_saved)
+  assert.equal(hasText(pl.errors.busy), false)
 })
 
 test('a created and a joined case read the same, so nobody learns who else asked', () => {

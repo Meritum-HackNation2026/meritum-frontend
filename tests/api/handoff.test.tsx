@@ -39,12 +39,28 @@ test('joining an existing case gives the same outcome as creating one', async (t
 
 test('a 503 without a saved case gives no case number', async (t) => {
   fakeApi(t, { status: 503, body: notSaved })
-  assert.equal(await apiHandoff.escalate('c_01', 0), 'busy')
+  assert.equal(await apiHandoff.escalate('c_01', 0), 'not_saved')
+})
+
+for (const status of [500, 502, 504]) {
+  test(`a server failure (HTTP ${status}) is not_saved, never the overload text`, async (t) => {
+    fakeApi(t, { status })
+    assert.equal(await apiHandoff.dispute('c_01', 0, 'x'), 'not_saved')
+  })
+}
+
+test('an unreadable answer is not_saved', async (t) => {
+  t.mock.method(globalThis, 'fetch', () =>
+    Promise.resolve(
+      new Response('<html>', { status: 200, headers: { 'Content-Type': 'application/json' } }),
+    ),
+  )
+  assert.equal(await apiHandoff.escalate('c_01', 0), 'not_saved')
 })
 
 test('an answer that claims success without a case number gives no case number', async (t) => {
   fakeApi(t, { status: 200, body: notSaved })
-  assert.equal(await apiHandoff.escalate('c_01', 0), 'busy')
+  assert.equal(await apiHandoff.escalate('c_01', 0), 'not_saved')
 })
 
 test('a success that is still only a recommendation gives no case number', async (t) => {
@@ -52,7 +68,7 @@ test('a success that is still only a recommendation gives no case number', async
     status: 200,
     body: { ...notSaved, escalation: { state: 'recommended', case_id: '#S-9' } },
   })
-  assert.equal(await apiHandoff.escalate('c_01', 0), 'busy')
+  assert.equal(await apiHandoff.escalate('c_01', 0), 'not_saved')
 })
 
 for (const [status, outcome] of [
