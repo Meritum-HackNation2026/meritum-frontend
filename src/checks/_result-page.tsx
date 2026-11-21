@@ -31,7 +31,7 @@ function useCheckStatus(checkId: string, reader: ResultReader, pollMs: number) {
         timer = setTimeout(poll, pollMs)
       }
     }
-    void poll()
+    poll()
     return () => {
       active = false
       clearTimeout(timer)
