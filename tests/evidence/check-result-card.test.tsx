@@ -146,3 +146,29 @@ test('the long label "Brak wystarczających dowodów" is whole and can wrap belo
   assert.equal(badge.textContent, 'Brak wystarczających dowodów')
   assert.equal(badge.parentElement?.className.includes('flex-wrap'), true)
 })
+
+const failure = examples['CheckResult.failure'] as CheckResult
+const claimReview = examples['CheckResult.claim_review'] as CheckResult
+
+test('a technical failure shows the copy text of its failure code, never its message', () => {
+  const rawKey = 'status_hint.technical_failure'
+  render(<CheckResultCard result={{ ...failure, message: rawKey }} />)
+  assert.ok(screen.getByText(pl.status.technical_failure))
+  assert.ok(screen.getByText(pl.failure_code.web_search_unavailable))
+  assert.equal(screen.queryByText(rawKey), null)
+})
+
+for (const status of ['needs_clarification', 'out_of_scope', 'technical_failure'] as const) {
+  test(`"${status}" without a failure code shows its status hint, never its message`, () => {
+    render(<CheckResultCard result={{ ...failure, status, failure_code: null }} />)
+    assert.ok(screen.getByText(pl.status[status]))
+    assert.ok(screen.getByText(pl.status_hint[status]))
+    assert.equal(screen.queryByText(failure.message ?? ''), null)
+  })
+}
+
+test('limitation codes are worded from copy, in place of the limitation texts', () => {
+  render(<CheckResultCard result={claimReview} />)
+  assert.ok(screen.getByText(pl.limitation_code.image_search_not_run))
+  assert.equal(screen.queryByText(claimReview.limitations?.[0] ?? ''), null)
+})

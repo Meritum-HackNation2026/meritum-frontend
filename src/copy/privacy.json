@@ -11,7 +11,7 @@
   "policies": {
     "web": {
       "title": "Polityka prywatności strony Meritum",
-      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy imię i nazwisko, adres e-mail i identyfikator konta. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
+      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL, adres, numery dokumentów, konta i karty) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy imię i nazwisko, adres e-mail i identyfikator konta. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
       "purpose": "Dane służą tylko do sprawdzenia informacji, odpowiedzi, policzenia powtórzeń pytań i pokazania twojej historii sprawdzeń.",
       "retention": "Historię sprawdzeń i powiadomienia usuwamy automatycznie po 30 dniach, a wcześniej, jeśli usuniesz historię albo konto. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia. Logowanie jest opcjonalne. Dane konta przechowujemy do kliknięcia „Usuń konto”.",
       "deletion": "Przycisk „Usuń moje sprawdzenia” usuwa zapisy twojej sesji. Po zalogowaniu „Usuń moją historię” usuwa historię, a „Usuń konto” także konto.",
@@ -125,8 +125,8 @@
       {
         "id": "sensitive_data_protection",
         "name": "Google Sensitive Data Protection",
-        "region": "GCP, region UE",
-        "data": "Wejście użytkownika przed maskowaniem i wyniki kroków",
+        "region": "GCP europe-central2 (Warszawa), endpoint regionalny",
+        "data": "Wejście użytkownika i wyniki kroków przed maskowaniem",
         "purpose": "Maskowanie danych osobowych"
       },
       {
