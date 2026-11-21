@@ -1,0 +1,2486 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Meritum API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health/live": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Live",
+        "description": "Liveness only: the process answers, no database involved.\n\nReturns:\n    Always `{\"status\": \"ok\"}`.\n\nFeatures:\n    none (infrastructure)",
+        "operationId": "live_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Live Api V1 Health Live Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "description": "Readiness: database, the API's variables and the worker's report.\n\nLists only names of missing variables and unavailable providers, never values.\n\nArgs:\n    probe: the readiness probe.\n\nReturns:\n    200 when nothing is missing, otherwise 503 with what is missing.\n\nFeatures:\n    US-WDR-08, US-BEZ-03, F-30",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/ping": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Enqueue Ping",
+        "description": "Enqueue the `ping` workflow (deploy smoke test).\n\nPublic, so limited to 10 per minute per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    payload: the ping input; the default message when None.\n\nReturns:\n    The workflow id to poll.\n\nRaises:\n    HTTPException: 503 when the worker's database is unreachable.\n\nFeatures:\n    ADR-03",
+        "operationId": "enqueue_ping_api_v1_jobs_ping_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PingInput"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Enqueued"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{workflow_id}": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Job State",
+        "description": "Read one job's state.\n\nArgs:\n    jobs: the job queue port.\n    workflow_id: the id returned when the job was enqueued.\n\nReturns:\n    Status, output and error of the workflow.\n\nRaises:\n    HTTPException: 404 when the id is unknown.\n\nFeatures:\n    ADR-03",
+        "operationId": "job_state_api_v1_jobs__workflow_id__get",
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workflow Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/discord/interactions": {
+      "post": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "Interactions",
+        "description": "Answer a Discord interaction.\n\nArgs:\n    request: the signed HTTP interaction.\n    settings: the app settings (the Discord public key).\n\nReturns:\n    PONG for Discord's PING, else an ephemeral message.\n\nRaises:\n    HTTPException: 404 when Discord is not configured, 401 for a bad signature,\n        400 for an interaction type Meritum does not handle.\n\nFeatures:\n    US-WTY-06, ADR-08",
+        "operationId": "interactions_api_v1_discord_interactions_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Interactions Api V1 Discord Interactions Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login/{provider}": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "description": "Send the user to the provider's login page.\n\nArgs:\n    provider: ``google`` or ``microsoft``.\n    request: the request; its session keeps the login in progress.\n    login: the login provider port.\n    settings: the app settings (public address for the callback).\n\nReturns:\n    A redirect to the provider.\n\nRaises:\n    HTTPException: 404 for a provider that is not configured, 502 when the\n        provider's discovery document cannot be read.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "operationId": "login_api_v1_auth_login__provider__get",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/callback/{provider}": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Callback",
+        "description": "Finish the login and start a session.\n\nArgs:\n    provider: the provider name from the path.\n    request: the request with the session cookie.\n    login: the login provider port.\n    code: the authorization code from the provider.\n    state: the state the provider sends back unchanged.\n\nReturns:\n    A redirect to the web app's home page, with a new session.\n\nRaises:\n    HTTPException: 400 when the state does not match the session, or the\n        provider does not confirm the account; no session is created.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "operationId": "callback_api_v1_auth_callback__provider__get",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Me",
+        "description": "The signed-in account.\n\nArgs:\n    request: the request (the session's CSRF token).\n    account: the signed-in account.\n\nReturns:\n    The account id, e-mail address and CSRF token.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout",
+        "description": "End the session: the cookie is replaced by an expired one.\n\nArgs:\n    request: the request whose session is cleared.\n    _account: the signed-in account (CSRF checked).\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/checks": {
+      "post": {
+        "tags": [
+          "checks"
+        ],
+        "summary": "Start Check",
+        "description": "Mask personal data, then enqueue the `check` workflow.\n\nArgs:\n    request: text (up to 4000 characters), a full http(s) link or an audio id.\n    jobs: the job queue port.\n    gate: the shared rate limits and the pending-checks threshold.\n    origin: the client address and region the limits count.\n    pii: the personal-data masking gate.\n    readiness: the readiness probe; a service that is not ready refuses checks.\n    session: the random browser session id; no sign-in needed.\n\nReturns:\n    The check id, 422 with a copy key, or 503 NotReady.\n\nRaises:\n    HTTPException: 400 without a valid session or for Discord, SMS and MCP\n        (they come through their adapters with a hashed user id, backend#27),\n        503 when the job queue is unreachable.\n    CheckRefusedError: over a rate limit or with too many pending checks;\n        answered 429 with Retry-After, nothing enqueued.\n\nFeatures:\n    US-SPR-01, US-SPR-07, US-BEZ-02, US-BEZ-03, US-BEZ-04, US-WDR-03, US-WDR-08,\n    F-01, F-20, F-23, F-30",
+        "operationId": "start_check_api_v1_checks_post",
+        "parameters": [
+          {
+            "name": "X-Meritum-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Meritum-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidCheck"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TooManyChecks"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotReady"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/checks/{check_id}": {
+      "get": {
+        "tags": [
+          "checks"
+        ],
+        "summary": "Check Status",
+        "description": "Read a check's steps and, once it finished, its result.\n\nArgs:\n    jobs: the job queue port.\n    check_id: the id POST /api/v1/checks returned.\n    response: the response; gets the AI-Disclosure header with a result.\n\nReturns:\n    The steps; ``result`` once the check finished (``ai_disclosure`` is true).\n\nRaises:\n    HTTPException: 404 when the id is unknown.\n\nFeatures:\n    US-SPR-01, US-BEZ-07, F-01, F-21",
+        "operationId": "check_status_api_v1_checks__check_id__get",
+        "parameters": [
+          {
+            "name": "check_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Check Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisStatus"
+                }
+              }
+            },
+            "headers": {
+              "AI-Disclosure": {
+                "description": "Set with a result: machine-readable marker of AI-generated content (AI Act art. 50(2)).",
+                "schema": {
+                  "type": "string",
+                  "example": "mode=ai-originated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/me": {
+      "get": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "Me",
+        "description": "The signed-in member's role; 403 tells the panel the person has none.\n\nArgs:\n    member: the signed-in member.\n\nReturns:\n    The address and role.\n\nFeatures:\n    US-MOD-05, F-25",
+        "operationId": "me_api_v1_staff_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffMember"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff": {
+      "get": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "List Accounts",
+        "description": "The accounts administrators granted (configured admins are not listed).\n\nArgs:\n    _admin: the signed-in administrator.\n    staff: the staff account store.\n\nReturns:\n    The accounts, sorted by address.\n\nFeatures:\n    US-MOD-05, F-25",
+        "operationId": "list_accounts_api_v1_staff_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffAccount"
+                  },
+                  "type": "array",
+                  "title": "Response List Accounts Api V1 Staff Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "Grant",
+        "description": "Grant a role to an address; it replaces the address's previous role.\n\nArgs:\n    account: the address and role.\n    _admin: the signed-in administrator.\n    _csrf: the account, CSRF checked.\n    staff: the staff account store.\n\nReturns:\n    The stored account.\n\nFeatures:\n    US-MOD-05, F-25",
+        "operationId": "grant_api_v1_staff_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffAccount"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffAccount"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/{email}": {
+      "delete": {
+        "tags": [
+          "staff"
+        ],
+        "summary": "Revoke",
+        "description": "Take an address's role away.\n\nArgs:\n    email: the address.\n    _admin: the signed-in administrator.\n    _csrf: the account, CSRF checked.\n    staff: the staff account store.\n\nFeatures:\n    US-MOD-05, F-25",
+        "operationId": "revoke_api_v1_staff__email__delete",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 254,
+              "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+              "title": "Email"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/cases": {
+      "get": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "List Cases",
+        "description": "The moderator cases, latest first.\n\nArgs:\n    _member: a signed-in moderator or administrator.\n    cases: the case repository.\n\nReturns:\n    The cases.\n\nFeatures:\n    US-MOD-01, US-MOD-05, F-25",
+        "operationId": "list_cases_api_v1_moderation_cases_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModeratorCase"
+                  },
+                  "type": "array",
+                  "title": "Response List Cases Api V1 Moderation Cases Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/topics": {
+      "get": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "List Topics",
+        "description": "The high-risk topics and their keywords; open to every staff role.\n\nArgs:\n    _member: a signed-in member with any role.\n    topics: the topic repository.\n\nReturns:\n    The topics, sorted by name.\n\nFeatures:\n    US-MOD-05, F-20, F-25",
+        "operationId": "list_topics_api_v1_moderation_topics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HighRiskTopic"
+                  },
+                  "type": "array",
+                  "title": "Response List Topics Api V1 Moderation Topics Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "Save Topic",
+        "description": "Add a topic or replace the one with the same name.\n\nArgs:\n    topic: the topic and its keywords.\n    _admin: the signed-in administrator.\n    _csrf: the account, CSRF checked.\n    topics: the topic repository.\n\nReturns:\n    The stored topic.\n\nFeatures:\n    US-MOD-05, F-20, F-25",
+        "operationId": "save_topic_api_v1_moderation_topics_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HighRiskTopic"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HighRiskTopic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/topics/{name}": {
+      "delete": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "Delete Topic",
+        "description": "Delete a topic; an unknown name does nothing.\n\nArgs:\n    name: the topic's name.\n    _admin: the signed-in administrator.\n    _csrf: the account, CSRF checked.\n    topics: the topic repository.\n\nFeatures:\n    US-MOD-05, F-20, F-25",
+        "operationId": "delete_topic_api_v1_moderation_topics__name__delete",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checks/{check_id}/events": {
+      "get": {
+        "tags": [
+          "checks"
+        ],
+        "summary": "Check Events",
+        "description": "Stream a check's progress until the workflow ends.\n\nA result reaches the client only once ``verify_citations`` is done or\nskipped, so a preliminary answer never carries a verdict. When the workflow\nfinished, the last event holds the full CheckResult and the stream closes.\nThe response has no AI-Disclosure header: headers go out before the first\nevent, when no result is known yet; ``result.ai_disclosure`` marks it.\n\nArgs:\n    jobs: the job queue port.\n    check_id: the id POST /api/v1/checks returned; 404 when unknown.\n        Opening a stream counts against the address's own stream budget\n        (429 above it).\n\nYields:\n    One AnalysisStatus per progress value, then the final one with ``result``.\n\nFeatures:\n    US-SPR-02, US-BEZ-02, F-09, F-20",
+        "operationId": "check_events_api_v1_checks__check_id__events_get",
+        "parameters": [
+          {
+            "name": "check_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Check Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "$ref": "#/components/schemas/AnalysisStatus"
+                      }
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/TooManyChecks"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audio": {
+      "post": {
+        "tags": [
+          "checks"
+        ],
+        "summary": "Upload Audio",
+        "description": "Store a recording for the check record's retention and return its id.\n\nThe bytes decide the format (core's ``inspect_audio``), not the MIME type.\nPublic, so limited per client address (429 above AUDIO_UPLOAD_LIMIT).\n\nArgs:\n    request: the request; its body is the file (OGG Opus, MP3, M4A or WAV).\n    blobs: the blob store port.\n\nReturns:\n    The audio id, or AudioRejected: 413 over MAX_AUDIO_BYTES, 422 over\n    MAX_AUDIO_SECONDS, 415 for any other file.\n\nRaises:\n    HTTPException: 503 when the store fails.\n\nFeatures:\n    US-SPR-11, F-08, ADR-13, ADR-31",
+        "operationId": "upload_audio_api_v1_audio_post",
+        "requestBody": {
+          "content": {
+            "audio/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudioAccepted"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudioRejected"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudioRejected"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudioRejected"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/checks": {
+      "delete": {
+        "tags": [
+          "privacy"
+        ],
+        "summary": "Delete Session Checks",
+        "description": "Delete the checks of one browser session („Usuń moje sprawdzenia”).\n\nThe random session id in the path is the key: only its holder knows it, so\na session reaches only its own records. The header is optional (the\nextension does not send it); when sent it must name the same session, which\ncatches client mistakes, not attackers. Limited per client address.\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    session_id: the random browser session id.\n    jobs: the job queue port.\n    eraser: the app's SubjectEraser.\n    session: the caller's session id, when sent.\n\nReturns:\n    How many records and notifications were deleted right away.\n\nRaises:\n    HTTPException: 403 when the header names another session, 400 for an id\n        that is not a browser session id, 503 when the queue or the\n        database is unreachable (429 above the limit comes from slowapi).\n\nFeatures:\n    US-BEZ-05, US-BEZ-06, US-POW-04, F-20",
+        "operationId": "delete_session_checks_api_v1_sessions__session_id__checks_delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-Meritum-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Meritum-Session"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedChecks"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalysisStatus": {
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "title": "Check Id"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisStep"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "check_id",
+          "steps"
+        ],
+        "title": "AnalysisStatus",
+        "description": "Polled (or streamed) by every channel while a check runs; mirrors the DBOS workflow."
+      },
+      "AnalysisStep": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "receive",
+              "fetch_url",
+              "transcribe_audio",
+              "screen_injection",
+              "extract_claims",
+              "search_corpus",
+              "search_web",
+              "search_fact_checks",
+              "assess_evidence",
+              "verify_citations",
+              "write_answer",
+              "save_record"
+            ],
+            "title": "Code"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "done",
+              "skipped",
+              "failed"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "status"
+        ],
+        "title": "AnalysisStep",
+        "description": "One step of the processing strip shown between „Sprawdź” and the result."
+      },
+      "AudioAccepted": {
+        "properties": {
+          "audio_id": {
+            "type": "string",
+            "title": "Audio Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "audio_id"
+        ],
+        "title": "AudioAccepted",
+        "description": "201 answer: the recording is stored.\n\nAttributes:\n    audio_id: the id to send as ``audio_id`` to POST /api/v1/checks.\n\nFeatures:\n    US-SPR-11, F-08"
+      },
+      "AudioRejected": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "done",
+              "needs_clarification",
+              "out_of_scope",
+              "technical_failure"
+            ],
+            "title": "Status"
+          },
+          "message_key": {
+            "type": "string",
+            "title": "Message Key"
+          },
+          "formats": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Formats",
+            "default": [
+              "OGG",
+              "MP3",
+              "M4A",
+              "WAV"
+            ]
+          },
+          "max_mb": {
+            "type": "integer",
+            "title": "Max Mb",
+            "default": 20
+          },
+          "max_minutes": {
+            "type": "integer",
+            "title": "Max Minutes",
+            "default": 10
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message_key"
+        ],
+        "title": "AudioRejected",
+        "description": "413, 415 or 422 answer: no recording to check, so no verdict.\n\nAttributes:\n    status: always ``out_of_scope``, as core's UnsupportedAudioError.\n    message_key: errors.audio_too_large, errors.audio_too_long or\n        status_hint.out_of_scope_audio_format (copy/pl.json).\n    formats: the formats that can be sent ({formats} of form.audio_limits).\n    max_mb: the size limit ({max_mb} of the copy).\n    max_minutes: the length limit ({max_minutes} of the copy).\n\nFeatures:\n    US-SPR-11, F-08"
+      },
+      "CaseClaim": {
+        "properties": {
+          "claim": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Claim"
+          },
+          "check_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Check Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "claim",
+          "check_ids"
+        ],
+        "title": "CaseClaim",
+        "description": "One claim in a case and the checks that asked it: unanswered (\"insufficient_evidence\"), or disputed by a user."
+      },
+      "CheckAccepted": {
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "title": "Check Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "check_id"
+        ],
+        "title": "CheckAccepted",
+        "description": "202 answer: the check was queued.\n\nAttributes:\n    check_id: the id to poll at GET /api/v1/checks/{check_id}.\n\nFeatures:\n    US-SPR-01, F-01"
+      },
+      "CheckRequest": {
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "web",
+              "extension",
+              "discord",
+              "sms",
+              "mcp"
+            ],
+            "title": "Channel"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "page_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Url",
+            "description": "Extension only: the post the text came from."
+          },
+          "audio_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio Id",
+            "description": "Uploaded audio file or Discord voice message; transcribed in an EU region, then checked like text."
+          },
+          "channel_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel User Id",
+            "description": "Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "channel"
+        ],
+        "title": "CheckRequest",
+        "description": "What a channel adapter sends to the verification core. The core is channel-agnostic."
+      },
+      "CheckResult": {
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Check Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "done",
+              "needs_clarification",
+              "out_of_scope",
+              "technical_failure"
+            ],
+            "title": "Status"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/ClaimResult"
+            },
+            "type": "array",
+            "title": "Claims",
+            "default": []
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message",
+            "description": "For non-verdict statuses: what to do next."
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "provider_unavailable",
+                  "web_search_unavailable",
+                  "transcription_failed",
+                  "url_unavailable",
+                  "not_ready"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code",
+            "description": "technical_failure only; never names a key or a provider."
+          },
+          "limitations": {
+            "items": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "type": "array",
+            "title": "Limitations",
+            "default": []
+          },
+          "limitation_codes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "fact_check_unavailable",
+                "image_search_not_run"
+              ]
+            },
+            "type": "array",
+            "title": "Limitation Codes",
+            "description": "Codes next to the limitation texts; the channel words them from copy/pl.json. They never change the status.",
+            "default": []
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript",
+            "description": "Audio input only: the automatic transcript, with personal data masked."
+          },
+          "source_warning": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceStatusWarning"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "escalation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Escalation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "corpus_version": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Corpus Version",
+            "description": "Id of the scheduled corpus snapshot."
+          },
+          "ai_disclosure": {
+            "type": "boolean",
+            "const": true,
+            "title": "Ai Disclosure",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "check_id",
+          "status",
+          "corpus_version"
+        ],
+        "title": "CheckResult",
+        "description": "The answer every channel renders. The same normalised input within the result cache's lifetime gets the same substantive result on every channel.\n\nout_of_scope: an unsupported input type or a request that is not about information. needs_clarification: no claim\ncould be extracted. Any factual claim gets a verdict, \"insufficient_evidence\" included."
+      },
+      "Citation": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "fragment": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 10,
+            "title": "Fragment"
+          },
+          "stance": {
+            "type": "string",
+            "enum": [
+              "supports",
+              "refutes",
+              "context"
+            ],
+            "title": "Stance"
+          },
+          "validity": {
+            "type": "string",
+            "enum": [
+              "expires",
+              "in_force",
+              "updated_in_place",
+              "past_event",
+              "superseded"
+            ],
+            "title": "Validity",
+            "description": "Age rule for this piece of evidence: the catalogue entry's validity, or past_event / superseded set per evidence.",
+            "default": "expires"
+          },
+          "fragment_found_verbatim": {
+            "type": "boolean",
+            "const": true,
+            "title": "Fragment Found Verbatim",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "fragment",
+          "stance"
+        ],
+        "title": "Citation",
+        "description": "A fragment of a source and how it bears on the claim. The pipeline drops fragments it cannot find verbatim."
+      },
+      "ClaimResult": {
+        "properties": {
+          "claim": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Claim"
+          },
+          "claim_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Claim Date",
+            "description": "The date the claim refers to; evidence age is measured against it."
+          },
+          "claim_date_source": {
+            "type": "string",
+            "enum": [
+              "text",
+              "input_published_at",
+              "today"
+            ],
+            "title": "Claim Date Source"
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "false",
+              "misleading",
+              "insufficient_evidence",
+              "not_verifiable"
+            ],
+            "title": "Verdict"
+          },
+          "strength": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceStrength"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations",
+            "default": []
+          },
+          "claim_review_premises": {
+            "items": {
+              "$ref": "#/components/schemas/ClaimReviewPremise"
+            },
+            "type": "array",
+            "title": "Claim Review Premises",
+            "description": "IFCN or EFCSN fact-checkers' ratings that back the verdict without a page fragment (ADR-34).",
+            "default": []
+          },
+          "explanation": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 10,
+            "title": "Explanation"
+          },
+          "unresolved": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unresolved",
+            "description": "What could not be established."
+          },
+          "would_change_verdict": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "needs_primary_source",
+                "needs_second_publisher",
+                "needs_fresh_evidence",
+                "needs_resolving_source",
+                "needs_named_source"
+              ]
+            },
+            "type": "array",
+            "title": "Would Change Verdict",
+            "description": "What would change the verdict, computed by a rule from the premises; the channel words it from copy/pl.json.",
+            "default": []
+          },
+          "archival": {
+            "type": "boolean",
+            "title": "Archival",
+            "description": "Newest evidence is older than the claim's context needs.",
+            "default": false
+          },
+          "technique": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "false_authority",
+                  "conspiracy_theory",
+                  "out_of_context",
+                  "outdated",
+                  "fabricated_quote",
+                  "manipulated_media",
+                  "impersonation",
+                  "cherry_picking"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Technique"
+          },
+          "incident": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncidentMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "claim_reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ClaimReviewContext"
+            },
+            "type": "array",
+            "title": "Claim Reviews",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "claim",
+          "claim_date",
+          "claim_date_source",
+          "verdict",
+          "explanation"
+        ],
+        "title": "ClaimResult",
+        "description": "One checked claim. Citations (source material) are kept apart from `explanation` (model interpretation)."
+      },
+      "ClaimReviewContext": {
+        "properties": {
+          "publisher": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Publisher"
+          },
+          "rating": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rating",
+            "description": "textualRating as published."
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "publisher",
+          "rating",
+          "url"
+        ],
+        "title": "ClaimReviewContext",
+        "description": "A fact-checker's ClaimReview rating found through Google Fact Check Tools API, shown as context with a link.\n\nNever a citation, never counted towards strength, kept no longer than the API's cache headers allow."
+      },
+      "ClaimReviewPremise": {
+        "properties": {
+          "publisher": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Publisher"
+          },
+          "publisher_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+            "title": "Publisher Id"
+          },
+          "signatory_of": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "ifcn",
+                "efcsn"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Signatory Of",
+            "description": "IFCN or EFCSN membership from the publisher's catalogue entry; required for a premise."
+          },
+          "rating": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Rating",
+            "description": "textualRating, verbatim."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Reviewed At"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At",
+            "description": "When Google Fact Check Tools API returned it."
+          },
+          "stance": {
+            "type": "string",
+            "enum": [
+              "supports",
+              "refutes",
+              "context"
+            ],
+            "title": "Stance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "publisher",
+          "publisher_id",
+          "signatory_of",
+          "rating",
+          "title",
+          "reviewed_at",
+          "url",
+          "fetched_at",
+          "stance"
+        ],
+        "title": "ClaimReviewPremise",
+        "description": "A fact-checker's ClaimReview rating used as a premise of the verdict, next to the citations (ADR-34).\n\nFound through Google Fact Check Tools API. It has no page fragment: the rating, title,\ndate and link are the evidence. Only publishers the catalogue lists as IFCN or EFCSN\nsignatories qualify; the pipeline copies `signatory_of` from their catalogue entry.\nCounted per publisher like a secondary-tier citation."
+      },
+      "DeletedChecks": {
+        "properties": {
+          "deleted": {
+            "type": "integer",
+            "title": "Deleted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deleted"
+        ],
+        "title": "DeletedChecks",
+        "description": "202 answer: the deletion ran and the worker got the rest.\n\nAttributes:\n    deleted: check records and notifications deleted right away; DBOS data\n        and files follow in the ``delete_subject`` workflow.\n\nFeatures:\n    US-BEZ-05, F-20"
+      },
+      "Enqueued": {
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "title": "Workflow Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workflow_id"
+        ],
+        "title": "Enqueued",
+        "description": "Answer to an accepted job.\n\nAttributes:\n    workflow_id: the id to poll at GET /api/v1/jobs/{workflow_id}.\n\nFeatures:\n    ADR-03"
+      },
+      "Escalation": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "recommended",
+              "created",
+              "updated"
+            ],
+            "title": "State"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^#S-\\d+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state"
+        ],
+        "title": "Escalation",
+        "description": "Hand-off to the moderator queue. 'recommended' means nobody was notified yet.\n\nComputed on every request, cache hits included: the result cache never stores it."
+      },
+      "EvidenceStrength": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "strong",
+              "moderate",
+              "weak"
+            ],
+            "title": "Level"
+          },
+          "premises": {
+            "$ref": "#/components/schemas/Premises"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "level",
+          "premises"
+        ],
+        "title": "EvidenceStrength",
+        "description": "Strength level together with the premises it follows from."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HighRiskTopic": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "keywords": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Keywords"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "keywords"
+        ],
+        "title": "HighRiskTopic",
+        "description": "One topic of the admin's high-risk list, with its fallback keywords.\n\nA case whose claim falls under the topic gets the ``high_risk`` reason; the\nkeywords classify it when the model cannot.\n\nAttributes:\n    name: the topic, as ``ModeratorCase.high_risk_topic`` names it.\n    keywords: the words that mark a claim as this topic.\n\nFeatures:\n    US-MOD-05, F-20"
+      },
+      "IncidentMatch": {
+        "properties": {
+          "database": {
+            "type": "string",
+            "enum": [
+              "organiser",
+              "euvsdisinfo",
+              "fact_check"
+            ],
+            "title": "Database",
+            "description": "fact_check: the entry matched an already checked publication.",
+            "default": "organiser"
+          },
+          "incident_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Incident Id"
+          },
+          "matched_on": {
+            "type": "string",
+            "enum": [
+              "content",
+              "domain"
+            ],
+            "title": "Matched On",
+            "default": "content"
+          },
+          "match_basis": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "title",
+                "topic",
+                "date",
+                "domain"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Match Basis",
+            "description": "What agreed; shown with the match."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "similarity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Similarity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "incident_id",
+          "match_basis",
+          "title",
+          "date",
+          "url",
+          "similarity"
+        ],
+        "title": "IncidentMatch",
+        "description": "Similarity to a known incident (organiser's database, the local EUvsDisinfo copy or a checked fact-check). Context only.\n\nNever a basis for the verdict by itself, and never changes it. An EUvsDisinfo `fact` text is cited as a Citation,\nnot carried here.\n\n`domain` is the one explicitly defined warning case: the checked URL is on a domain the incident database lists\n(for EUvsDisinfo: linksToDisinformation), and the incident's topic matches the claim. A content match needs a\nmatching title, topic and date; the domain alone never makes one. `match_basis` lists what matched and is shown."
+      },
+      "InvalidCheck": {
+        "properties": {
+          "message_key": {
+            "type": "string",
+            "title": "Message Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_key"
+        ],
+        "title": "InvalidCheck",
+        "description": "422 answer: what the person must fix, as a key of copy/pl.json.\n\nAttributes:\n    message_key: errors.empty, errors.too_long or errors.invalid_url.\n\nFeatures:\n    US-SPR-01, US-SPR-07, F-01"
+      },
+      "JobState": {
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "title": "Workflow Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workflow_id",
+          "status"
+        ],
+        "title": "JobState",
+        "description": "What the caller may see about one job.\n\nAttributes:\n    workflow_id: the DBOS workflow id.\n    status: the DBOS workflow status (ENQUEUED, PENDING, SUCCESS, ERROR,\n        CANCELLED, ...).\n    output: the workflow result as JSON, once it succeeded.\n    error: the error text, once it failed.\n\nFeatures:\n    ADR-03"
+      },
+      "Me": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified"
+          },
+          "csrf_token": {
+            "type": "string",
+            "title": "Csrf Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "subject",
+          "email",
+          "email_verified",
+          "csrf_token"
+        ],
+        "title": "Me",
+        "description": "The signed-in account and the token for state-changing requests.\n\nAttributes:\n    provider: the provider name.\n    subject: the provider's account id.\n    email: the e-mail address from the ID token.\n    email_verified: whether the provider verified the address.\n    csrf_token: the value to send in ``X-CSRF-Token``.\n\nFeatures:\n    US-MOD-05, US-SPR-10, F-25"
+      },
+      "ModeratorCase": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^#S-\\d+$",
+            "title": "Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "answered",
+              "closed"
+            ],
+            "title": "State"
+          },
+          "reasons": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "insufficient_evidence",
+                "high_risk",
+                "repeated_unanswered",
+                "user_dispute"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Reasons"
+          },
+          "high_risk_topic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Risk Topic",
+            "description": "Topic from the admin's high-risk list that matched."
+          },
+          "high_risk_classified_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "embeddings",
+                  "keywords"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Risk Classified By",
+            "description": "Embedding similarity to the admin list above a threshold, or the keyword list as a fallback (ADR-35)."
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 5,
+            "title": "Summary"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/CaseClaim"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Claims"
+          },
+          "distinct_askers": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Distinct Askers",
+            "description": "Distinct sessions or users who asked; raises the case's priority only, never decides whether it exists.",
+            "default": 1
+          },
+          "first_seen": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Seen"
+          },
+          "last_seen": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen"
+          },
+          "assignee_role": {
+            "type": "string",
+            "enum": [
+              "moderator",
+              "analyst"
+            ],
+            "title": "Assignee Role",
+            "default": "moderator"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "state",
+          "reasons",
+          "summary",
+          "claims",
+          "first_seen",
+          "last_seen"
+        ],
+        "title": "ModeratorCase",
+        "description": "One case per group of similar unanswered claims. Similarity is measured per claim; a repeated claim joins the case."
+      },
+      "NotReady": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "technical_failure",
+            "title": "Status",
+            "default": "technical_failure"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "not_ready"
+          },
+          "message_key": {
+            "type": "string",
+            "title": "Message Key",
+            "default": "status_hint.technical_failure"
+          }
+        },
+        "type": "object",
+        "title": "NotReady",
+        "description": "503 answer to a check while the service is not ready; names no keys.\n\nAttributes:\n    status: always technical_failure, which is not a verdict.\n    code: always not_ready.\n    message_key: the copy/pl.json key to show.\n\nFeatures:\n    US-WDR-08, US-BEZ-03, F-30"
+      },
+      "PingInput": {
+        "properties": {
+          "contract_version": {
+            "type": "integer",
+            "title": "Contract Version",
+            "default": 3
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Message",
+            "default": "ping"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PingInput",
+        "description": "Input of the `ping` smoke-test workflow.\n\nAttributes:\n    message: text the worker echoes back.\n\nFeatures:\n    ADR-03"
+      },
+      "Premises": {
+        "properties": {
+          "independent_sources": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Independent Sources",
+            "description": "Distinct publishers (publisher_id) among the citations whose stance agrees with the verdict."
+          },
+          "primary_sources": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Primary Sources",
+            "description": "Distinct primary-tier publishers among the agreeing citations."
+          },
+          "newest_source_published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newest Source Published At",
+            "description": "Publication date of the newest agreeing source, shown as a date."
+          },
+          "newest_source_age_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newest Source Age Hours",
+            "description": "Hours from the newest agreeing source to the claim date (ClaimResult.claim_date), not to now; 0 when the source is newer."
+          },
+          "max_age_hours": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Max Age Hours",
+            "description": "Threshold from the catalogue entry of the newest source.",
+            "default": 8760
+          },
+          "validity": {
+            "type": "string",
+            "enum": [
+              "expires",
+              "in_force",
+              "updated_in_place",
+              "past_event",
+              "superseded"
+            ],
+            "title": "Validity",
+            "default": "expires"
+          },
+          "agreement": {
+            "type": "string",
+            "enum": [
+              "consistent",
+              "conflicting"
+            ],
+            "title": "Agreement"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "independent_sources",
+          "primary_sources",
+          "agreement"
+        ],
+        "title": "Premises",
+        "description": "Explicit premises behind a verdict (MSZ: strength must follow from quality, recency, agreement, independence)."
+      },
+      "Readiness": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "env": {
+            "type": "string",
+            "title": "Env"
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Database"
+          },
+          "worker": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "not_reported"
+            ],
+            "title": "Worker"
+          },
+          "missing_env": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Env"
+          },
+          "unavailable_providers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unavailable Providers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "env",
+          "database",
+          "worker",
+          "missing_env",
+          "unavailable_providers"
+        ],
+        "title": "Readiness",
+        "description": "Body of GET /api/v1/health: what the API and the worker lack.\n\nAttributes:\n    status: ok when nothing is missing, otherwise degraded.\n    env: the environment name.\n    database: whether the API's database role can run a query.\n    worker: whether the worker published its readiness report.\n    missing_env: names of unset required variables (API and worker).\n    unavailable_providers: providers the API or the worker cannot use.\n\nFeatures:\n    US-WDR-08, US-BEZ-03, F-30"
+      },
+      "Source": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "publisher": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Publisher"
+          },
+          "publisher_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+            "title": "Publisher Id",
+            "description": "Publisher id from the catalogue; independence is counted on it."
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "domain": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 3,
+            "title": "Domain"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "akt_prawny",
+              "dane_publiczne",
+              "instytucja",
+              "fact_check",
+              "media"
+            ],
+            "title": "Kind"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "secondary"
+            ],
+            "title": "Tier"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$",
+            "title": "Language",
+            "default": "pl"
+          },
+          "via": {
+            "type": "string",
+            "enum": [
+              "corpus",
+              "rss",
+              "web_search",
+              "mcp"
+            ],
+            "title": "Via",
+            "default": "corpus"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "publisher_id",
+          "url",
+          "domain",
+          "kind",
+          "tier",
+          "fetched_at"
+        ],
+        "title": "Source",
+        "description": "A document from the audited corpus. Title, publisher, date and link are mandatory to show (MSZ section 2)."
+      },
+      "SourceStatusWarning": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "eu_sanctioned_entity",
+            "title": "Code"
+          },
+          "entity": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Entity"
+          },
+          "basis_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Basis Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "entity",
+          "basis_url"
+        ],
+        "title": "SourceStatusWarning",
+        "description": "Neutral note that the checked content comes from an entity on the official EU sanctions list. Never a verdict."
+      },
+      "StaffAccount": {
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/StaffEmail"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "moderator",
+              "analyst",
+              "admin"
+            ],
+            "title": "Role"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "StaffAccount",
+        "description": "A role an administrator granted to an e-mail address.\n\nAttributes:\n    email: the address the OIDC provider must confirm (and verify).\n    role: the role in the panel.\n\nFeatures:\n    US-MOD-05, F-25"
+      },
+      "StaffEmail": {
+        "type": "string",
+        "maxLength": 254,
+        "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+      },
+      "StaffMember": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "moderator",
+              "analyst",
+              "admin"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "StaffMember",
+        "description": "The signed-in person and their role in the panel.\n\nAttributes:\n    email: the verified address from the ID token.\n    role: the role from the configuration or from an administrator.\n\nFeatures:\n    US-MOD-05, F-25"
+      },
+      "TooManyChecks": {
+        "properties": {
+          "message_key": {
+            "type": "string",
+            "title": "Message Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_key"
+        ],
+        "title": "TooManyChecks",
+        "description": "429 answer: a message for people, never a verdict.\n\nAttributes:\n    message_key: errors.rate_limited or errors.busy (copy/pl.json).\n\nFeatures:\n    US-BEZ-02, US-WDR-03, F-20, F-23"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
