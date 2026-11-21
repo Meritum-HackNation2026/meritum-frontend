@@ -33,7 +33,7 @@ UI issues to a Claude session.
 2. Use plain shadcn/ui (`pnpm dlx shadcn@latest add <name>`) only when no block or layout fits.
 3. Restyle what you installed with the Meritum design system (`meritum-ui`): tokens from
    `src/styles/meritum.css`, Archivo and Azeret Mono, components from `src/components/meritum/`,
-   every text from `src/copy/pl.json`. The block keeps its structure; its colours, fonts, images
+   every text from `src/copy/pl.json`. The block keeps its structure unless it breaks accessibility or a Meritum component; its colours, fonts, images
    and sample copy go.
 
 The registry needs `"@shadcnblocks": "https://www.shadcnblocks.com/r/{style}/{name}"` under
@@ -47,16 +47,19 @@ A block lands outside `src/components/ui/`, so it is app code: it passes every c
 
 ## Mandatory design skills
 
-Every task in this repo loads these skills after `meritum-ui`. Precedence: the user's
-instructions, then the Meritum design system, then the skills.
+Load these skills on every task in this repo. On a task that changes what the user sees, load
+them after `meritum-ui`. Precedence: the user's instructions, then the Meritum design system,
+then these skills.
 
-| Skill                   | Source               | When                            |
-| ----------------------- | -------------------- | ------------------------------- |
-| `frontend-design`       | anthropics/skills    | every task                      |
-| `design-taste-frontend` | Leonxlnx/taste-skill | every task                      |
-| `emil-design-eng`       | emilkowalski/skills  | every task                      |
-| `animate`               | emilkowalski/skills  | the task adds or changes motion |
-| `review-animations`     | emilkowalski/skills  | the task adds or changes motion |
-| `impeccable`            | pbakaus/impeccable   | every task                      |
+| Skill                   | When                            | Install                                                    |
+| ----------------------- | ------------------------------- | ---------------------------------------------------------- |
+| `frontend-design`       | every task                      | `npx skills add anthropics/skills --skill frontend-design` |
+| `design-taste-frontend` | every task                      | `npx skills add Leonxlnx/taste-skill`                      |
+| `emil-design-eng`       | every task                      | `npx skills add emilkowalski/skills`                       |
+| `animate`               | the task adds or changes motion | `npx skills add emilkowalski/skills`                       |
+| `review-animations`     | the task adds or changes motion | `npx skills add emilkowalski/skills`                       |
+| `impeccable`            | every task                      | `npx skills add pbakaus/impeccable`                        |
 
-Name the skills you used in the PR description, under „Jak sprawdzone”.
+Install a missing skill with the command in its row before you start. List every mandatory
+skill for the task in the PR description, under „Jak sprawdzone”, with one line on how you
+applied it.
