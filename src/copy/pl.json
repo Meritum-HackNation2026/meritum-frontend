@@ -103,6 +103,7 @@
     "ai_disclosure": "Odpowiedź przygotował system z użyciem AI. Sprawdź źródła sam: linki prowadzą do oryginałów.",
     "via_web": "znalezione w wyszukiwaniu w zatwierdzonych serwisach",
     "superseded": "Ten dowód zastąpił nowszy dokument z {date}.",
+    "superseded_undated": "Ten dowód zastąpił nowszy dokument.",
     "timeline_title": "Oś czasu dowodów",
     "what_would_change": "Co zmieniłoby werdykt",
     "stance": {
@@ -282,7 +283,13 @@
       "repeated_unanswered": "powtarzające się pytanie bez odpowiedzi",
       "user_dispute": "zgłoszenie błędu przez użytkownika"
     },
-    "similar": "{count} podobnych pytań",
+    "similar": {
+      "$comment": "All questions in the case (sum of checks over its claims), the first one included. Pick the form with Intl.PluralRules('pl').select(count).",
+      "one": "{count} podobne pytanie",
+      "few": "{count} podobne pytania",
+      "many": "{count} podobnych pytań",
+      "other": "{count} podobnego pytania"
+    },
     "high_risk_by": {
       "embeddings": "temat rozpoznany po podobieństwie do listy administratora",
       "keywords": "temat rozpoznany po słowach kluczowych"
@@ -297,7 +304,13 @@
       "answered": "z odpowiedzią",
       "closed": "zamknięta"
     },
-    "askers": "{count} różnych pytających"
+    "askers": {
+      "$comment": "Distinct askers in the case. Pick the form with Intl.PluralRules('pl').select(count).",
+      "one": "{count} osoba pytająca",
+      "few": "{count} różne osoby pytające",
+      "many": "{count} różnych osób pytających",
+      "other": "{count} różnej osoby pytającej"
+    }
   },
   "staff": {
     "$comment": "Staff panel. sign_in: meritum-frontend#24 (frontend/010) and meritum-backend#15; admin: meritum-frontend#31 (frontend/021). Sign-in buttons reuse account.sign_in_google, account.sign_in_microsoft and account.sign_out; role names are in moderation.role.",

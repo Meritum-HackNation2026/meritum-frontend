@@ -1,7 +1,7 @@
 import type { ModeratorCase } from "@/contracts/meritum"
 import { cn } from "@/lib/utils"
 
-import { fill, t } from "./copy"
+import { plural, t } from "./copy"
 import { InfoButton } from "./hint"
 
 const DAY = new Intl.DateTimeFormat("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
@@ -82,7 +82,7 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
                     </td>
                     <td className="py-2.5 pr-4 text-right whitespace-nowrap tabular-nums">
                       {asked}
-                      {asked > 1 && <span className="block text-meta text-muted-foreground">{fill(t.moderation.similar, { count: asked - 1 })}</span>}
+                      {asked > 1 && <span className="block text-meta text-muted-foreground">{plural(t.moderation.similar, asked)}</span>}
                     </td>
                     <td className="py-2.5 pr-4 text-right font-mono text-meta whitespace-nowrap">
                       <time dateTime={c.last_seen} className="block">
