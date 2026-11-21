@@ -101,3 +101,24 @@ export const SESSION_QUERY_PARAM = 'session'
  * @feature US-SPR-01, F-01
  */
 export const HTTP_NOT_FOUND = 404
+
+/**
+ * HTTP status of a staff endpoint called without a session.
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const HTTP_UNAUTHORIZED = 401
+
+/**
+ * HTTP status of a staff endpoint called by an account without a role.
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const HTTP_FORBIDDEN = 403
+
+/**
+ * Header that repeats the session's CSRF token on state-changing staff requests (backend#15).
+ *
+ * @feature US-MOD-05, F-25
+ */
+export const CSRF_HEADER = 'X-CSRF-Token'
