@@ -4,6 +4,9 @@ import { HANDOFF_REFUSALS } from './constants'
 
 type Answer = { data?: ApiSchemas['Handoff'] | undefined; response: Response }
 
+// widened once, so any status can be looked up; a status not in the table reads undefined
+const refusals: Partial<Record<number, HandoffOutcome>> = HANDOFF_REFUSALS
+
 // Trust boundary: a case number counts only from an answer that saved the case (ADR-22); a 503
 // carries escalation "recommended" without one, and anything else without a number is no case.
 // message_key is ignored on purpose: the card writes the text, so created and updated read the same.
@@ -13,7 +16,7 @@ function outcomeOf({ data, response }: Answer): HandoffOutcome {
   if (isSaved && typeof caseId === 'string' && caseId !== '') {
     return { caseId }
   }
-  return HANDOFF_REFUSALS[response.status] ?? 'busy'
+  return refusals[response.status] ?? 'busy'
 }
 
 async function handOff(call: () => Promise<Answer>): Promise<HandoffOutcome> {
