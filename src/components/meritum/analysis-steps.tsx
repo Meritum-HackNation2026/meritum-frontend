@@ -8,6 +8,10 @@ import { MeritumMark } from "./meritum-mark"
  * Processing strip between "Sprawdź" and the result (DESIGN_SYSTEM.md 6.3). Drive it from `AnalysisStatus.steps`;
  * research steps run in parallel, so several circles may spin at once. `draft` marks a streamed answer
  * whose citations are not verified yet: it shows no verdict.
+ *
+ * @param props - Workflow steps, optional draft state and optional CSS class.
+ * @returns The workflow progress strip.
+ * @feature US-SPR-02, F-09
  */
 export function AnalysisSteps({ steps, draft = false, className }: { steps: AnalysisStep[]; draft?: boolean; className?: string }) {
   return (
@@ -17,20 +21,32 @@ export function AnalysisSteps({ steps, draft = false, className }: { steps: Anal
         {t.analysis.title}
       </p>
       <ol className="mt-2 grid gap-1.5">
-        {steps.map((s) => (
-          <li
-            key={s.code}
-            className={cn(
-              "flex items-center gap-2.5 text-small transition-colors",
-              s.status === "pending" || s.status === "skipped" ? "text-muted-foreground" : "text-foreground",
-              s.status === "skipped" && "line-through decoration-muted-foreground/60",
-            )}
-          >
-            <StepMark status={s.status} />
-            {t.analysis.steps[s.code]}
-            <span className="sr-only">, {t.analysis.step_status[s.status]}</span>
-          </li>
-        ))}
+        {steps.map((s) => {
+          const stateIsVisible = s.status === "skipped" || s.status === "failed"
+          return (
+            <li
+              key={s.code}
+              className={cn(
+                "flex items-center gap-2.5 text-small transition-colors",
+                s.status === "pending" || s.status === "skipped" ? "text-muted-foreground" : "text-foreground",
+              )}
+            >
+              <StepMark status={s.status} />
+              <span className={cn("min-w-0 flex-1", s.status === "skipped" && "line-through decoration-muted-foreground/60")}>
+                {t.analysis.steps[s.code]}
+              </span>
+              <span
+                className={cn(
+                  "shrink-0 text-meta font-semibold text-muted-foreground",
+                  !stateIsVisible && "sr-only",
+                )}
+              >
+                <span className="sr-only">, </span>
+                {t.analysis.step_status[s.status]}
+              </span>
+            </li>
+          )
+        })}
       </ol>
       {draft && <p className="mt-2.5 border-t border-border/70 pt-2 text-small text-muted-foreground">{t.analysis.draft}</p>}
     </output>

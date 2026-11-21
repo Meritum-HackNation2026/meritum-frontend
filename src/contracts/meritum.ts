@@ -15,6 +15,10 @@ export type AudioId = string | null;
  * Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.
  */
 export type ChannelUserId = string | null;
+/**
+ * Web and extension only: random id kept in the browser session; the API copies it to CheckRecord.session_id.
+ */
+export type RequestSessionId = string | null;
 export type Id = string;
 export type Title = string;
 export type Publisher = string;
@@ -301,12 +305,16 @@ export type Publisher3 = string;
 export type PublisherId2 = string;
 export type Kind1 = "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media";
 export type Tier1 = "primary" | "secondary";
+/**
+ * source_status: a list (sanctions, CERT warnings) that ingest skips; a check uses it only for a neutral source-status warning, never as evidence.
+ */
+export type Role = "evidence" | "source_status";
 export type License = string;
 /**
- * mcp: the local EUvsDisinfo copy; api: Google Fact Check Tools, used only to discover URLs and show the rating as context.
+ * mcp: the local EUvsDisinfo copy; api: a public API (IMGW, GIOS, Sejm ELI, dane.gov.pl, statistics) ingested into the corpus; live: queried at check time (Fact Check API, short-lived measurements), never in the corpus snapshot.
  */
-export type Ingest = "static" | "rss" | "sitemap" | "web_search" | "mcp" | "api";
-export type RefreshHours = number | null;
+export type Ingest = "static" | "rss" | "sitemap" | "web_search" | "mcp" | "api" | "live";
+export type RefreshMinutes = number | null;
 /**
  * Age override for every document of this entry; past_event and superseded are set per evidence.
  */
@@ -356,6 +364,7 @@ export interface CheckRequest {
   page_url?: PageUrl;
   audio_id?: AudioId;
   channel_user_id?: ChannelUserId;
+  session_id?: RequestSessionId;
 }
 /**
  * A fragment of a source and how it bears on the claim. The pipeline drops fragments it cannot find verbatim.
@@ -683,9 +692,10 @@ export interface CatalogEntry {
   publisher_id: PublisherId2;
   kind: Kind1;
   tier: Tier1;
+  role?: Role;
   license: License;
   ingest: Ingest;
-  refresh_hours?: RefreshHours;
+  refresh_minutes?: RefreshMinutes;
   validity?: Validity2;
   max_age_hours?: MaxAgeHours1;
   qualified_because: QualifiedBecause;

@@ -14,8 +14,11 @@ import { VerdictBadge } from "./verdict-badge"
  * Result card (DESIGN_SYSTEM.md 6.4): one card per check, one block per claim.
  * Same component on the web form and under a post in the extension; the frame takes the host skin via `data-host`.
  * A non-verdict status (clarify, out of scope, technical failure) gets an icon and a line of text, never a badge.
+ * `message` is never shown: the status line and the limitations come from contract codes through copy/pl.json
+ * (the API's limitation texts only when it sent no codes).
  */
 export function ResultCard({ result, className }: { result: CheckResult; className?: string }) {
+  const limitations = limitationTexts(result)
   return (
     <section
       aria-label="Meritum: wynik sprawdzenia"
@@ -49,7 +52,7 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
           <StatusIcon />
           <div>
             <h2 className="font-sans text-body font-bold">{t.status[result.status]}</h2>
-            <p className="text-body text-pretty">{result.message ?? t.status_hint[result.status]}</p>
+            <p className="text-body text-pretty">{statusText(result)}</p>
           </div>
         </div>
       )}
@@ -62,11 +65,11 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
               : fill(t.escalation[result.escalation.state], { case: result.escalation.case_id ?? "" })}
           </p>
         )}
-        {result.limitations && result.limitations.length > 0 && (
+        {limitations.length > 0 && (
           <div>
             <p className="font-semibold">{t.result.limitations}</p>
             <ul className="list-disc pl-4">
-              {result.limitations.map((l) => (
+              {limitations.map((l) => (
                 <li key={l}>{l}</li>
               ))}
             </ul>
@@ -76,6 +79,19 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
       </footer>
     </section>
   )
+}
+
+/** Failure code text for a technical failure that has one, otherwise the status hint. */
+function statusText(result: CheckResult): string {
+  if (result.status === "done") return "" // narrows the type: status_hint has no "done"
+  const code = result.status === "technical_failure" ? result.failure_code : null
+  return code ? t.failure_code[code] : t.status_hint[result.status]
+}
+
+/** Limitation codes worded from copy; the API's limitation texts only when it sent no codes. */
+function limitationTexts(result: CheckResult): string[] {
+  const codes = result.limitation_codes ?? []
+  return codes.length > 0 ? codes.map((code) => t.limitation_code[code]) : (result.limitations ?? [])
 }
 
 function ClaimBlock({ claim: c }: { claim: ClaimResult }) {
