@@ -124,8 +124,8 @@ export function CheckPage({
 }: CheckPageProps) {
   const [turns, setTurns] = useState(() => conversationTurns(activeCheckId))
   const [value, setValue] = useState('')
-  const empty = useCallback(() => setTurns([]), [])
-  const { confirming, setConfirming, ask, erased, erase } = useErase(eraser, onErased, empty)
+  const clearTurns = useCallback(() => setTurns([]), [])
+  const { confirming, setConfirming, ask, erased, erase } = useErase(eraser, onErased, clearTurns)
   const accept = useCallback(
     (checkId: string, question: string) => {
       rememberQuestion(checkId, question)

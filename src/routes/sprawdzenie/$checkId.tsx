@@ -15,8 +15,8 @@ import { InboxContext } from '@/notifications'
 /**
  * Result address of one check at /sprawdzenie/{id}: the same conversation as the home page,
  * with this check as the current turn; the message field goes here once the API accepts a
- * check, and the address can be opened again while the record is kept. After „Usuń moje
- * sprawdzenia” the page goes back home, since this check is deleted too.
+ * check, and the address can be opened again while the record is kept. „Usuń moje
+ * sprawdzenia” empties the thread here too and also empties the bell.
  *
  * @feature US-SPR-01, US-SPR-04, US-SPR-09, US-BEZ-05, F-01, F-17, F-20
  */
@@ -26,10 +26,7 @@ function Result() {
   const { checkId } = Route.useParams()
   const navigate = useNavigate()
   const inbox = useContext(InboxContext)
-  const erased = useCallback(async () => {
-    await inbox?.clear()
-    await navigate({ to: '/' })
-  }, [inbox, navigate])
+  const clearInbox = useCallback(() => inbox?.clear(), [inbox])
   const open = useCallback(
     (id: string) => navigate({ to: '/sprawdzenie/$checkId', params: { checkId: id } }),
     [navigate],
@@ -45,7 +42,7 @@ function Result() {
       handoff={apiHandoff}
       activeCheckId={checkId}
       onAccepted={open}
-      onErased={erased}
+      onErased={clearInbox}
       notice={<AiNotice />}
     />
   )

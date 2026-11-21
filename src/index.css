@@ -19,7 +19,8 @@
     @apply border-border outline-ring/50;
   }
   html {
-    @apply font-sans;
+    /* the docked message field (DESIGN_SYSTEM.md 6.8) never covers the focused element */
+    @apply scroll-pb-48 font-sans;
   }
   body {
     @apply bg-background text-foreground antialiased;

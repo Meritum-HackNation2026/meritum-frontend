@@ -77,9 +77,19 @@ export function Thread({
             ref={checkId === activeCheckId ? activeRef : undefined}
             className="grid min-w-0 scroll-mt-6 gap-4"
           >
-            {question && <Question at={at}>{question}</Question>}
+            {question && (
+              <Question at={at} isNew={checkId === activeCheckId}>
+                {question}
+              </Question>
+            )}
             <Reply at={answeredAt}>
-              <ResultPage checkId={checkId} reader={reader} progress={progress} handoff={handoff} />
+              <ResultPage
+                checkId={checkId}
+                reader={reader}
+                progress={progress}
+                handoff={handoff}
+                focusOnAnswer={checkId === activeCheckId}
+              />
             </Reply>
           </li>
         ))}

@@ -49,9 +49,10 @@ async function stopped(fetch: { mock: { callCount(): number } }) {
   await waitFor(() => assert.equal(fetch.mock.callCount(), 5))
 }
 
-function renderPage(checkId = 'c_01', pollMs = 1) {
+function renderPage(checkId = 'c_01', pollMs = 1, focusOnAnswer = false) {
   render(
     <ResultPage
+      focusOnAnswer={focusOnAnswer}
       handoff={handoff}
       checkId={checkId}
       reader={apiResultReader}
@@ -166,7 +167,7 @@ test('a check that never finishes ends with the technical failure line after the
 
 test('a result that arrives while nothing has focus takes the focus, so it is read next', async (t) => {
   fakeApi(t, running, finished)
-  renderPage()
+  renderPage('c_01', 1, true)
   const card = await screen.findByRole('region', { name: pl.result.label })
   await waitFor(() => assert.ok(card.parentElement?.contains(document.activeElement)))
 })
@@ -176,7 +177,14 @@ test('a result does not take the focus from a field the user is in', async (t) =
   const field = document.body.appendChild(document.createElement('textarea'))
   t.after(() => field.remove())
   field.focus()
-  renderPage()
+  renderPage('c_01', 1, true)
   await screen.findByRole('region', { name: pl.result.label })
   assert.equal(document.activeElement, field)
+})
+
+test('an earlier turn of the thread never takes the focus', async (t) => {
+  fakeApi(t, running, finished)
+  renderPage()
+  const card = await screen.findByRole('region', { name: pl.result.label })
+  assert.equal(card.parentElement?.contains(document.activeElement), false)
 })

@@ -1,5 +1,5 @@
 import { Mic } from 'lucide-react'
-import { type ChangeEvent, useCallback, useState } from 'react'
+import { type ChangeEvent, useCallback, useRef, useState } from 'react'
 import { Attachment, fill, t } from '@/components/meritum'
 import privacy from '@/copy/privacy.json'
 import type { ErrorKey } from './_request'
@@ -65,10 +65,13 @@ export function useRecording(
   const [file, setFile] = useState<File | null>(null)
   const [pending, setPending] = useState(false)
   const [refusal, setRefusal] = useState<Refusal | null>(null)
+  // a second click before React re-renders must not send the file twice
+  const sendingRef = useRef(false)
   const send = useCallback(async () => {
-    if (!file || pending) {
+    if (!file || sendingRef.current) {
       return
     }
+    sendingRef.current = true
     setPending(true)
     setRefusal(null)
     try {
@@ -79,9 +82,10 @@ export function useRecording(
         onAccepted(outcome.checkId, fill(t.conversation.audio_question, { name: file.name }))
       }
     } finally {
+      sendingRef.current = false
       setPending(false)
     }
-  }, [file, pending, uploader, sender, onAccepted])
+  }, [file, uploader, sender, onAccepted])
   const pick = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setFile(event.target.files?.[0] ?? null)
     setRefusal(null)
