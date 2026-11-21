@@ -901,6 +901,155 @@
           }
         }
       }
+    },
+    "/api/v1/checks/{check_id}/claims/{claim_index}/escalate": {
+      "post": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "Escalate Claim",
+        "description": "„Przekaż moderatorom”: turn a recommendation into a saved case.\n\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n\nReturns:\n    The case created or joined with its number and escalation.created or\n    escalation.updated; with 503, escalation recommended (no number) and\n    escalation.recommended when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-03, F-24, ADR-22",
+        "operationId": "escalate_claim_api_v1_checks__check_id__claims__claim_index__escalate_post",
+        "parameters": [
+          {
+            "name": "check_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Check Id"
+            }
+          },
+          {
+            "name": "claim_index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "title": "Claim Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Handoff"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "claim not found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Handoff"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checks/{check_id}/claims/{claim_index}/dispute": {
+      "post": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "Dispute Claim",
+        "description": "„Zgłoś błąd”: a case with reason user_dispute and a masked justification.\n\nThe stored result does not change; a moderator reviews the dispute first.\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n    pii: the personal-data masking gate.\n    dispute: the person's optional reason, masked here before the workflow\n        starts; no body or a blank reason sends none.\n\nReturns:\n    The case with its number and result.report_error_done; with 503,\n    escalation recommended (no number) when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-06, F-24, ADR-22",
+        "operationId": "dispute_claim_api_v1_checks__check_id__claims__claim_index__dispute_post",
+        "parameters": [
+          {
+            "name": "check_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Check Id"
+            }
+          },
+          {
+            "name": "claim_index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "title": "Claim Index"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Dispute"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Dispute"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Handoff"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "claim not found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Handoff"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidCheck"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1163,6 +1312,20 @@
             ],
             "title": "Channel User Id",
             "description": "Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it."
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Session Id",
+            "description": "Web and extension only: random id kept in the browser session; the API copies it to CheckRecord.session_id."
           }
         },
         "additionalProperties": false,
@@ -1656,6 +1819,25 @@
         "title": "DeletedChecks",
         "description": "202 answer: the deletion ran and the worker got the rest.\n\nAttributes:\n    deleted: check records and notifications deleted right away; DBOS data\n        and files follow in the ``delete_subject`` workflow.\n\nFeatures:\n    US-BEZ-05, F-20"
       },
+      "Dispute": {
+        "properties": {
+          "justification": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Justification"
+          }
+        },
+        "type": "object",
+        "title": "Dispute",
+        "description": "Body of „Zgłoś błąd”.\n\nAttributes:\n    justification: what the person thinks is wrong, optional (a blank one\n        counts as none, over JUSTIFICATION_INPUT_MAX_CHARS is refused);\n        masked, then cut to MAX_JUSTIFICATION_CHARS before any marker.\n\nFeatures:\n    US-MOD-06, F-24"
+      },
       "Enqueued": {
         "properties": {
           "workflow_id": {
@@ -1738,6 +1920,24 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Handoff": {
+        "properties": {
+          "escalation": {
+            "$ref": "#/components/schemas/Escalation"
+          },
+          "message_key": {
+            "type": "string",
+            "title": "Message Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "escalation",
+          "message_key"
+        ],
+        "title": "Handoff",
+        "description": "The hand-off's outcome as the citizen sees it.\n\nAttributes:\n    escalation: created or updated with the case number, or recommended\n        without one when no case was saved.\n    message_key: the copy/pl.json key to show; never says who else asked.\n\nFeatures:\n    US-MOD-03, US-MOD-06, F-24"
       },
       "HighRiskTopic": {
         "properties": {
@@ -2377,7 +2577,7 @@
       "StaffAccount": {
         "properties": {
           "email": {
-            "$ref": "#/components/schemas/StaffEmail"
+            "$ref": "#/components/schemas/_StaffEmail"
           },
           "role": {
             "type": "string",
@@ -2396,12 +2596,7 @@
           "role"
         ],
         "title": "StaffAccount",
-        "description": "A role an administrator granted to an e-mail address.\n\nAttributes:\n    email: the address the OIDC provider must confirm (and verify).\n    role: the role in the panel.\n\nFeatures:\n    US-MOD-05, F-25"
-      },
-      "StaffEmail": {
-        "type": "string",
-        "maxLength": 254,
-        "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        "description": "A panel role an administrator granted to an e-mail address.\n\nAttributes:\n    email: the address the OIDC provider must confirm (and verify).\n    role: the role in the moderator panel.\n\nFeatures:\n    US-MOD-05, F-25"
       },
       "StaffMember": {
         "properties": {
@@ -2480,6 +2675,11 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "_StaffEmail": {
+        "type": "string",
+        "maxLength": 254,
+        "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
       }
     }
   }
