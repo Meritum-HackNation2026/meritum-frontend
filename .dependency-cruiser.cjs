@@ -25,6 +25,9 @@ const repo = {
     // „Zgłoś błąd”, the hand-off line (meritum-frontend#23) and the moderator panel views with
     // TanStack Table (meritum-frontend#24) are UI wiring of moderation; its .ts files stay framework-free.
     '^src/moderation/_[^/]+\\.tsx$',
+    // The evaluation page views (React, meritum-frontend#27) are UI wiring of observability;
+    // its .ts files stay framework-free.
+    '^src/observability/_[^/]+\\.tsx$',
   ],
   frameworks: ['react', 'react-dom', '@tanstack', 'radix-ui', 'sonner'],
   excluded: ['^src/routeTree\\.gen\\.ts$'], // generated

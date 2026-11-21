@@ -206,3 +206,18 @@ export const HANDOFF_REFUSALS = {
   [HTTP_NOT_FOUND]: 'handoff_not_found',
   [HTTP_UNPROCESSABLE_CONTENT]: 'handoff_rejected',
 } as const satisfies Record<number, Exclude<HandoffOutcome, object | 'not_saved' | 'offline'>>
+
+/**
+ * Evaluation runs for analysts and administrators (meritum-backend#35): GET lists them, POST
+ * starts one, `/{id}/cases` gives the case results and `/compare?a=&b=` compares two.
+ *
+ * @feature US-OBS-06, F-28
+ */
+export const EVAL_RUNS_ENDPOINT = '/api/v1/eval/runs'
+
+/**
+ * Upload of an own case file, JSON or CSV (meritum-backend#35, US-OBS-05).
+ *
+ * @feature US-OBS-05, F-28
+ */
+export const EVAL_DATASETS_ENDPOINT = '/api/v1/eval/datasets'
