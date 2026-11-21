@@ -17,8 +17,10 @@ const repo = {
     // The check views (React: form, progress) are UI wiring of the checks domain; its .ts
     // files stay framework-free (meritum-frontend#14, #17).
     '^src/checks/_[^/]+\\.tsx$',
+    // The bell, inbox and toasts (React, Sonner) are UI wiring of notifications (meritum-frontend#19).
+    '^src/notifications/_notifications\\.tsx$',
   ],
-  frameworks: ['react', 'react-dom', '@tanstack', 'radix-ui'],
+  frameworks: ['react', 'react-dom', '@tanstack', 'radix-ui', 'sonner'],
   excluded: ['^src/routeTree\\.gen\\.ts$'], // generated
 }
 
