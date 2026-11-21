@@ -8,14 +8,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  createMemoryHistory,
-  createRootRoute,
-  createRouter,
-  RouterProvider,
-} from '@tanstack/react-router'
+import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { render, screen, within } from '@testing-library/react'
-import { AiNotice } from '@/components/ai-notice'
 import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
 import { routeTree } from '@/routeTree.gen'
@@ -26,6 +20,8 @@ const hashedForThirtyDays = /skrót z solą przez 30 dni/
 const discordCommand = /\/usun-moje-dane/
 const smsKeyword = /słowem USUN/
 const thirtyDays = /30 dni/
+const countsRepetitions = /powtórze/
+const popupDelete = /„Usuń moje sprawdzenia” w okienku wtyczki/
 const discordNeverToModerators = /nazwa i identyfikator nigdy nie trafiają do moderatorów/
 const smsNeverToModerators = /numer telefonu nigdy nie trafia do moderatorów/
 
@@ -64,6 +60,7 @@ for (const [path, policy] of pages) {
       assert.ok(screen.getByText(text))
     }
     assert.match(screen.getByText(policy.retention).textContent ?? '', thirtyDays)
+    assert.match(screen.getByText(policy.purpose).textContent ?? '', countsRepetitions)
     const active = screen.getByRole('table', { name: policy.processors_lead })
     const planned = screen.getByRole('table', { name: policy.planned_processors_lead })
     // the scroll region around each table is named and reachable by keyboard
@@ -102,14 +99,9 @@ test('the footer of every page links to the policies of all channels', async () 
   }
 })
 
-test('the AI notice links to the website privacy policy', async () => {
-  const history = createMemoryHistory({ initialEntries: ['/'] })
-  const notice = createRootRoute({ component: AiNotice })
-  render(<RouterProvider router={createRouter({ routeTree: notice, history })} />)
-  await screen.findByRole('link', { name: policies.web.title })
-  assert.ok(screen.getByText(pl.ai_notice.first_contact, { exact: false }))
-  const link = screen.getByRole('link', { name: policies.web.title })
-  assert.equal(link.getAttribute('href'), '/prywatnosc')
+test('the extension policy deletes checks from the popup', async () => {
+  await openPage('/prywatnosc/wtyczka', policies.extension.title)
+  assert.ok(screen.getByText(popupDelete))
 })
 
 test('the website policy describes Google or Microsoft sign-in and its OAuth scopes', async () => {

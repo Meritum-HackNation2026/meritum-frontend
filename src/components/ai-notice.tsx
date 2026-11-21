@@ -7,7 +7,7 @@ import privacy from '@/copy/privacy.json'
  * website's privacy policy.
  *
  * @returns The notice paragraph.
- * @feature US-BEZ-06, F-20
+ * @feature US-BEZ-06, US-BEZ-05, F-20
  */
 export function AiNotice() {
   return (

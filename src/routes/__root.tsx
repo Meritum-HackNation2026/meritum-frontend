@@ -6,7 +6,7 @@ import privacy from '@/copy/privacy.json'
  * Layout of every page: the Meritum header, the page below it and a footer with the
  * privacy policy of every channel.
  *
- * @feature US-SPR-01, US-DST-01, US-BEZ-06, F-20
+ * @feature US-SPR-01, US-DST-01, US-BEZ-06, US-BEZ-05, F-20
  */
 export const Route = createRootRoute({ component: Layout })
 
