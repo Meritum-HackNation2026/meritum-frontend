@@ -67,7 +67,8 @@ export function CitationsSection({
   verdict: Verdict
   citations: readonly Citation[]
 }) {
-  if (verdict === 'insufficient_evidence' || citations.length === 0) {
+  const isUnsettled = verdict === 'insufficient_evidence'
+  if (isUnsettled || citations.length === 0) {
     return null
   }
   return (

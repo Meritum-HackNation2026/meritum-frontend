@@ -7,6 +7,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { render, screen, within } from '@testing-library/react'
+import { formatDate } from '@/components/meritum'
 import examples from '@/contracts/examples.json'
 import type { CheckResult, ClaimResult, Verdict } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
@@ -15,9 +16,10 @@ import { CheckResultCard } from '@/evidence'
 const done = examples['CheckResult.done'] as CheckResult
 const abstain = examples['CheckResult.abstain'] as CheckResult
 const [falseClaim] = done.claims ?? []
-const sourceMeta = /^Kancelaria Sejmu \(ISAP\), 16 lipca 1997\. Akt prawny, /
+// formatDate uses the machine's time zone; expected dates follow it, so CI on UTC agrees.
+const sourceDate = formatDate('1997-07-16T00:00:00+02:00')
+const claimDate = formatDate('2026-11-21')
 const premises = /Niezależne źródła: 1, w tym urzędowe lub pierwotne: 1\. Źródła są zgodne\./
-const newest = /Najnowsze źródło jest z 16 lipca 1997, a twierdzenie dotyczy 21 listopada 2026/
 const verdicts = Object.keys(pl.verdict).filter((key) => key !== '$comment') as Verdict[]
 
 function renderClaim(claim: ClaimResult) {
@@ -41,7 +43,11 @@ test('a citation shows title as a link, publisher, date and the verbatim fragmen
   assert.ok(citation)
   const link = claim.getByRole('link', { name: citation.source.title })
   assert.equal(link.getAttribute('href'), citation.source.url)
-  assert.ok(claim.getByText(sourceMeta))
+  assert.ok(
+    claim.getByText(
+      `Kancelaria Sejmu (ISAP), ${sourceDate}. Akt prawny, źródło urzędowe lub pierwotne.`,
+    ),
+  )
   assert.equal(
     claim.getByRole('blockquote').textContent,
     `${pl.result.fragment}: „${citation.fragment}”`,
@@ -52,7 +58,11 @@ test('strength "umiarkowana" comes with its premises', () => {
   const claim = renderClaim(claimWith({}))
   assert.ok(claim.getByText(`${pl.result.strength_title}: ${pl.strength.moderate}`))
   assert.ok(claim.getByText(premises))
-  assert.ok(claim.getByText(newest))
+  assert.ok(
+    claim.getByText((text) =>
+      text.includes(`Najnowsze źródło jest z ${sourceDate}, a twierdzenie dotyczy ${claimDate}`),
+    ),
+  )
 })
 
 test('the explanation stands in its own block with the AI note, and the card has the AI line', () => {
