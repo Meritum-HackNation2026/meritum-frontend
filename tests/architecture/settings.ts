@@ -16,7 +16,7 @@ export const settings = {
     'src/styles/meritum.css', // design-system tokens/meritum.css
     'src/components/meritum/', // design-system components/meritum/
     'src/contracts/', // design-system contracts/ (from meritum-core) and core's catalog.json
-    'src/copy/', // design-system copy/pl.json
+    'src/copy/', // design-system copy/pl.json and copy/privacy.json
   ],
   /** Line limit of one file. */
   maxLines: 250,

@@ -1,12 +1,22 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
+import privacy from '@/copy/privacy.json'
 
 /**
- * Layout of every page: the Meritum header and the page below it.
+ * Layout of every page: the Meritum header, the page below it and a footer with the
+ * privacy policy of every channel.
  *
- * @feature US-SPR-01, US-DST-01
+ * @feature US-SPR-01, US-DST-01, US-BEZ-06, US-BEZ-05, F-20
  */
 export const Route = createRootRoute({ component: Layout })
+
+const { policies } = privacy
+const policyLinks = [
+  ['/prywatnosc', policies.web.title],
+  ['/prywatnosc/discord', policies.discord.title],
+  ['/prywatnosc/wtyczka', policies.extension.title],
+  ['/prywatnosc/sms', policies.sms.title],
+] as const
 
 function Layout() {
   return (
@@ -23,6 +33,17 @@ function Layout() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <Outlet />
       </main>
+      <footer className="border-t">
+        <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
+          {policyLinks.map(([to, title]) => (
+            <li key={to}>
+              <Link to={to} className="underline underline-offset-3">
+                {title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </footer>
     </div>
   )
 }
