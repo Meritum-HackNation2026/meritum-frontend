@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import privacy from '@/copy/privacy.json'
 
 type Channel = keyof typeof privacy.policies
@@ -16,33 +17,44 @@ function lookup(ids: readonly string[]): Processor[] {
   })
 }
 
-function ProcessorTable({ items }: { items: Processor[] }) {
+// The lead names the table and its scroll region; the region takes focus so keyboard
+// users can scroll the columns hidden at 320 px.
+function ProcessorTable({ lead, items }: { lead: string; items: Processor[] }) {
+  const leadId = useId()
   return (
-    <div className="overflow-x-auto rounded-lg border">
-      <table className="w-full text-left text-small">
-        <thead className="bg-muted">
-          <tr>
-            {[columns.name, columns.region, columns.data, columns.purpose].map((label) => (
-              <th key={label} scope="col" className="px-3 py-2 font-semibold">
-                {label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((p) => (
-            <tr key={p.id} className="border-t align-top">
-              <th scope="row" className="px-3 py-2 font-semibold">
-                {p.name}
-              </th>
-              <td className="px-3 py-2">{p.region}</td>
-              <td className="px-3 py-2">{p.data}</td>
-              <td className="px-3 py-2">{p.purpose}</td>
+    <>
+      <p id={leadId}>{lead}</p>
+      <section
+        aria-labelledby={leadId}
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must take focus to scroll by keyboard (WCAG 2.1.1)
+        tabIndex={0}
+        className="overflow-x-auto rounded-lg border focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <table aria-labelledby={leadId} className="w-full text-left text-small">
+          <thead className="bg-muted">
+            <tr>
+              {[columns.name, columns.region, columns.data, columns.purpose].map((label) => (
+                <th key={label} scope="col" className="px-3 py-2 font-semibold">
+                  {label}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {items.map((p) => (
+              <tr key={p.id} className="border-t align-top">
+                <th scope="row" className="px-3 py-2 font-semibold">
+                  {p.name}
+                </th>
+                <td className="px-3 py-2">{p.region}</td>
+                <td className="px-3 py-2">{p.data}</td>
+                <td className="px-3 py-2">{p.purpose}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </>
   )
 }
 
@@ -89,10 +101,11 @@ export function PrivacyPolicy({ channel }: { channel: Channel }) {
       )}
       <section className="space-y-3">
         <h2 className="font-semibold">{privacy.processors.title}</h2>
-        <p>{policy.processors_lead}</p>
-        <ProcessorTable items={lookup(policy.processors)} />
-        <p>{policy.planned_processors_lead}</p>
-        <ProcessorTable items={lookup(policy.planned_processors)} />
+        <ProcessorTable lead={policy.processors_lead} items={lookup(policy.processors)} />
+        <ProcessorTable
+          lead={policy.planned_processors_lead}
+          items={lookup(policy.planned_processors)}
+        />
       </section>
       <section className="space-y-2">
         <h2 className="font-semibold">{mcp.title}</h2>

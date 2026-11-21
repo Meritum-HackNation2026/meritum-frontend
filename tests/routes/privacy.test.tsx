@@ -7,6 +7,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createMemoryHistory,
   createRootRoute,
@@ -24,6 +25,9 @@ const { policies, processors } = privacy
 const hashedForThirtyDays = /skrót z solą przez 30 dni/
 const discordCommand = /\/usun-moje-dane/
 const smsKeyword = /słowem USUN/
+const thirtyDays = /30 dni/
+const discordNeverToModerators = /nazwa i identyfikator nigdy nie trafiają do moderatorów/
+const smsNeverToModerators = /numer telefonu nigdy nie trafia do moderatorów/
 
 async function openPage(path: string, title: string) {
   const history = createMemoryHistory({ initialEntries: [path] })
@@ -59,8 +63,12 @@ for (const [path, policy] of pages) {
     ]) {
       assert.ok(screen.getByText(text))
     }
-    const [active, planned] = screen.getAllByRole('table')
-    assert.ok(active && planned)
+    assert.match(screen.getByText(policy.retention).textContent ?? '', thirtyDays)
+    const active = screen.getByRole('table', { name: policy.processors_lead })
+    const planned = screen.getByRole('table', { name: policy.planned_processors_lead })
+    // the scroll region around each table is named and reachable by keyboard
+    const region = screen.getByRole('region', { name: policy.processors_lead })
+    assert.equal(region.getAttribute('tabindex'), '0')
     for (const id of policy.processors) {
       assert.ok(within(active).getByRole('rowheader', { name: processorName(id) }))
     }
@@ -72,7 +80,7 @@ for (const [path, policy] of pages) {
 
 test('the Discord policy keeps names away from moderators and deletes with /usun-moje-dane', async () => {
   await openPage('/prywatnosc/discord', policies.discord.title)
-  assert.ok(screen.getByText(policies.discord.moderators))
+  assert.ok(screen.getByText(discordNeverToModerators))
   assert.ok(screen.getByText(hashedForThirtyDays))
   assert.ok(screen.getByText(discordCommand))
   assert.ok(screen.getByRole('rowheader', { name: processorName('discord') }))
@@ -82,7 +90,7 @@ test('the SMS policy deletes with USUN and states the operator fees', async () =
   await openPage('/prywatnosc/sms', policies.sms.title)
   assert.ok(screen.getByText(smsKeyword))
   assert.ok(screen.getByText(policies.sms.fees))
-  assert.ok(screen.getByText(policies.sms.moderators))
+  assert.ok(screen.getByText(smsNeverToModerators))
 })
 
 test('the footer of every page links to the policies of all channels', async () => {
@@ -111,4 +119,17 @@ test('the website policy describes Google or Microsoft sign-in and its OAuth sco
   for (const text of [signIn.scopes, signIn.purpose, signIn.retention]) {
     assert.ok(screen.getByText(text))
   }
+})
+
+test('the home page shows the AI notice with the privacy link', async () => {
+  const history = createMemoryHistory({ initialEntries: ['/'] })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, enabled: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <RouterProvider router={createRouter({ routeTree, history })} />
+    </QueryClientProvider>,
+  )
+  const main = await screen.findByRole('main')
+  assert.ok(await within(main).findByText(pl.ai_notice.first_contact, { exact: false }))
+  assert.ok(within(main).getByRole('link', { name: policies.web.title }))
 })
