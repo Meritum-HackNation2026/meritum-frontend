@@ -23,8 +23,11 @@ export function CheckPage({ sender }: { sender: CheckSender }) {
     async (request: CheckRequest) => {
       setSending(true)
       setOutcome(null)
-      setOutcome(await sender.send(request))
-      setSending(false)
+      try {
+        setOutcome(await sender.send(request))
+      } finally {
+        setSending(false)
+      }
     },
     [sender],
   )
