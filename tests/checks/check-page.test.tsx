@@ -9,6 +9,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { apiCheckSender } from '@/api'
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
+import { requestPath, sentRequest } from '../fetch-request'
 
 const uuid = /^[0-9a-f-]{36}$/
 
@@ -61,11 +62,11 @@ test('1200 characters go to POST /api/v1/checks as a web CheckRequest with the s
   const opened = renderPage()
   typeAndCheck(text)
   await waitFor(() => assert.deepEqual(opened, ['c_01']))
-  const [url, init] = fetch.mock.calls[0]?.arguments ?? []
-  const headers = new Headers(init?.headers)
-  assert.equal(url, '/api/v1/checks')
-  assert.equal(init?.method, 'POST')
-  assert.deepEqual(JSON.parse(String(init?.body)), { channel: 'web', text })
+  const request = sentRequest(fetch.mock.calls[0]?.arguments[0])
+  const headers = request.headers
+  assert.equal(requestPath(request), '/api/v1/checks')
+  assert.equal(request.method, 'POST')
+  assert.deepEqual(await request.json(), { channel: 'web', text })
   assert.equal(headers.get('X-Meritum-Session'), sessionStorage.getItem('meritum.session'))
   assert.match(headers.get('X-Meritum-Session') ?? '', uuid)
 })
@@ -75,8 +76,8 @@ test('a full https link goes to the API as a url', async (t) => {
   const opened = renderPage()
   typeAndCheck('https://example.com/artykul')
   await waitFor(() => assert.deepEqual(opened, ['c_01']))
-  const body = String(fetch.mock.calls[0]?.arguments[1]?.body)
-  assert.deepEqual(JSON.parse(body), { channel: 'web', url: 'https://example.com/artykul' })
+  const body: unknown = await sentRequest(fetch.mock.calls[0]?.arguments[0]).json()
+  assert.deepEqual(body, { channel: 'web', url: 'https://example.com/artykul' })
 })
 
 test('blocked sessionStorage still sends a session id', async (t) => {
@@ -87,7 +88,7 @@ test('blocked sessionStorage still sends a session id', async (t) => {
   const opened = renderPage()
   typeAndCheck('Od stycznia nie zapłacisz w sklepie gotówką')
   await waitFor(() => assert.deepEqual(opened, ['c_01']))
-  const headers = new Headers(fetch.mock.calls[0]?.arguments[1]?.headers)
+  const { headers } = sentRequest(fetch.mock.calls[0]?.arguments[0])
   assert.match(headers.get('X-Meritum-Session') ?? '', uuid)
 })
 
@@ -99,7 +100,7 @@ test('the session id stays the same for every check in the tab', async (t) => {
   typeAndCheck('Drugie twierdzenie')
   await waitFor(() => assert.equal(fetch.mock.callCount(), 2))
   const sessions = fetch.mock.calls.map((call) =>
-    new Headers(call.arguments[1]?.headers).get('X-Meritum-Session'),
+    sentRequest(call.arguments[0]).headers.get('X-Meritum-Session'),
   )
   assert.equal(sessions[0], sessions[1])
 })

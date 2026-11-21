@@ -12,6 +12,7 @@ import { type ProgressSource, ResultPage } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
+import { requestPath, sentRequest } from '../fetch-request'
 
 const done = examples['CheckResult.done'] as CheckResult
 const running: AnalysisStatus = {
@@ -53,7 +54,7 @@ test('the page reads GET /api/v1/checks/{id} and shows the result card', async (
   const fetch = fakeApi(t, finished)
   renderPage()
   assert.ok(await screen.findByText(pl.verdict.false))
-  assert.equal(fetch.mock.calls[0]?.arguments[0], '/api/v1/checks/c_01')
+  assert.equal(requestPath(sentRequest(fetch.mock.calls[0]?.arguments[0])), '/api/v1/checks/c_01')
 })
 
 test('the result is inside a polite aria-live region that exists before it arrives', async (t) => {
@@ -109,7 +110,7 @@ test('the check id is encoded into the path', async (t) => {
   const fetch = fakeApi(t, finished)
   renderPage('a/b')
   await screen.findByText(pl.verdict.false)
-  assert.equal(fetch.mock.calls[0]?.arguments[0], '/api/v1/checks/a%2Fb')
+  assert.equal(requestPath(sentRequest(fetch.mock.calls[0]?.arguments[0])), '/api/v1/checks/a%2Fb')
 })
 
 test('after five failed reads in a row the page stops asking', async (t) => {
@@ -123,6 +124,13 @@ test('after five failed reads in a row the page stops asking', async (t) => {
 
 test('an answer whose result is not an object is treated as a busy API', async (t) => {
   const fetch = fakeApi(t, { ...running, result: 'oops' } as unknown as AnalysisStatus)
+  renderPage()
+  assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
+  await stopped(fetch)
+})
+
+test('an answer without steps is treated as a busy API, as the contract needs one step', async (t) => {
+  const fetch = fakeApi(t, { ...running, steps: [] } as unknown as AnalysisStatus)
   renderPage()
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
   await stopped(fetch)

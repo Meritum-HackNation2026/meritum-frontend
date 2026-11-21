@@ -3,3 +3,11 @@ allowBuilds:
   # (@swc/core: dependency-cruiser's parser; esbuild: used by tsx in pnpm test).
   "@swc/core": false
   "esbuild": false
+# openapi-typescript needs the TypeScript 5 compiler API, which TypeScript 7 (the app's
+# compiler) does not have yet: it gets its own TypeScript 5 instead of the app's as a peer.
+overrides:
+  "openapi-typescript>typescript@^5.x": "-"
+packageExtensions:
+  openapi-typescript@7:
+    dependencies:
+      typescript: "npm:typescript@5.9.3"

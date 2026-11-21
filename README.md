@@ -28,6 +28,34 @@ Trasy są w `src/routes/` (TanStack Router, trasy w plikach); `src/routeTree.gen
 
 Konfiguracja nginx: `deploy/nginx.conf.template` (SPA z fallbackiem na `index.html`, długi cache dla `/assets/`, `/healthz`).
 
+## Klient API
+
+Typy API pochodzą ze schematu OpenAPI meritum-backend: `src/api/openapi.json` to kopia schematu z gałęzi `develop` backendu, a `src/api/_openapi.gen.ts` generuje z niej [openapi-typescript](https://openapi-ts.dev/). Schemat bierzemy z kodu backendu (`create_app().openapi()` przez `uv`), nie z działającego serwera.
+
+```bash
+pnpm openapi                 # schemat z develop backendu i nowe typy (potrzebne gh, git, uv)
+pnpm openapi <ref>           # inna gałąź, tag albo commit backendu
+pnpm openapi --types-only    # tylko typy z zapisanego schematu
+```
+
+`pnpm test` (`tests/api/openapi.test.ts`) generuje typy z zapisanego schematu i porównuje je z plikiem w repo, więc CI odrzuca ręczną zmianę typów albo schemat bez nowych typów, bez kontaktu z backendem. openapi-typescript potrzebuje API kompilatora TypeScript 5, którego TypeScript 7 jeszcze nie ma, dlatego `pnpm-workspace.yaml` daje mu własny TypeScript 5.9.3.
+
+Adaptery w `src/api` wołają REST przez klienta [openapi-fetch](https://openapi-ts.dev/openapi-fetch/) (`fetchClient`), więc ścieżki, parametry i ciała żądań sprawdza `tsc`. Ekrany, które czytają API wprost z komponentu (np. przyszły panel moderatora), używają hooków [openapi-react-query](https://openapi-ts.dev/openapi-react-query/) z `meritumQueries` (`useQuery`, `useMutation`, `queryOptions`); modele backendu są w typie `ApiSchemas`. Strumienie SSE (postęp sprawdzenia, powiadomienia) zostają na `EventSource`. Powiadomień i podsumowania ewaluacji nie ma jeszcze w schemacie `develop` backendu, więc te adaptery zostają na zwykłym `fetch`, dopóki ich trasy nie trafią do schematu.
+
+Zapytanie z formularza sprawdza przed wysłaniem schemat [zod](https://zod.dev/) (`validateCheck` w `src/checks`), z tymi samymi limitami co kontrakt; odmowa to klucz `errors` z `copy/pl.json`. Stan po stronie klienta trzymamy w [zustand](https://zustand.docs.pmnd.rs/), tabele budujemy na [TanStack Table](https://tanstack.com/table) v9; przykład obu z hookiem `meritumQueries` jest w `tests/api/queries.test.tsx`, a pierwsze prawdziwe użycie będzie w panelu moderatora.
+
+## Źródła komponentów
+
+Komponentu szukamy w tej kolejności i bierzemy z pierwszego źródła, które go ma:
+
+1. komponenty Meritum w `src/components/meritum/` (kopie z design systemu, np. `CheckForm`, `ResultCard`),
+2. darmowe bloki [shadcnblocks](https://www.shadcnblocks.com) (`@shadcnblocks/<nazwa>`), nigdy bloki Pro ani klucz licencyjny (repozytorium jest publiczne),
+3. [ReUI](https://reui.io) (`@reui/<nazwa>`),
+4. [Origin UI](https://coss.com/origin) (`@originui/<nazwa>`),
+5. zwykły [shadcn/ui](https://ui.shadcn.com) (`pnpm dlx shadcn@latest add <nazwa>`).
+
+Rejestry są w `components.json` (`registries`), więc wystarczy `pnpm dlx shadcn@latest add @reui/<nazwa>`. Wygląd i teksty zawsze pochodzą z design systemu Meritum: blok po dodaniu przechodzi na tokeny, kroje i teksty z `copy/pl.json`. Blok z rejestru to kod z cudzego serwera: jego diff przeglądamy jak każdy inny kod.
+
 ## Testy komponentów
 
 `pnpm test` to `node --test` na `tests/**/*.test.{ts,tsx}`. Pliki TSX ładuje `tsx` (ustawienia `jsx` i aliasu `@/` bierze z `tsconfig.test.json`), a `tests/setup-dom.ts` daje każdemu plikowi DOM z happy-dom i po każdym teście odmontowuje to, co test wyrenderował. `tsc -b` (w `pnpm build`) sprawdza typy testów TSX.
