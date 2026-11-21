@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { apiResultReader } from '@/api'
 import { ResultPage } from '@/checks'
 import examples from '@/contracts/examples.json'
@@ -37,8 +37,13 @@ function fakeApi(t: TestContext, ...answers: Answer[]) {
   })
 }
 
-function renderPage(checkId = 'c_01') {
-  render(<ResultPage checkId={checkId} reader={apiResultReader} pollMs={1} />)
+/** Waits until a page that only gets failures has stopped asking, so nothing outlives the test. */
+async function stopped(fetch: { mock: { callCount(): number } }) {
+  await waitFor(() => assert.equal(fetch.mock.callCount(), 5))
+}
+
+function renderPage(checkId = 'c_01', pollMs = 1) {
+  render(<ResultPage checkId={checkId} reader={apiResultReader} pollMs={pollMs} />)
 }
 
 test('the page reads GET /api/v1/checks/{id} and shows the result card', async (t) => {
@@ -77,21 +82,24 @@ test('an unknown check id shows the technical failure line, not a verdict', asyn
 
 test('a lost connection says so and the page keeps asking until the result comes', async (t) => {
   fakeApi(t, 'network down', finished)
-  renderPage()
+  renderPage('c_01', 200)
+  assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
   assert.ok(await screen.findByText(pl.verdict.false))
   assert.equal(screen.queryByRole('alert'), null)
 })
 
 test('a lost connection shows the offline message', async (t) => {
-  fakeApi(t, 'network down')
+  const fetch = fakeApi(t, 'network down')
   renderPage()
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
+  await stopped(fetch)
 })
 
 test('a server error shows the busy message', async (t) => {
-  fakeApi(t, 503)
+  const fetch = fakeApi(t, 503)
   renderPage()
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
+  await stopped(fetch)
 })
 
 test('the check id is encoded into the path', async (t) => {
@@ -99,4 +107,20 @@ test('the check id is encoded into the path', async (t) => {
   renderPage('a/b')
   await screen.findByText(pl.verdict.false)
   assert.equal(fetch.mock.calls[0]?.arguments[0], '/api/v1/checks/a%2Fb')
+})
+
+test('after five failed reads in a row the page stops asking', async (t) => {
+  const fetch = fakeApi(t, 503)
+  renderPage()
+  await screen.findByRole('alert')
+  await stopped(fetch)
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.equal(fetch.mock.callCount(), 5)
+})
+
+test('an answer whose result is not an object is treated as a busy API', async (t) => {
+  const fetch = fakeApi(t, { ...running, result: 'oops' } as unknown as AnalysisStatus)
+  renderPage()
+  assert.equal((await screen.findByRole('alert')).textContent, pl.errors.busy)
+  await stopped(fetch)
 })

@@ -42,3 +42,10 @@ export const RECEIVED_STEPS: readonly AnalysisStep[] = [{ code: 'receive', statu
  * @feature US-SPR-01, F-01
  */
 export const POLL_INTERVAL_MS = 1500
+
+/**
+ * Failed reads in a row after which the result page stops asking the API; the message stays.
+ *
+ * @feature US-SPR-01, F-01
+ */
+export const MAX_FAILED_READS = 5

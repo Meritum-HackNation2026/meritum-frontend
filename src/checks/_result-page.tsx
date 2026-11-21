@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnalysisSteps, t } from '@/components/meritum'
 import type { AnalysisStatus, AnalysisStep } from '@/contracts/meritum'
 import { CheckResultCard } from '@/evidence'
-import { POLL_INTERVAL_MS } from './constants'
+import { MAX_FAILED_READS, POLL_INTERVAL_MS } from './constants'
 import type { ReadOutcome, ResultReader } from './ports'
 
 const received: AnalysisStep[] = [{ code: 'receive', status: 'done' }]
@@ -18,16 +18,19 @@ function useCheckStatus(checkId: string, reader: ResultReader, pollMs: number) {
   useEffect(() => {
     let active = true
     let timer: ReturnType<typeof setTimeout> | undefined
+    let failures = 0
     const poll = async () => {
       const next = await reader.read(checkId)
       if (!active) {
         return
       }
       setOutcome(next)
+      // the last steps stay on screen while a read fails
       if (typeof next === 'object') {
         setStatus(next.status)
       }
-      if (!isFinal(next)) {
+      failures = typeof next === 'string' ? failures + 1 : 0
+      if (!isFinal(next) && failures < MAX_FAILED_READS) {
         timer = setTimeout(poll, pollMs)
       }
     }
@@ -50,7 +53,8 @@ function errorText(outcome: ReadOutcome | null): string | null {
 /**
  * The result page of one check: its steps while it runs, then the result card in a polite
  * `aria-live` region, so a screen reader announces the result. A failed read shows a message,
- * never a verdict, and the page keeps asking; an unknown id stops it.
+ * never a verdict, and the page keeps asking up to `MAX_FAILED_READS` times in a row; an
+ * unknown id stops it.
  *
  * @param props.checkId - The id the API gave the accepted check.
  * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).

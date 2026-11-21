@@ -7,18 +7,25 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import examples from '@/contracts/examples.json'
 import pl from '@/copy/pl.json'
 import { routeTree } from '@/routeTree.gen'
 
 test('/sprawdzenie/c_01 shows the card of check c_01', async (t) => {
-  const status = { check_id: 'c_01', steps: [], result: examples['CheckResult.done'] }
+  const status = {
+    check_id: 'c_01',
+    steps: [{ code: 'receive', status: 'done' }],
+    result: examples['CheckResult.done'],
+  }
   const fetch = t.mock.method(globalThis, 'fetch', () =>
     Promise.resolve(new Response(JSON.stringify(status))),
   )
   const history = createMemoryHistory({ initialEntries: ['/sprawdzenie/c_01'] })
-  render(<RouterProvider router={createRouter({ routeTree, history })} />)
+  const router = createRouter({ routeTree, history })
+  render(<RouterProvider router={router} />)
   assert.ok(await screen.findByText(pl.verdict.false))
   assert.equal(fetch.mock.calls[0]?.arguments[0], '/api/v1/checks/c_01')
+  // the router finishes its own async work, so nothing outlives the test
+  await waitFor(() => assert.equal(router.state.status, 'idle'))
 })

@@ -5,10 +5,12 @@ import { CHECKS_ENDPOINT, HTTP_NOT_FOUND } from './constants'
 async function parseStatus(response: Response): Promise<ReadOutcome> {
   try {
     const body: unknown = await response.json()
-    const steps = (body as { steps?: unknown } | null)?.steps
+    const { steps, result } = (body ?? {}) as { steps?: unknown; result?: unknown }
+    const hasResult = typeof result === 'object' && result !== null
+    const isStatus = Array.isArray(steps) && (result == null || hasResult)
     // shortcut: checks the shape the page branches on; the rest is the first-party backend
     // contract, upgrade to a schema check if another origin ever answers this call
-    return Array.isArray(steps) ? { status: body as AnalysisStatus } : 'busy'
+    return isStatus ? { status: body as AnalysisStatus } : 'busy'
   } catch {
     return 'busy'
   }
