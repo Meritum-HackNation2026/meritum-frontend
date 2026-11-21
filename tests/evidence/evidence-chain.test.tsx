@@ -70,9 +70,9 @@ test('the timeline shows both citations with their dates and marks the older one
   assert.ok(dates.includes(formatDate('2025-01-10T00:00:00Z')))
   assert.ok(dates.includes(formatDate('2026-02-15T00:00:00Z')))
   const superseded = fill(pl.result.superseded, { date: formatDate('2026-02-15T00:00:00Z') })
-  const oldItem = claim.getByRole('link', { name: 'Dokument old' }).closest('li[data-entry]')
+  const oldItem = claim.getByRole('link', { name: 'Dokument old' }).closest('li')
   assert.equal(oldItem?.textContent?.includes(superseded), true)
-  const newItem = claim.getByRole('link', { name: 'Dokument new' }).closest('li[data-entry]')
+  const newItem = claim.getByRole('link', { name: 'Dokument new' }).closest('li')
   assert.equal(newItem?.textContent?.includes(superseded), false)
 })
 
@@ -114,7 +114,6 @@ test('conflicting sources stand side by side with the note on what differs, and 
   const difference = 'Jedno źródło podaje 12 osób, drugie 21.'
   const claim = renderClaim({
     verdict: 'insufficient_evidence',
-    strength: null,
     unresolved: difference,
     citations: [supports, refutes],
   })
@@ -134,23 +133,83 @@ test('old evidence shows the newest source date and the claim date with a warnin
     claim_date: '2026-03-01',
     claim_date_source: 'text',
     archival: true,
-    strength: { level: 'weak', premises },
+    strength: { level: 'weak', premises: { ...premises, validity: 'expires' } },
     citations: [stale],
   })
-  const warning = screen.getByText(new RegExp(pl.result.archival.slice(0, 20)))
   const newest = fill(pl.result.newest, {
     source_date: formatDate('2025-01-25T00:00:00Z'),
     claim_date: formatDate('2026-03-01'),
     claim_date_source: pl.result.claim_date_source.text,
   })
-  assert.equal(warning.textContent?.includes(newest), true)
-  assert.equal(warning.textContent?.includes('400'), false)
+  const text = document.body.textContent ?? ''
+  assert.ok(hasText(pl.result.archival))
+  assert.equal(text.split(newest).length - 1, 1)
+  assert.equal(text.includes('400'), false)
 })
 
-test('a law in force is never old evidence, so it gets no warning', () => {
+test('without a strength section the warning itself names both dates', () => {
+  const stale = citation('s', { stance: 'refutes', validity: 'expires' }, '2025-01-25T00:00:00Z')
+  renderClaim({
+    claim_date: '2026-03-01',
+    claim_date_source: 'text',
+    archival: true,
+    strength: null,
+    citations: [stale],
+  })
+  const warning = screen.getByText(new RegExp(pl.result.archival.slice(0, 20)))
+  assert.equal(warning.textContent?.includes(formatDate('2025-01-25T00:00:00Z')), true)
+})
+
+test('a law in force is never old evidence, so it gets no warning, even next to dated context', () => {
   const law = citation('law', { stance: 'refutes', validity: 'in_force' }, '1997-07-16T00:00:00Z')
-  renderClaim({ archival: true, citations: [law] })
+  const context = citation(
+    'ctx',
+    { stance: 'context', validity: 'expires' },
+    '2020-01-01T00:00:00Z',
+  )
+  renderClaim({ archival: true, strength: null, citations: [law, context] })
   assert.equal(hasText(pl.result.archival), false)
+})
+
+test('evidence that can go out of date next to a law still gets the warning', () => {
+  const law = citation('law', { stance: 'refutes', validity: 'in_force' }, '1997-07-16T00:00:00Z')
+  const news = citation('news', { stance: 'refutes', validity: 'expires' }, '2020-01-01T00:00:00Z')
+  renderClaim({ archival: true, strength: null, citations: [law, news] })
+  assert.ok(hasText(pl.result.archival))
+})
+
+test('superseded evidence alone against a current source is no conflict, so no quotes', () => {
+  const claim = renderClaim({
+    verdict: 'insufficient_evidence',
+    strength: null,
+    citations: [
+      older,
+      citation('b', { stance: 'refutes', validity: 'expires' }, '2026-01-12T00:00:00Z', 'b'),
+    ],
+  })
+  assert.equal(claim.queryAllByRole('blockquote').length, 0)
+})
+
+test('a conflict without a note on what differs says the sources disagree, with no empty "Różnica"', () => {
+  const supports = citation(
+    'a',
+    { stance: 'supports', validity: 'expires' },
+    '2026-01-10T00:00:00Z',
+    'a',
+  )
+  const refutes = citation(
+    'b',
+    { stance: 'refutes', validity: 'expires' },
+    '2026-01-12T00:00:00Z',
+    'b',
+  )
+  renderClaim({
+    verdict: 'insufficient_evidence',
+    unresolved: null,
+    citations: [supports, refutes],
+  })
+  assert.ok(hasText(pl.result.agreement.conflicting))
+  assert.equal(hasText('Różnica:'), false)
 })
 
 test('„co zmieniłoby werdykt” lists the codes from the result in copy words', () => {

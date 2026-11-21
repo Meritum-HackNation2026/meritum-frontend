@@ -1,44 +1,58 @@
-import { CitationItem, fill, formatDate, t } from '@/components/meritum'
-import type { Citation, ClaimResult } from '@/contracts/meritum'
+import { fill, formatDate, t } from '@/components/meritum'
+import type { ClaimResult } from '@/contracts/meritum'
 import { cn } from '@/lib/utils'
-import { isConflict, type StanceGroup, stanceGroups, supersededOn } from './_chain'
-import { DECISIVE_VERDICTS } from './constants'
+import { type StanceGroup, stanceGroups, type TimelineEntry } from './_chain'
 
-function Entry({ citation, all }: { citation: Citation; all: readonly Citation[] }) {
-  const published = citation.source.published_at
-  const isSuperseded = citation.validity === 'superseded'
-  const newer = isSuperseded ? supersededOn(citation, all) : null
+function sourceLine({ citation }: TimelineEntry): string {
+  const { publisher, kind, tier, via } = citation.source
+  const found = via === 'web_search' ? `, ${t.result.via_web}` : ''
+  const kindWord = t.source_kind[kind]
+  return `${publisher}. ${kindWord.charAt(0).toUpperCase()}${kindWord.slice(1)}, ${t.source_tier[tier]}${found}.`
+}
+
+// One timeline row: the publication date in Azeret Mono, a superseded mark in words, then the
+// source as CitationItem shows it (DESIGN_SYSTEM.md 6.4) without repeating the date.
+function Entry({ entry }: { entry: TimelineEntry }) {
+  const { source, fragment } = entry.citation
   return (
-    <li
-      data-entry
-      className="relative before:absolute before:top-1.5 before:-left-4 before:size-2 before:rounded-full before:bg-muted-foreground"
-    >
-      {published && (
-        <time dateTime={published} className="font-mono text-meta text-muted-foreground">
-          {formatDate(published)}
-        </time>
-      )}
-      {newer && (
-        <p className="mt-0.5 text-small font-semibold text-pretty">
-          {fill(t.result.superseded, { date: formatDate(newer) })}
+    <li className="relative grid gap-1 py-1.5 before:absolute before:top-3 before:-left-4 before:size-2 before:rounded-full before:bg-muted-foreground">
+      <p className="font-mono text-meta text-muted-foreground">
+        {source.published_at ? (
+          <time dateTime={source.published_at}>{formatDate(source.published_at)}</time>
+        ) : (
+          fill(t.result.source_undated, { publisher: source.publisher })
+        )}
+      </p>
+      {entry.supersededOn && (
+        <p className="text-small font-semibold text-pretty">
+          {fill(t.result.superseded, { date: formatDate(entry.supersededOn) })}
         </p>
       )}
-      <ul>
-        <CitationItem citation={citation} className="pt-1" />
-      </ul>
+      <a
+        href={source.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-small font-semibold text-verified underline decoration-current/35 underline-offset-3 hover:decoration-current"
+      >
+        {source.title}
+      </a>
+      <p className="text-meta text-muted-foreground">{sourceLine(entry)}</p>
+      <blockquote className="rounded-md bg-secondary px-3 py-2 text-small text-pretty">
+        <span className="sr-only">{t.result.fragment}: </span>„{fragment}”
+      </blockquote>
     </li>
   )
 }
 
-function Group({ group, all }: { group: StanceGroup; all: readonly Citation[] }) {
+function Group({ group, isWide }: { group: StanceGroup; isWide: boolean }) {
   return (
-    <div className="mt-2 min-w-0">
+    <div className={cn('mt-2 min-w-0', isWide && 'sm:col-span-2')}>
       <h5 className="font-semibold text-meta text-muted-foreground">
         {t.result.stance[group.stance]}
       </h5>
-      <ol className="mt-1 ml-1.5 grid gap-1 border-l border-border pl-3">
-        {group.citations.map((citation) => (
-          <Entry key={citation.source.id + citation.fragment} citation={citation} all={all} />
+      <ol className="mt-1 ml-1.5 border-l border-border pl-3">
+        {group.entries.map((entry) => (
+          <Entry key={entry.citation.source.id + entry.citation.fragment} entry={entry} />
         ))}
       </ol>
     </div>
@@ -46,44 +60,57 @@ function Group({ group, all }: { group: StanceGroup; all: readonly Citation[] })
 }
 
 /**
- * The evidence chain of one claim as a timeline (DESIGN_SYSTEM.md 6.4): the claim's date and
- * where it comes from, then the citations grouped by stance (supporting, refuting, context), each
- * group oldest first with its publication date in Azeret Mono. Evidence the result marks as
- * superseded says so in words, with the date of the newer document. When reliable sources
- * disagree on an unsettled claim, both sides stand side by side under the note on what differs;
- * an unsettled claim without both sides shows no quotes.
+ * The evidence chain of one claim as a timeline (DESIGN_SYSTEM.md 6.4), in place of the plain
+ * source list: the claim's date and where it comes from, then the citations grouped by stance
+ * (supporting, refuting, context), each group oldest first with its publication date in Azeret
+ * Mono. Evidence the result marks as superseded says so in words. When reliable sources disagree
+ * on an unsettled claim, the two sides stand side by side under the note on what differs and
+ * context goes below them; an unsettled claim without both sides shows no quotes.
  *
  * @param props.claim - One claim result from the API.
+ * @param props.isConflict - Reliable sources disagree (`isConflict` of the claim).
+ * @param props.isDecisive - The verdict settles the claim.
  * @returns The timeline, or null when there is nothing to show.
  * @feature US-ZRD-11, US-ZRD-04, US-ZRD-05, US-ZRD-10, F-17
  */
-export function EvidenceTimeline({ claim }: { claim: ClaimResult }) {
-  const citations = claim.citations ?? []
-  const conflict = isConflict(claim)
-  const isShown = DECISIVE_VERDICTS.has(claim.verdict) || conflict
-  if (!isShown || citations.length === 0) {
+export function EvidenceTimeline({
+  claim,
+  isConflict,
+  isDecisive,
+}: {
+  claim: ClaimResult
+  isConflict: boolean
+  isDecisive: boolean
+}) {
+  const groups = stanceGroups(claim)
+  if (!(isDecisive || isConflict) || groups.length === 0) {
     return null
   }
+  const difference = claim.unresolved
   return (
     <div className="mt-3">
       <h4 className="font-semibold text-meta text-muted-foreground">{t.result.timeline_title}</h4>
-      {conflict && (
+      {isConflict && (
         <p className="mt-1 text-small text-pretty">
-          {fill(t.result.conflict, { difference: claim.unresolved ?? '' })}
+          {difference ? fill(t.result.conflict, { difference }) : t.result.agreement.conflicting}
         </p>
       )}
       <p className="mt-1 text-small">
         {t.result.claim}:{' '}
-        <time dateTime={claim.claim_date} className="font-mono">
+        <time dateTime={claim.claim_date} className="font-mono text-meta">
           {formatDate(claim.claim_date)}
         </time>{' '}
         <span className="text-muted-foreground">
           ({t.result.claim_date_source[claim.claim_date_source]})
         </span>
       </p>
-      <div className={cn('grid gap-x-4', conflict && 'sm:grid-cols-2')}>
-        {stanceGroups(citations).map((group) => (
-          <Group key={group.stance} group={group} all={citations} />
+      <div className={cn('grid gap-x-4', isConflict && 'sm:grid-cols-2')}>
+        {groups.map((group) => (
+          <Group
+            key={group.stance}
+            group={group}
+            isWide={isConflict && group.stance === 'context'}
+          />
         ))}
       </div>
     </div>
