@@ -54,7 +54,10 @@ function Layout() {
           <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
             {footerLinks.map(([to, title]) => (
               <li key={to}>
-                <Link to={to} className="inline-flex min-h-11 items-center underline underline-offset-3 sm:min-h-0">
+                <Link
+                  to={to}
+                  className="inline-flex min-h-11 items-center underline underline-offset-3 sm:min-h-0"
+                >
                   {title}
                 </Link>
               </li>

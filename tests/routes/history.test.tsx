@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { saveCheck, savedChecks } from '@/checks'
+import { rememberQuestion, saveCheck, savedChecks } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
@@ -69,10 +69,13 @@ async function confirmDelete(answer: string) {
 
 test('usunięcie sprawdzeń: the API, sessionStorage and the inbox are emptied', async (t) => {
   const fetch = fakeApi(t)
+  rememberQuestion(done.check_id, 'Czy prezydent może rządzić trzy kadencje?')
   saveCheck(done)
   const router = renderAt('/')
   await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.channel_privacy.deleted))
+  // the citizen's own questions go too, or they would come back as turns on reload
+  assert.equal(sessionStorage.getItem('meritum.questions'), null)
   const session = sessionStorage.getItem('meritum.session')
   assert.ok(calls(fetch).includes(`DELETE /api/v1/sessions/${session}/checks`))
   assert.ok(calls(fetch).includes('DELETE /api/v1/notifications'))
