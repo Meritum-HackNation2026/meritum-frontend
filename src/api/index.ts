@@ -1,6 +1,7 @@
 export { type ApiSchemas, meritumQueries } from './_client.ts'
 export { apiCheckSender } from './checks.ts'
 export { apiLatestRunSource } from './evaluation.ts'
+export { apiHandoff } from './handoff.ts'
 export { apiNotifications } from './notifications.ts'
 export { apiProgressSource } from './progress.ts'
 export { apiResultReader } from './result.ts'

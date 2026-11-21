@@ -12,6 +12,9 @@ import examples from '@/contracts/examples.json'
 import type { CheckResult, ClaimResult, Verdict } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
 import { CheckResultCard } from '@/evidence'
+import { fakeHandoff } from '../moderation/fake-handoff'
+
+const { handoff } = fakeHandoff()
 
 const done = examples['CheckResult.done'] as CheckResult
 const abstain = examples['CheckResult.abstain'] as CheckResult
@@ -23,7 +26,7 @@ const premises = /Niezależne źródła: 1, w tym urzędowe lub pierwotne: 1\. �
 const verdicts = Object.keys(pl.verdict).filter((key) => key !== '$comment') as Verdict[]
 
 function renderClaim(claim: ClaimResult) {
-  render(<CheckResultCard result={{ ...done, claims: [claim] }} />)
+  render(<CheckResultCard result={{ ...done, claims: [claim] }} handoff={handoff} />)
   return within(screen.getByRole('article'))
 }
 
@@ -93,7 +96,7 @@ test('insufficient evidence with sources still shows no quotes', () => {
 })
 
 test('insufficient evidence shows what is unresolved, with no strength and no citations', () => {
-  render(<CheckResultCard result={abstain} />)
+  render(<CheckResultCard result={abstain} handoff={handoff} />)
   const claim = within(screen.getByRole('article'))
   assert.ok(claim.getByText(pl.verdict.insufficient_evidence))
   assert.ok(claim.getByText(pl.result.unresolved))
@@ -110,7 +113,7 @@ test('a technique shows its name and one "how to spot" sentence', () => {
 })
 
 test('the limitations of the check are listed', () => {
-  render(<CheckResultCard result={done} />)
+  render(<CheckResultCard result={done} handoff={handoff} />)
   assert.ok(screen.getByText(pl.result.limitations))
   assert.ok(screen.getByText(done.limitations?.[0] ?? ''))
   assert.equal(screen.getAllByRole('article').length, 2)
@@ -150,7 +153,7 @@ test('the long label "Brak wystarczających dowodów" is whole and can wrap belo
 const claimReview = examples['CheckResult.claim_review'] as CheckResult
 
 test('limitation codes are worded from copy, in place of the limitation texts', () => {
-  render(<CheckResultCard result={claimReview} />)
+  render(<CheckResultCard result={claimReview} handoff={handoff} />)
   assert.ok(screen.getByText(pl.limitation_code.image_search_not_run))
   assert.equal(screen.queryByText(claimReview.limitations?.[0] ?? ''), null)
 })

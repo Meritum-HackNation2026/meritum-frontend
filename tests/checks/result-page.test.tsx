@@ -13,6 +13,9 @@ import examples from '@/contracts/examples.json'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
+import { fakeHandoff } from '../moderation/fake-handoff'
+
+const { handoff } = fakeHandoff()
 
 const done = examples['CheckResult.done'] as CheckResult
 const running: AnalysisStatus = {
@@ -47,7 +50,15 @@ async function stopped(fetch: { mock: { callCount(): number } }) {
 }
 
 function renderPage(checkId = 'c_01', pollMs = 1) {
-  render(<ResultPage checkId={checkId} reader={apiResultReader} progress={idle} pollMs={pollMs} />)
+  render(
+    <ResultPage
+      handoff={handoff}
+      checkId={checkId}
+      reader={apiResultReader}
+      progress={idle}
+      pollMs={pollMs}
+    />,
+  )
 }
 
 test('the page reads GET /api/v1/checks/{id} and shows the result card', async (t) => {
@@ -139,7 +150,14 @@ test('an answer without steps is treated as a busy API, as the contract needs on
 test('a check that never finishes ends with the technical failure line after the last read', async (t) => {
   const fetch = fakeApi(t, running)
   render(
-    <ResultPage checkId="c_01" reader={apiResultReader} progress={idle} pollMs={0} maxReads={3} />,
+    <ResultPage
+      handoff={handoff}
+      checkId="c_01"
+      reader={apiResultReader}
+      progress={idle}
+      pollMs={0}
+      maxReads={3}
+    />,
   )
   assert.equal((await screen.findByRole('alert')).textContent, pl.status_hint.technical_failure)
   assert.equal(fetch.mock.callCount(), 3)

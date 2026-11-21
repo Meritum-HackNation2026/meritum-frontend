@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnalysisSteps, t } from '@/components/meritum'
 import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import { CheckResultCard } from '@/evidence'
+import type { Handoff } from '@/moderation'
 import { isDraft, shownResult } from './_progress'
 import { ResultState } from './_result-state'
 import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
@@ -126,9 +127,9 @@ function errorText(outcome: ReadOutcome | null, gaveUp: boolean): string | null 
   return typeof outcome === 'string' ? t.errors[outcome] : null
 }
 
-function Card({ result }: { result: CheckResult }) {
+function Card({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
   return result.status === 'done' ? (
-    <CheckResultCard result={result} />
+    <CheckResultCard result={result} handoff={handoff} />
   ) : (
     <ResultState status={result.status} failureCode={result.failure_code} />
   )
@@ -147,6 +148,7 @@ function Card({ result }: { result: CheckResult }) {
  * @param props.checkId - The id the API gave the accepted check.
  * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
  * @param props.progress - Streams the steps (the `src/api` SSE adapter in the app).
+ * @param props.handoff - Hands claims of the result to the moderators (the `src/api` adapter).
  * @param props.pollMs - Pause between reads; tests pass a short one.
  * @param props.maxReads - Reads before giving up; tests pass a small one.
  * @returns The result page.
@@ -156,12 +158,14 @@ export function ResultPage({
   checkId,
   reader,
   progress,
+  handoff,
   pollMs = POLL_INTERVAL_MS,
   maxReads = MAX_READS,
 }: {
   checkId: string
   reader: ResultReader
   progress: ProgressSource
+  handoff: Handoff
   pollMs?: number
   maxReads?: number
 }) {
@@ -189,7 +193,7 @@ export function ResultPage({
         </p>
       )}
       <div aria-live="polite" className="min-w-0">
-        {result && <Card result={result} />}
+        {result && <Card result={result} handoff={handoff} />}
       </div>
     </div>
   )
