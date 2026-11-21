@@ -1,7 +1,8 @@
 name: CI/CD
 
 # One run per commit (push only; a PR shows the run of its head commit).
-#   verify   Biome, types and Vite build on the GCP runners (self-hosted, meritum);
+#   verify   Biome, types, architecture tests, import boundaries, dead code and the
+#            Vite build on the GCP runners (self-hosted, meritum);
 #            a newer push to the same branch cancels it, never on main/develop.
 #   deploy   develop -> https://meritum-dev.gburek.app, main -> https://meritum.gburek.app,
 #            on dellpromaxgb10 after verify; never cancelled mid-way, one at a time.
@@ -29,7 +30,10 @@ jobs:
       - run: npm install --global "$(node -p "require('./package.json').packageManager")"
       - run: pnpm install --frozen-lockfile --prefer-offline
       - run: pnpm biome ci --reporter=github --error-on-warnings .
-      - run: pnpm build
+      - run: pnpm test # tests/architecture: JSDoc @feature, constants, 250 lines
+      - run: pnpm depcruise # import boundaries (.dependency-cruiser.cjs)
+      - run: pnpm knip # dead code and unused dependencies
+      - run: pnpm build # tsc -b (strict) + vite build
 
   deploy:
     needs: verify
