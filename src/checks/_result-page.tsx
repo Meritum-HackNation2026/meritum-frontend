@@ -173,6 +173,15 @@ function LiveResult({
       saveCheck(result)
     }
   }, [result])
+  const answerRef = useRef<HTMLDivElement>(null)
+  const hasResult = result !== null
+  useEffect(() => {
+    // a new answer is read next, unless the user is already in a field or on a button
+    const isFocusFree = document.activeElement === null || document.activeElement === document.body
+    if (hasResult && isFocusFree) {
+      answerRef.current?.focus()
+    }
+  }, [hasResult])
   return (
     <div className="grid min-w-0 gap-4">
       {isRunning && (
@@ -187,7 +196,12 @@ function LiveResult({
         </p>
       )}
       {result?.transcript && <Transcript text={result.transcript} />}
-      <div aria-live="polite" className="min-w-0">
+      <div
+        ref={answerRef}
+        tabIndex={-1}
+        aria-live="polite"
+        className="min-w-0 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
         {result && <Card result={result} handoff={handoff} />}
       </div>
     </div>
@@ -197,7 +211,7 @@ function LiveResult({
 /**
  * The result page of one check: live steps streamed over SSE while it runs (the API read
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
- * so a screen reader announces the result. A checked recording shows its transcript above it
+ * so a screen reader announces the result; when nothing else has focus, the answer takes it. A checked recording shows its transcript above it
  * (`Transcript`), outside that region, so a long transcript does not hold back the verdicts.
  * Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`

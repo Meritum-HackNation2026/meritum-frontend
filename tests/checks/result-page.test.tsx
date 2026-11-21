@@ -163,3 +163,20 @@ test('a check that never finishes ends with the technical failure line after the
   assert.equal(fetch.mock.callCount(), 3)
   assert.equal(screen.queryByText(pl.analysis.title), null)
 })
+
+test('a result that arrives while nothing has focus takes the focus, so it is read next', async (t) => {
+  fakeApi(t, running, finished)
+  renderPage()
+  const card = await screen.findByRole('region', { name: pl.result.label })
+  await waitFor(() => assert.ok(card.parentElement?.contains(document.activeElement)))
+})
+
+test('a result does not take the focus from a field the user is in', async (t) => {
+  fakeApi(t, running, finished)
+  const field = document.body.appendChild(document.createElement('textarea'))
+  t.after(() => field.remove())
+  field.focus()
+  renderPage()
+  await screen.findByRole('region', { name: pl.result.label })
+  assert.equal(document.activeElement, field)
+})
