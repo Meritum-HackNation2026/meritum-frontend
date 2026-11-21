@@ -1,3 +1,4 @@
+import type { UploadOutcome } from '@/checks'
 import type { AnalysisStep } from '@/contracts/meritum'
 
 /**
@@ -122,3 +123,32 @@ export const HTTP_FORBIDDEN = 403
  * @feature US-MOD-05, F-25
  */
 export const CSRF_HEADER = 'X-CSRF-Token'
+
+/**
+ * Refusals of POST /api/v1/audio by `message_key` (meritum-backend's README: 413
+ * `errors.audio_too_large`, 422 `errors.audio_too_long`, 415
+ * `status_hint.out_of_scope_audio_format`); a refusal with another key is `busy`.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const AUDIO_REFUSALS = {
+  'errors.audio_too_large': 'audio_too_large',
+  'errors.audio_too_long': 'audio_too_long',
+  'status_hint.out_of_scope_audio_format': 'unsupported_format',
+} as const satisfies Record<string, UploadOutcome>
+
+/**
+ * `message_key` of a 429 from POST /api/v1/audio once the daily recording limit is used up; any
+ * other 429 is the per-minute limit.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const DAILY_LIMIT_KEY = 'errors.rate_limited_daily'
+
+/**
+ * Content type sent with a recording the browser could not type; the API reads the format from
+ * the bytes anyway.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const UNKNOWN_AUDIO_TYPE = 'application/octet-stream'

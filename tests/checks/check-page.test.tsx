@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { apiCheckSender, apiSessionEraser } from '@/api'
+import { apiAudioUploader, apiCheckSender, apiSessionEraser } from '@/api'
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
@@ -23,7 +23,14 @@ function fakeApi(t: TestContext, status = 202) {
 function renderPage(): string[] {
   const opened: string[] = []
   const onAccepted = opened.push.bind(opened)
-  render(<CheckPage sender={apiCheckSender} eraser={apiSessionEraser} onAccepted={onAccepted} />)
+  render(
+    <CheckPage
+      sender={apiCheckSender}
+      uploader={apiAudioUploader}
+      eraser={apiSessionEraser}
+      onAccepted={onAccepted}
+    />,
+  )
   return opened
 }
 

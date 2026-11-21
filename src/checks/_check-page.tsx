@@ -1,12 +1,13 @@
 import { useCallback, useState } from 'react'
 import { CheckForm, t } from '@/components/meritum'
 import type { CheckRequest } from '@/contracts/meritum'
+import { AudioCheck } from './_audio-check'
 import { DeleteChecksDialog } from './_delete-checks'
 import { forgetChecks, savedChecks } from './_history'
 import { type ErrorKey, validateCheck } from './_request'
 import { SessionHistory } from './_session-history'
 import { RETENTION_DAYS } from './constants'
-import type { CheckSender, SendOutcome, SessionEraser } from './ports'
+import type { AudioUploader, CheckSender, SendOutcome, SessionEraser } from './ports'
 
 /** This tab's history and „Usuń moje sprawdzenia”: the confirmation, the deletion, its outcome. */
 function useSessionHistory(eraser: SessionEraser, onErased: () => Promise<void> | void) {
@@ -35,22 +36,26 @@ function useSessionHistory(eraser: SessionEraser, onErased: () => Promise<void> 
  * check is handed on by its id, to open its result page. Below the form, this tab's checks
  * (sessionStorage) open their results; „Usuń moje sprawdzenia” next to the 30-day retention
  * line asks first, then deletes the session's records on the server, the tab's history and,
- * through `onErased`, its notifications.
+ * through `onErased`, its notifications. Under the form, „Albo nagranie” takes a recording
+ * instead (`AudioCheck`).
  *
  * @param props.sender - Sends the request to the API (the `src/api` adapter in the app).
+ * @param props.uploader - Uploads a recording to the API (the `src/api` adapter in the app).
  * @param props.eraser - Deletes the session's records (the `src/api` adapter in the app).
  * @param props.onAccepted - Called with the id of an accepted check or one picked in the list.
  * @param props.onErased - Called after the server deleted the records; empties the inbox.
  * @returns The check page.
- * @feature US-SPR-01, US-SPR-09, US-BEZ-05, US-BEZ-07, US-DST-01, F-01, F-20, F-21
+ * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, F-01, F-08, F-20, F-21
  */
 export function CheckPage({
   sender,
+  uploader,
   eraser,
   onAccepted,
   onErased = () => undefined,
 }: {
   sender: CheckSender
+  uploader: AudioUploader
   eraser: SessionEraser
   onAccepted: (checkId: string) => void
   onErased?: () => Promise<void> | void
@@ -100,6 +105,7 @@ export function CheckPage({
             (erased ? t.channel_privacy.deleted : t.extension.popup_delete_failed)}
         </p>
       </div>
+      <AudioCheck uploader={uploader} sender={sender} onAccepted={onAccepted} />
       <SessionHistory items={items} onOpen={onAccepted} />
       <DeleteChecksDialog open={confirming} onOpenChange={setConfirming} onConfirm={erase} />
     </div>

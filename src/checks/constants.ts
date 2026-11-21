@@ -99,3 +99,58 @@ export const RESULT_STATUSES = {
   out_of_scope: true,
   technical_failure: true,
 } as const satisfies Record<CheckResult['status'], true>
+
+/**
+ * Largest recording the API takes, in MB (MiB, as `MAX_AUDIO_BYTES` in meritum-backend's README:
+ * 413 `errors.audio_too_large` above it); shown in `form.audio_limits`.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const MAX_AUDIO_MB = 20
+
+/**
+ * `MAX_AUDIO_MB` in bytes: a bigger file is refused before it is sent.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const MAX_AUDIO_BYTES = MAX_AUDIO_MB * 1024 * 1024
+
+/**
+ * Longest recording the API takes, in minutes (422 `errors.audio_too_long` above it, as in
+ * meritum-backend's README); only the API can measure it, the form shows it in the limits.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const MAX_AUDIO_MINUTES = 10
+
+/**
+ * Recording formats the API reads from the bytes (OGG Opus, MP3, M4A, WAV; any other file is
+ * 415, out of scope), as named in `form.audio_limits`.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const AUDIO_FORMATS = ['OGG', 'MP3', 'M4A', 'WAV'] as const
+
+/**
+ * `accept` of the file field: the system picker offers audio files first; the API still decides
+ * the format from the bytes.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const AUDIO_ACCEPT = 'audio/*,.ogg,.opus,.mp3,.m4a,.wav'
+
+/**
+ * Id of the transcription service in the processor register of copy/privacy.json; the audio
+ * field names it with its region until copy has `form.audio_provider` (meritum-design-system#69).
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const TRANSCRIBER_ID = 'speech_to_text'
+
+/**
+ * Word that picks the sentence about the recording file out of the web policy's retention text,
+ * until copy has `form.audio_retention` (meritum-design-system#69).
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const RETENTION_SENTENCE_MARKER = 'nagrania'

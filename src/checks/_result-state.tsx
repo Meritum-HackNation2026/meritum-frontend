@@ -23,15 +23,18 @@ function stateLine(status: NonVerdictStatus, failureCode: CheckResult['failure_c
  *
  * @param props.status - The non-verdict status of the result.
  * @param props.failureCode - The v4 failure code of a technical failure, if any.
+ * @param props.hint - A line that replaces the status hint, e.g. what recordings can be sent.
  * @returns The state card.
  * @feature US-SPR-06, F-18
  */
 export function ResultState({
   status,
   failureCode,
+  hint,
 }: {
   status: NonVerdictStatus
   failureCode?: CheckResult['failure_code']
+  hint?: string
 }) {
   return (
     <section
@@ -49,7 +52,7 @@ export function ResultState({
         />
         <div className="min-w-0">
           <h2 className="text-body font-bold">{t.status[status]}</h2>
-          <p className="text-body text-pretty">{stateLine(status, failureCode)}</p>
+          <p className="text-body text-pretty">{hint ?? stateLine(status, failureCode)}</p>
         </div>
       </div>
     </section>

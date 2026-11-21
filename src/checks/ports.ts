@@ -87,3 +87,41 @@ export interface ResultReader {
    */
   read(checkId: string): Promise<ReadOutcome>
 }
+
+/**
+ * Why a recording was not taken: an `errors` key of copy/pl.json to show under the audio field,
+ * or `unsupported_format` for a file that is not a recording we check (an out-of-scope result).
+ *
+ * @feature US-SPR-11, F-08
+ */
+type UploadRefusal =
+  | 'audio_too_large'
+  | 'audio_too_long'
+  | 'unsupported_format'
+  | 'rate_limited'
+  | 'rate_limited_daily'
+  | 'busy'
+  | 'offline'
+
+/**
+ * What the API said about an uploaded recording: stored with its id, or a refusal to show.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export type UploadOutcome = { audioId: string } | UploadRefusal
+
+/**
+ * Uploads a recording to the verification API, which stores it and returns the `audio_id` to
+ * send in a `CheckRequest`.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export interface AudioUploader {
+  /**
+   * Uploads one recording; never throws, a failure is an outcome.
+   *
+   * @param file - The recording the person chose.
+   * @returns The stored recording's id or why it was refused.
+   */
+  upload(file: Blob): Promise<UploadOutcome>
+}
