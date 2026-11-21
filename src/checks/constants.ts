@@ -129,7 +129,7 @@ export const MAX_AUDIO_MINUTES = 10
  *
  * @feature US-SPR-11, F-08
  */
-export const AUDIO_FORMATS: readonly string[] = ['OGG', 'MP3', 'M4A', 'WAV']
+export const AUDIO_FORMATS = ['OGG', 'MP3', 'M4A', 'WAV'] as const
 
 /**
  * `accept` of the file field: the system picker offers audio files first; the API still decides
@@ -138,3 +138,19 @@ export const AUDIO_FORMATS: readonly string[] = ['OGG', 'MP3', 'M4A', 'WAV']
  * @feature US-SPR-11, F-08
  */
 export const AUDIO_ACCEPT = 'audio/*,.ogg,.opus,.mp3,.m4a,.wav'
+
+/**
+ * Id of the transcription service in the processor register of copy/privacy.json; the audio
+ * field names it with its region until copy has `form.audio_provider` (meritum-design-system#69).
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const TRANSCRIBER_ID = 'speech_to_text'
+
+/**
+ * Word that picks the sentence about the recording file out of the web policy's retention text,
+ * until copy has `form.audio_retention` (meritum-design-system#69).
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const RETENTION_SENTENCE_MARKER = 'nagrania'

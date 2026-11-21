@@ -158,3 +158,11 @@ test('the file cannot be changed while the recording is sent', async (t) => {
   answer(new Response(JSON.stringify({ detail: 'x' }), { status: 500 }))
   await waitFor(() => assert.equal((input as HTMLInputElement).disabled, false))
 })
+
+test('a recording the API finds too large shows the size message', async (t) => {
+  fakeApi(t, rejected(413, 'errors.audio_too_large'))
+  renderPage()
+  chooseAndCheck(recording())
+  const alert = await within(audioForm()).findByRole('alert')
+  assert.equal(alert.textContent, 'Plik jest za duży. Wyślij nagranie do 20 MB albo je przytnij.')
+})

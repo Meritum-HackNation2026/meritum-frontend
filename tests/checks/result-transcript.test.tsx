@@ -40,6 +40,9 @@ test('a checked recording shows its transcript with the note that it was made au
   assert.ok(text.includes(transcript))
   assert.ok(text.includes(pl.result.transcript_hint))
   assert.ok(await screen.findByText(pl.verdict.false))
+  // a long transcript stays out of the live region, so a screen reader announces the verdicts
+  const live = document.querySelector('[aria-live="polite"]')
+  assert.equal(live?.contains(section), false)
 })
 
 test('a result of text has no transcript section', async (t) => {

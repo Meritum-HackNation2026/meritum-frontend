@@ -35,7 +35,8 @@ export const apiAudioUploader: AudioUploader = {
   async upload(file) {
     try {
       const { data, error, response } = await fetchClient.POST('/api/v1/audio', {
-        // openapi-typescript types a binary body as string; the file goes out as it is
+        // type only: openapi-typescript types a binary body as string; bodySerializer below
+        // sends the file untouched, and the API checks its bytes
         body: file as unknown as string,
         bodySerializer: (body) => body,
         headers: { 'Content-Type': file.type || UNKNOWN_AUDIO_TYPE },

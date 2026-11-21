@@ -10,6 +10,8 @@ import {
   MAX_AUDIO_BYTES,
   MAX_AUDIO_MB,
   MAX_AUDIO_MINUTES,
+  RETENTION_SENTENCE_MARKER,
+  TRANSCRIBER_ID,
 } from './constants'
 import type { AudioUploader, CheckSender, UploadOutcome } from './ports'
 
@@ -18,11 +20,17 @@ type Refusal = ErrorKey | 'unsupported_format'
 
 const limits = { max_mb: MAX_AUDIO_MB, max_minutes: MAX_AUDIO_MINUTES }
 const limitsLine = fill(t.form.audio_limits, { ...limits, formats: AUDIO_FORMATS.join(', ') })
-const transcriber = privacy.processors.items.find((p) => p.id === 'speech_to_text')
-const providerLine = transcriber ? `${transcriber.name}, ${transcriber.region}` : ''
-// the web policy's retention text, its sentence about the recording file
-const retentionLine =
-  privacy.policies.web.retention.split(/(?<=\.)\s+/).find((s) => s.includes('nagrania')) ?? ''
+// shortcut: provider and retention come from copy/privacy.json until copy/pl.json has
+// form.audio_provider and form.audio_retention (meritum-design-system#69, meritum-frontend#65)
+const transcriber = privacy.processors.items.find((p) => p.id === TRANSCRIBER_ID)
+const retention = privacy.policies.web.retention.split(/(?<=\.)\s+/)
+const aboutLines = [
+  t.form.audio_note,
+  limitsLine,
+  transcriber ? `${transcriber.name}, ${transcriber.region}` : '',
+  retention.find((sentence) => sentence.includes(RETENTION_SENTENCE_MARKER)) ?? '',
+  t.form.audio_transcription_warning,
+].filter(Boolean)
 
 /** Uploads the file, then starts a check of its `audio_id`; the first refusal ends it. */
 async function checkRecording(
@@ -121,11 +129,9 @@ export function AudioCheck({
           </p>
         )}
         <div id={`${id}-about`} className="grid gap-1 text-small text-muted-foreground text-pretty">
-          <p>{t.form.audio_note}</p>
-          <p className="tabular-nums">{limitsLine}</p>
-          <p>{providerLine}</p>
-          <p>{retentionLine}</p>
-          <p>{t.form.audio_transcription_warning}</p>
+          {aboutLines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
         </div>
         {file && (
           <div>
