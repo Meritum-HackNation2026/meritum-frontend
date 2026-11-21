@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "check": "biome check .",
+    "sync": "scripts/sync.sh",
     "test": "TSX_TSCONFIG_PATH=tsconfig.test.json node --import tsx --import ./tests/setup-dom.ts --test 'tests/**/*.test.{ts,tsx}'",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
     "knip": "knip",

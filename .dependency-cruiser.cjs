@@ -5,7 +5,7 @@ const repo = {
   roots: ['src'], // folders to cruise
   domainRoot: 'src', // domains live in <domainRoot>/<domain>/ with index.ts as their API
   // Folders under domainRoot that are not domains: imported directly.
-  notDomains: ['components', 'lib', 'routes', 'styles'],
+  notDomains: ['components', 'contracts', 'copy', 'lib', 'routes', 'styles'],
   // Code that may use frameworks and build adapters: entry point, routes, UI, the
   // meritum-backend HTTP client (src/api, an outbound adapter) and factories.
   wiring: [

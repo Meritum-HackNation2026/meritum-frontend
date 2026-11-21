@@ -1,6 +1,6 @@
 # meritum-frontend
 
-Aplikacja webowa Meritum: React, TypeScript, Vite, TanStack Router i Query, shadcn/ui (Radix), Tailwind CSS v4, Biome, pnpm. Wygląd pochodzi z design systemu: tokeny `src/styles/meritum.css` to kopia `design-system/tokens/meritum.css` (tryb ciemny włącza klasa `dark` według ustawienia systemu), kroje Archivo i Azeret Mono są dołączone do builda (bez Google Fonts), a znak w `src/components/meritum/` to kopia komponentu z `design-system/components/meritum/`. W produkcji to statyczny build w kontenerze nginx, który przekazuje `/api` do [meritum-backend](https://github.com/Meritum-HackNation2026/meritum-backend) tego samego środowiska, więc front i API mają jeden adres i nie potrzebują CORS.
+Aplikacja webowa Meritum: React, TypeScript, Vite, TanStack Router i Query, shadcn/ui (Radix), Tailwind CSS v4, Biome, pnpm. Wygląd pochodzi z design systemu: tokeny `src/styles/meritum.css` to kopia `design-system/tokens/meritum.css` (tryb ciemny włącza klasa `dark` według ustawienia systemu), kroje Archivo i Azeret Mono są dołączone do builda (bez Google Fonts), a komponenty w `src/components/meritum/` to kopie z `design-system/components/meritum/` (zob. „Kopie z design systemu”). W produkcji to statyczny build w kontenerze nginx, który przekazuje `/api` do [meritum-backend](https://github.com/Meritum-HackNation2026/meritum-backend) tego samego środowiska, więc front i API mają jeden adres i nie potrzebują CORS.
 
 | Środowisko | Gałąź     | Adres                          | Kontener          | `/api` trafia do       |
 | ---------- | --------- | ------------------------------ | ----------------- | ---------------------- |
@@ -32,7 +32,7 @@ Konfiguracja nginx: `deploy/nginx.conf.template` (SPA z fallbackiem na `index.ht
 
 `pnpm test` to `node --test` na `tests/**/*.test.{ts,tsx}`. Pliki TSX ładuje `tsx` (ustawienia `jsx` i aliasu `@/` bierze z `tsconfig.test.json`), a `tests/setup-dom.ts` daje każdemu plikowi DOM z happy-dom i po każdym teście odmontowuje to, co test wyrenderował. `tsc -b` (w `pnpm build`) sprawdza typy testów TSX.
 
-Test komponentu leży w `tests/` w tej samej ścieżce co komponent w `src/` (`tests/<domena>/<komponent>.test.tsx`, np. `tests/components/meritum/meritum-mark.test.tsx`), renderuje komponent przez `@testing-library/react` i szuka elementów tak jak czytelnik: po roli i po tekście z `copy/pl.json` (plik przyjdzie z design-systemu w #10; do tego czasu przykład porównuje nazwę „Meritum”, wpisaną w komponencie).
+Test komponentu leży w `tests/` w tej samej ścieżce co komponent w `src/` (`tests/<domena>/<komponent>.test.tsx`, np. `tests/components/meritum/meritum-mark.test.tsx`), renderuje komponent przez `@testing-library/react` i szuka elementów tak jak czytelnik: po roli i po tekście z `src/copy/pl.json` (`import pl from '@/copy/pl.json'`).
 
 ```tsx
 import assert from 'node:assert/strict'
@@ -40,10 +40,11 @@ import { test } from 'node:test'
 import { render, screen } from '@testing-library/react'
 import { MeritumLabel } from '@/components/meritum/meritum-mark'
 import { Button } from '@/components/ui/button'
+import pl from '@/copy/pl.json'
 
 test('the Meritum label shows its name as text and hides the mark from screen readers', () => {
   render(<MeritumLabel />)
-  const mark = screen.getByText('Meritum').querySelector('svg')
+  const mark = screen.getByText(pl.brand.name).querySelector('svg')
   assert.equal(mark?.getAttribute('aria-hidden'), 'true')
 })
 
@@ -53,11 +54,33 @@ test('a button holding the Meritum label is named by the label text', () => {
       <MeritumLabel />
     </Button>,
   )
-  assert.equal(screen.getAllByRole('button', { name: 'Meritum' }).length, 1)
+  assert.equal(screen.getAllByRole('button', { name: pl.brand.name }).length, 1)
 })
 ```
 
 W asercjach porównuj tekst, liczby albo wartości logiczne, nie elementy DOM: gdy `assert.equal(element, null)` nie przejdzie, Node próbuje wypisać cały obiekt happy-dom i test wisi zamiast się wywrócić. Kontrole architektury (JSDoc z `@feature`, stałe w `constants.ts`, 250 linii) obejmują też pliki w `tests/`. Skrypt ustawia zmienną `TSX_TSCONFIG_PATH` w składni powłoki POSIX (Linux, macOS). Testy e2e w przeglądarce nie trafiają do CI: uruchamia się je ręcznie albo lokalnym skryptem.
+
+## Kopie z design systemu
+
+Typy API, teksty, komponenty i tokeny bierzemy z [meritum-design-system](https://github.com/Meritum-HackNation2026/meritum-design-system), a kontrakty trafiają tam z meritum-core, jedynego źródła prawdy (ADR-02, ADR-33). Kopie w tym repo:
+
+| Kopia                                                              | Źródło                                                          |
+| ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `src/contracts/meritum.ts`, `meritum.schema.json`, `examples.json` | `contracts/` design systemu                                     |
+| `src/copy/pl.json`                                                 | `copy/pl.json`                                                  |
+| `src/components/meritum/`                                          | `components/meritum/`                                           |
+| `src/styles/meritum.css`                                           | `tokens/meritum.css`                                            |
+| `src/contracts/catalog.json`                                       | `catalog/catalog.json` w meritum-core (eksport katalogu źródeł) |
+
+Nie edytujemy ich tutaj: poprawki idą do design systemu (albo do core), potem:
+
+```bash
+pnpm sync                       # main design systemu i core
+pnpm sync <ref> [<core-ref>]    # inna gałąź, tag albo commit
+pnpm build                      # tsc pokaże miejsca do dostosowania po nowej wersji kontraktu
+```
+
+`scripts/sync.sh` potrzebuje `gh` z dostępem do obu repozytoriów. Zapisuje `SOURCE` (commity źródłowe) i `SHA256SUMS`. `pnpm test` (`tests/synced-copies.test.ts`) sprawdza sumy bez sieci, więc CI odrzuca ręczną zmianę kopii albo dodany do tych katalogów plik i podaje jego nazwę. Biome, knip, dependency-cruiser i testy architektury pomijają kopie. Dopóki meritum-core nie ma `catalog/catalog.json` (meritum-core#22), skrypt pomija ten plik z ostrzeżeniem.
 
 ## CI/CD
 
