@@ -46,21 +46,23 @@ export function Comparison({ comparison }: { comparison: EvalComparison }) {
           </div>
         ))}
       </dl>
-      <div className="grid gap-2">
-        <h4 className="text-small font-semibold">{t.evaluation.changed_cases}</h4>
-        <ul className="grid gap-1">
-          {comparison.changed_cases.map((item) => (
-            <li key={item.case_id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1">
-              <span className="basis-full font-mono text-small sm:mr-auto sm:basis-auto">
-                {item.case_id}
-              </span>
-              <CaseVerdict verdict={item.a} />
-              <ArrowRight aria-hidden className="size-3.5" />
-              <CaseVerdict verdict={item.b} />
-            </li>
-          ))}
-        </ul>
-      </div>
+      {comparison.changed_cases.length > 0 && (
+        <div className="grid gap-2">
+          <h4 className="text-small font-semibold">{t.evaluation.changed_cases}</h4>
+          <ul className="grid gap-1">
+            {comparison.changed_cases.map((item) => (
+              <li key={item.case_id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1">
+                <span className="basis-full font-mono text-small sm:mr-auto sm:basis-auto">
+                  {item.case_id}
+                </span>
+                <CaseVerdict verdict={item.a} />
+                <ArrowRight aria-hidden className="size-3.5" />
+                <CaseVerdict verdict={item.b} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   )
 }

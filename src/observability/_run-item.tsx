@@ -72,7 +72,16 @@ function Cases({ cases }: { cases: EvalCase[] | null | undefined }) {
   )
 }
 
-const isActive = (run: EvalRun) => run.status === 'queued' || run.status === 'running'
+/**
+ * Whether a run is still queued or running in the worker.
+ *
+ * @param run - The run.
+ * @returns True until the run is done or failed.
+ * @feature US-OBS-06, F-28
+ */
+export function isActive(run: EvalRun): boolean {
+  return run.status === 'queued' || run.status === 'running'
+}
 
 /**
  * One run in the list: a box to pick it for the comparison (finished runs only) and its date,
@@ -146,7 +155,7 @@ export function RunItem({
           </span>
         </button>
         <Metrics metrics={run.metrics} />
-        <div id={casesId} hidden={!isOpen}>
+        <div id={casesId} hidden={!isOpen} aria-live="polite">
           <Cases cases={cases} />
         </div>
       </div>

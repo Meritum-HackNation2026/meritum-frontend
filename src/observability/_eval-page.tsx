@@ -3,18 +3,16 @@ import { t } from '@/components/meritum'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Comparison } from './_comparison'
-import { RunItem } from './_run-item'
-import { EVAL_POLL_MS, GOLDEN_SET } from './constants'
+import { isActive, RunItem } from './_run-item'
+import { CASE_FILE_TYPES, COMPARED_RUNS, EVAL_POLL_MS, GOLDEN_SET } from './constants'
 import type { EvalApi, EvalComparison, EvalOutcome, EvalRun } from './ports'
 
 // shortcut: a refused upload or start shows errors.offline; its own text joins copy/pl.json in
-// the design-system follow-up of frontend#27, then replace it here.
+// meritum-design-system#87, then replace it here.
 const notices: Record<Exclude<EvalOutcome, 'done'>, string> = {
   expired: t.staff.sign_in.session_expired,
   failed: t.errors.offline,
 }
-
-const isActive = (run: EvalRun) => run.status === 'queued' || run.status === 'running'
 
 const byStart = (a: EvalRun, b: EvalRun) => Date.parse(a.started_at) - Date.parse(b.started_at)
 
@@ -54,7 +52,7 @@ function RunActions({ onOutcome, api }: { onOutcome: (o: EvalOutcome) => void; a
         {t.evaluation.upload}
         <input
           type="file"
-          accept=".json,.csv,application/json,text/csv"
+          accept={CASE_FILE_TYPES}
           className="sr-only"
           disabled={pending}
           onChange={upload}
@@ -107,11 +105,12 @@ export function EvalPage(props: { runs: EvalRun[] | null; api: EvalApi; readOnly
     [reload],
   )
   // a third pick replaces the oldest one, so at most two runs are ever picked
-  const select = useCallback(
-    (id: string, isPicked: boolean) =>
-      setPicked((ids) => (isPicked ? [...ids, id].slice(-2) : ids.filter((other) => other !== id))),
-    [],
-  )
+  const select = useCallback((id: string, isPicked: boolean) => {
+    setComparison(undefined)
+    setPicked((ids) =>
+      isPicked ? [...ids, id].slice(-COMPARED_RUNS) : ids.filter((other) => other !== id),
+    )
+  }, [])
   const compare = useCallback(async () => {
     const [a, b] = (runs ?? []).filter((run) => picked.includes(run.id)).toSorted(byStart)
     if (a && b) {
@@ -126,7 +125,7 @@ export function EvalPage(props: { runs: EvalRun[] | null; api: EvalApi; readOnly
         </h2>
         {!props.readOnly && <RunActions api={api} onOutcome={onOutcome} />}
       </div>
-      <p role="status" className="text-small empty:hidden">
+      <p role="status" className="text-small empty:sr-only">
         {notice}
       </p>
       <section aria-labelledby="eval-runs" className="grid gap-3">
@@ -138,7 +137,7 @@ export function EvalPage(props: { runs: EvalRun[] | null; api: EvalApi; readOnly
             variant="outline"
             size="sm"
             className="rounded-pill"
-            disabled={picked.length !== 2}
+            disabled={picked.length !== COMPARED_RUNS}
             onClick={compare}
           >
             {t.evaluation.compare}
@@ -158,8 +157,10 @@ export function EvalPage(props: { runs: EvalRun[] | null; api: EvalApi; readOnly
           ))}
         </ul>
       </section>
-      {comparison === null && <p className="text-small">{t.errors.offline}</p>}
-      {comparison && <Comparison comparison={comparison} />}
+      <div aria-live="polite" className="empty:sr-only">
+        {comparison === null && <p className="text-small">{t.errors.offline}</p>}
+        {comparison && <Comparison comparison={comparison} />}
+      </div>
     </section>
   )
 }

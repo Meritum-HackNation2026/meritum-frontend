@@ -35,3 +35,17 @@ export const EVAL_LOCALE = 'pl-PL'
  * @feature US-OBS-06, F-28
  */
 export const EVAL_FRACTION_DIGITS = 2
+
+/**
+ * How many finished runs the comparison takes; a further pick replaces the oldest one.
+ *
+ * @feature US-OBS-06, F-28
+ */
+export const COMPARED_RUNS = 2
+
+/**
+ * Case files the upload accepts (US-OBS-05): JSON or CSV.
+ *
+ * @feature US-OBS-05, F-28
+ */
+export const CASE_FILE_TYPES = '.json,.csv,application/json,text/csv'

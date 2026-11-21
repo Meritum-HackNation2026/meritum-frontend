@@ -1,64 +1,26 @@
 /**
  * The evaluation page at /panel/eval on a fake API: the runs with their metrics, a new run on
- * the golden set, an uploaded case file, the comparison of two runs and who may see what.
+ * the golden set, an uploaded case file and who may see what.
  *
  * @feature US-OBS-06, US-OBS-05, F-28
  */
 import assert from 'node:assert/strict'
-import { type TestContext, test } from 'node:test'
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { test } from 'node:test'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import pl from '@/copy/pl.json'
-import { routeTree } from '@/routeTree.gen'
 import { requestPath } from '../fetch-request'
-
-type Answer = [number, unknown]
-
-/** Answers `METHOD /path` with a status and body; an unknown call gets an empty list. */
-function fakeApi(t: TestContext, routes: Record<string, Answer | (() => Answer)>) {
-  return t.mock.method(globalThis, 'fetch', (input: unknown, init?: RequestInit) => {
-    const method = input instanceof Request ? input.method : (init?.method ?? 'GET')
-    const answer = routes[`${method} ${requestPath(input)}`]
-    const [status, body] = typeof answer === 'function' ? answer() : (answer ?? [200, []])
-    return Promise.resolve(Response.json(body, { status }))
-  })
-}
-
-const calls = (fetch: ReturnType<typeof fakeApi>) =>
-  fetch.mock.calls.map(({ arguments: [input, init] }) => {
-    const method = input instanceof Request ? input.method : (init?.method ?? 'GET')
-    return `${method} ${requestPath(input)}`
-  })
-
-async function openEval() {
-  const history = createMemoryHistory({ initialEntries: ['/panel/eval'] })
-  const router = createRouter({ routeTree, history })
-  render(<RouterProvider router={router} />)
-  await waitFor(() => assert.equal(router.state.status, 'idle'))
-  return router
-}
-
-const analyst = { email: 'analityk@example.org', role: 'analyst', read_only: false }
-const jury = { email: null, role: 'analyst', read_only: true }
-
-const older = {
-  id: 'run_01',
-  status: 'done',
-  dataset: 'golden',
-  started_at: '2026-11-19T10:00:00Z',
-  finished_at: '2026-11-19T10:40:00Z',
-  metrics: { macro_f1: 0.68, citation_coverage: 0.9, latency_median_s: 14.2 },
-}
-const newer = {
-  id: 'run_02',
-  status: 'done',
-  dataset: 'golden',
-  started_at: '2026-11-20T10:00:00Z',
-  finished_at: '2026-11-20T10:35:00Z',
-  metrics: { macro_f1: 0.71, citation_coverage: 0.92, latency_median_s: 12.4 },
-}
-
-const runsRoute = 'GET /api/v1/eval/runs'
+import {
+  type Answer,
+  analyst,
+  calls,
+  fakeApi,
+  jury,
+  newer,
+  older,
+  openEval,
+  running,
+  runsRoute,
+} from './eval-api'
 
 test('an analyst sees each run with its status, dataset and metrics in Azeret Mono', async (t) => {
   fakeApi(t, { 'GET /api/v1/staff/me': [200, analyst], [runsRoute]: [200, [newer, older]] })
@@ -74,11 +36,9 @@ test('an analyst sees each run with its status, dataset and metrics in Azeret Mo
   assert.equal(f1?.classList.contains('font-mono'), true)
 })
 
-const running = { ...newer, id: 'run_03', status: 'running', finished_at: null, metrics: {} }
 const csrf: Record<string, Answer> = {
   'GET /api/v1/auth/me': [200, { email: analyst.email, csrf_token: 'tok_1' }],
 }
-
 test('„Uruchom na golden secie” starts a run that shows up as running', async (t) => {
   let started = false
   const fetch = fakeApi(t, {
@@ -170,40 +130,6 @@ test('opening a run shows its case results', async (t) => {
   assert.ok(screen.getByText(pl.verdict.false))
   assert.ok(screen.getByText(pl.status.technical_failure))
 })
-
-const comparison = {
-  metrics: { macro_f1: { a: 0.68, b: 0.71 }, latency_median_s: { a: 14.2, b: 12.4 } },
-  changed_cases: [{ case_id: 'g_042', a: 'insufficient_evidence', b: 'confirmed' }],
-}
-
-test('two finished runs compare earlier to later, with the cases that changed', async (t) => {
-  const fetch = fakeApi(t, {
-    'GET /api/v1/staff/me': [200, analyst],
-    [runsRoute]: [200, [newer, older, running]],
-    'GET /api/v1/eval/runs/compare?a=run_01&b=run_02': [200, comparison],
-  })
-  await openEval()
-  const compare = await screen.findByRole('button', { name: pl.evaluation.compare })
-  const boxes = screen.getAllByRole('checkbox') as HTMLInputElement[]
-  assert.deepEqual(
-    boxes.map((box) => box.disabled),
-    [false, false, true],
-  )
-  assert.equal((compare as HTMLButtonElement).disabled, true)
-  fireEvent.click(boxes[0] as HTMLElement)
-  fireEvent.click(boxes[1] as HTMLElement)
-  fireEvent.click(compare)
-  const result = await screen.findByRole('region', { name: pl.evaluation.compare })
-  const f1 = within(result).getByText(pl.method.metrics.names.macro_f1).nextElementSibling
-  assert.equal(f1?.textContent, '0,680,71(+0,03)')
-  const latency = within(result).getByText(pl.method.metrics.names.latency_median_s)
-  assert.ok(latency.nextElementSibling?.textContent?.endsWith('(−1,8)'))
-  assert.ok(within(result).getByRole('heading', { name: pl.evaluation.changed_cases }))
-  assert.ok(within(result).getByText('g_042'))
-  assert.ok(within(result).getByText(pl.verdict.confirmed))
-  assert.ok(calls(fetch).includes('GET /api/v1/eval/runs/compare?a=run_01&b=run_02'))
-})
-
 test('a moderator sees neither runs nor the run button, and runs are never read', async (t) => {
   const fetch = fakeApi(t, {
     'GET /api/v1/staff/me': [200, { email: 'moderator@example.org', role: 'moderator' }],
