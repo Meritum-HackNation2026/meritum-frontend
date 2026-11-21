@@ -1,6 +1,5 @@
-import { CitationItem, StrengthMeter, t, VerdictBadge } from '@/components/meritum'
+import { StrengthMeter, t, VerdictBadge } from '@/components/meritum'
 import type {
-  Citation,
   Claim,
   ClaimResult,
   Explanation,
@@ -47,38 +46,6 @@ export function ExplanationSection({ explanation }: { explanation: Explanation }
       <h4 className="sr-only">{t.result.explanation}</h4>
       <p className="text-body text-pretty">{explanation}</p>
       <p className="mt-1 text-meta text-muted-foreground">{t.result.explanation_hint}</p>
-    </div>
-  )
-}
-
-/**
- * Verbatim quotes, each with title, publisher, date and link taken from `Citation.source`.
- * Insufficient evidence shows no quotes; its conflicting sources are meritum-frontend#26.
- *
- * @param props.verdict - The claim's verdict.
- * @param props.citations - The claim's citations; nothing renders when there are none.
- * @returns The citations section, or null.
- * @feature US-ZRD-01, US-ZRD-02, F-17
- */
-export function CitationsSection({
-  verdict,
-  citations,
-}: {
-  verdict: Verdict
-  citations: readonly Citation[]
-}) {
-  const isUnsettled = verdict === 'insufficient_evidence'
-  if (isUnsettled || citations.length === 0) {
-    return null
-  }
-  return (
-    <div className="mt-3">
-      <h4 className="font-semibold text-meta text-muted-foreground">{t.result.sources_title}</h4>
-      <ul className="divide-y divide-border/70">
-        {citations.map((citation) => (
-          <CitationItem key={citation.source.id + citation.fragment} citation={citation} />
-        ))}
-      </ul>
     </div>
   )
 }
