@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnalysisSteps, t } from '@/components/meritum'
-import type { AnalysisStatus } from '@/contracts/meritum'
+import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import { CheckResultCard } from '@/evidence'
 import { isDraft, shownResult } from './_progress'
+import { ResultState } from './_result-state'
 import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
 import type { ProgressSource, ReadOutcome, ResultReader } from './ports'
 
@@ -125,6 +126,14 @@ function errorText(outcome: ReadOutcome | null, gaveUp: boolean): string | null 
   return typeof outcome === 'string' ? t.errors[outcome] : null
 }
 
+function Card({ result }: { result: CheckResult }) {
+  return result.status === 'done' ? (
+    <CheckResultCard result={result} />
+  ) : (
+    <ResultState status={result.status} failureCode={result.failure_code} />
+  )
+}
+
 /**
  * The result page of one check: live steps streamed over SSE while it runs (the API read
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
@@ -180,7 +189,7 @@ export function ResultPage({
         </p>
       )}
       <div aria-live="polite" className="min-w-0">
-        {result && <CheckResultCard result={result} />}
+        {result && <Card result={result} />}
       </div>
     </div>
   )
