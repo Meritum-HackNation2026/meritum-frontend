@@ -46,11 +46,19 @@ function assertNoVerdict() {
 }
 
 test('a technical failure says the check failed and is not a rating, from its failure code', async () => {
-  renderResult(examples['CheckResult.failure'] as CheckResult)
+  const failure = examples['CheckResult.failure'] as CheckResult
+  renderResult({ ...failure, message: leakedCopyKey })
   assert.ok(await screen.findByText(pl.status.technical_failure))
   assert.ok(screen.getByText(pl.failure_code.web_search_unavailable))
-  assert.equal(screen.queryByText(examples['CheckResult.failure'].message), null)
   assertNoVerdict()
+})
+
+test('a state card has only the icon, the title and one line: no limitations, no AI line', async () => {
+  renderResult(nonVerdict('technical_failure', { limitation_codes: ['fact_check_unavailable'] }))
+  assert.ok(await screen.findByText(pl.status.technical_failure))
+  assert.equal(screen.queryByText(pl.result.limitations), null)
+  assert.equal(screen.queryByText(pl.limitation_code.fact_check_unavailable), null)
+  assert.equal(screen.queryByText(pl.result.ai_disclosure), null)
 })
 
 test('a technical failure without a code shows the general failure line', async () => {
@@ -93,6 +101,7 @@ test('a done result with a verdict and an opinion shows two claims', async () =>
 })
 
 test('a failure code the copy does not know yet falls back to the general failure line', async () => {
+  // a code a newer backend may send before the copy has a text for it
   const unknownCode = 'quota_exceeded' as NonNullable<CheckResult['failure_code']>
   renderResult(nonVerdict('technical_failure', { failure_code: unknownCode }))
   assert.ok(await screen.findByText(pl.status.technical_failure))

@@ -18,7 +18,7 @@ export function CheckResultCard({ result }: { result: CheckResult }) {
   return (
     <section
       aria-label={t.result.label}
-      className="min-w-0 rounded-lg border border-border bg-card text-card-foreground animate-rise"
+      className="min-w-0 rounded-lg border border-border bg-card text-card-foreground motion-safe:animate-rise"
     >
       <header className="flex items-center px-3.5 pt-3">
         <MeritumLabel />
