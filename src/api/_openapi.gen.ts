@@ -180,6 +180,8 @@ export interface paths {
          *         request: the request; its session keeps the login in progress.
          *         login: the login provider port.
          *         settings: the app settings (public address for the callback).
+         *         return_to: the page to open after login; kept with the login in
+         *             progress, anything but a relative path on this site means ``HOME``.
          *
          *     Returns:
          *         A redirect to the provider.
@@ -219,7 +221,8 @@ export interface paths {
          *         state: the state the provider sends back unchanged.
          *
          *     Returns:
-         *         A redirect to the web app's home page, with a new session.
+         *         A redirect to the page the login started from (``return_to``, else
+         *         the web app's home page), with a new session.
          *
          *     Raises:
          *         HTTPException: 400 when the state does not match the session, or the
@@ -280,9 +283,11 @@ export interface paths {
          * Logout
          * @description End the session: the cookie is replaced by an expired one.
          *
+         *     A read-only (jury) session may log out too, so this skips ``CsrfUser``.
+         *
          *     Args:
          *         request: the request whose session is cleared.
-         *         _account: the signed-in account (CSRF checked).
+         *         _account: the signed-in account (CSRF checked here, 403 on mismatch).
          *
          *     Features:
          *         US-MOD-05, US-SPR-10, F-25
@@ -314,21 +319,24 @@ export interface paths {
          *         origin: the client address and region the limits count.
          *         pii: the personal-data masking gate.
          *         readiness: the readiness probe; a service that is not ready refuses checks.
+         *         cache: the result cache; a hit starts no `check` workflow.
+         *         records: where a hit's CheckRecord goes.
+         *         settings: the app settings (the channel user hash salt).
          *         session: the random browser session id; no sign-in needed.
          *
          *     Returns:
          *         The check id, 422 with a copy key, or 503 NotReady.
          *
          *     Raises:
-         *         HTTPException: 400 without a valid session or for Discord, SMS and MCP
-         *             (they come through their adapters with a hashed user id, backend#27),
-         *             503 when the job queue is unreachable.
+         *         HTTPException: 400 without a valid session, or for Discord, SMS and MCP
+         *             without ``channel_user_id``; 503 when the job queue is unreachable or
+         *             the hash salt is not configured.
          *         CheckRefusedError: over a rate limit or with too many pending checks;
          *             answered 429 with Retry-After, nothing enqueued.
          *
          *     Features:
-         *         US-SPR-01, US-SPR-07, US-BEZ-02, US-BEZ-03, US-BEZ-04, US-WDR-03, US-WDR-08,
-         *         F-01, F-20, F-23, F-30
+         *         US-SPR-01, US-SPR-07, US-BEZ-02, US-BEZ-03, US-BEZ-04, US-BEZ-06, US-WTY-08,
+         *         US-WDR-03, US-WDR-08, US-WTY-03, US-MOD-03, F-01, F-05, F-20, F-23, F-30
          */
         post: operations["start_check_api_v1_checks_post"];
         delete?: never;
@@ -350,6 +358,7 @@ export interface paths {
          *
          *     Args:
          *         jobs: the job queue port.
+         *         cache: the result cache; filled with a finished result, read for a hit.
          *         check_id: the id POST /api/v1/checks returned.
          *         response: the response; gets the AI-Disclosure header with a result.
          *
@@ -360,7 +369,7 @@ export interface paths {
          *         HTTPException: 404 when the id is unknown.
          *
          *     Features:
-         *         US-SPR-01, US-BEZ-07, F-01, F-21
+         *         US-SPR-01, US-BEZ-07, US-WTY-03, F-01, F-05, F-21
          */
         get: operations["check_status_api_v1_checks__check_id__get"];
         put?: never;
@@ -470,6 +479,75 @@ export interface paths {
          *         US-MOD-05, F-25
          */
         delete: operations["revoke_api_v1_staff__email__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/jury-links/redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem Jury Link
+         * @description Exchange the token for a read-only analyst cookie and redirect to evaluation.
+         *
+         *     Args:
+         *         request: the request with the signed session.
+         *         origin: the client address used for rate limiting.
+         *         store: link store.
+         *
+         *     Returns:
+         *         A redirect to the evaluation page.
+         *
+         *     Raises:
+         *         HTTPException: invalid, expired, or rate-limited request, or storage error.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        post: operations["redeem_jury_link_api_v1_auth_jury_links_redeem_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/jury-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue Jury Link
+         * @description Issue a short-lived link that can be redeemed only once.
+         *
+         *     Args:
+         *         response: outgoing response with caching disabled.
+         *         store: link store.
+         *         settings: environment and public URL of the panel.
+         *         expires_at: end of the evaluation, at most 7 days ahead; 24 hours if absent.
+         *
+         *     Returns:
+         *         The URL and its deadline.
+         *
+         *     Raises:
+         *         HTTPException: 422 for an invalid deadline or 503 when storage fails.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        post: operations["issue_jury_link_api_v1_staff_jury_links_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -599,6 +677,7 @@ export interface paths {
          *
          *     Args:
          *         jobs: the job queue port.
+         *         cache: the result cache; a hit has no workflow, only its result.
          *         check_id: the id POST /api/v1/checks returned; 404 when unknown.
          *             Opening a stream counts against the address's own stream budget
          *             (429 above it).
@@ -607,7 +686,7 @@ export interface paths {
          *         One AnalysisStatus per progress value, then the final one with ``result``.
          *
          *     Features:
-         *         US-SPR-02, US-BEZ-02, F-09, F-20
+         *         US-SPR-02, US-BEZ-02, US-WTY-03, F-05, F-09, F-20
          */
         get: operations["check_events_api_v1_checks__check_id__events_get"];
         put?: never;
@@ -723,7 +802,7 @@ export interface paths {
          *     Returns:
          *         The case created or joined with its number and escalation.created or
          *         escalation.updated; with 503, escalation recommended (no number) and
-         *         escalation.recommended when the case was not saved.
+         *         escalation.not_saved when the case was not saved.
          *
          *     Raises:
          *         HTTPException: 404 when the check is not finished or has no such claim.
@@ -775,6 +854,47 @@ export interface paths {
          *         US-MOD-06, F-24, ADR-22
          */
         post: operations["dispute_claim_api_v1_checks__check_id__claims__claim_index__dispute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sms/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Webhook
+         * @description Take one gateway event: start a check, delete on USUN, or drop it.
+         *
+         *     Args:
+         *         request: the signed webhook call.
+         *         settings: the signing key, the gateway number, the salt, GSM-7 mode.
+         *         jobs: the job queue port.
+         *         sms: the gateway sender.
+         *         records: check records; none for the number means first contact.
+         *         eraser: deletes the number's checks on USUN.
+         *         pii: masks personal data in the text before it is queued.
+         *         gate: the shared rate limits and the pending-checks threshold.
+         *         background: runs the reply after the answer.
+         *
+         *     Returns:
+         *         What happened to the event.
+         *
+         *     Raises:
+         *         HTTPException: 404 when the gateway is not configured, 401 for a bad or
+         *             stale signature, 400 for a malformed event, 503 without a hash salt.
+         *
+         *     Features:
+         *         US-WTY-07, US-BEZ-06, US-BEZ-07, F-32, F-21, F-20
+         */
+        post: operations["webhook_api_v1_sms_webhook_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1325,6 +1445,26 @@ export interface components {
             message_key: string;
         };
         /**
+         * IssuedJuryLink
+         * @description The administrator's sole copy of the shareable link.
+         *
+         *     Attributes:
+         *         url: public jury page with the raw token in the URL fragment.
+         *         expires_at: last moment before the link expires.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        IssuedJuryLink: {
+            /** Url */
+            url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
          * JobState
          * @description What the caller may see about one job.
          *
@@ -1561,6 +1701,26 @@ export interface components {
             unavailable_providers: string[];
         };
         /**
+         * Received
+         * @description 202 answer to the gateway (it only looks at the status code).
+         *
+         *     Attributes:
+         *         status: accepted (a check started), duplicate (a retried event),
+         *             deleted (USUN), rejected (text not checkable), refused (over a
+         *             limit or the queue is full; no reply, so no SMS cost) or ignored.
+         *
+         *     Features:
+         *         US-WTY-07, F-32
+         */
+        Received: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "accepted" | "duplicate" | "deleted" | "rejected" | "refused" | "ignored";
+        };
+        ReturnPath: string;
+        /**
          * Source
          * @description A document from the audited corpus. Title, publisher, date and link are mandatory to show (MSZ section 2).
          */
@@ -1654,7 +1814,8 @@ export interface components {
          * @description The signed-in person and their role in the panel.
          *
          *     Attributes:
-         *         email: the verified address from the ID token.
+         *         email: the verified address from the ID token, absent for jury.
+         *         read_only: whether the member has a jury session.
          *         role: the role from the configuration or from an administrator.
          *
          *     Features:
@@ -1662,12 +1823,17 @@ export interface components {
          */
         StaffMember: {
             /** Email */
-            email: string;
+            email: string | null;
             /**
              * Role
              * @enum {string}
              */
             role: "moderator" | "analyst" | "admin";
+            /**
+             * Read Only
+             * @default false
+             */
+            read_only: boolean;
         };
         /**
          * TooManyChecks
@@ -1845,7 +2011,10 @@ export interface operations {
     };
     login_api_v1_auth_login__provider__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Path on this site to open after login, e.g. /panel. Anything else (another host, //host, a scheme, a backslash, whitespace) means /. */
+                return_to?: components["schemas"]["ReturnPath"];
+            };
             header?: never;
             path: {
                 provider: string;
@@ -2122,6 +2291,67 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    redeem_jury_link_api_v1_auth_jury_links_redeem_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Token
+                     * Format: password
+                     */
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    issue_jury_link_api_v1_staff_jury_links_post: {
+        parameters: {
+            query?: {
+                expires_at?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedJuryLink"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -2456,6 +2686,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Handoff"];
+                };
+            };
+        };
+    };
+    webhook_api_v1_sms_webhook_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Received"];
                 };
             };
         };

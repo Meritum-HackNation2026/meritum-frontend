@@ -1,4 +1,5 @@
 export { type ApiSchemas, meritumQueries } from './_client.ts'
+export { apiAdmin } from './admin.ts'
 export { apiAudioUploader } from './audio.ts'
 export { apiCheckSender } from './checks.ts'
 export { apiLatestRunSource } from './evaluation.ts'

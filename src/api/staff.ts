@@ -1,7 +1,8 @@
 import type { ModeratorCase } from '@/contracts/meritum'
 import type { StaffApi } from '@/moderation'
 import { fetchClient } from './_client'
-import { CSRF_HEADER, HTTP_FORBIDDEN, HTTP_UNAUTHORIZED } from './constants'
+import { csrfHeaders } from './_csrf'
+import { HTTP_FORBIDDEN, HTTP_UNAUTHORIZED } from './constants'
 
 /**
  * Staff API of meritum-backend through the OpenAPI client: sign-in with OIDC (backend#15), the
@@ -11,11 +12,12 @@ import { CSRF_HEADER, HTTP_FORBIDDEN, HTTP_UNAUTHORIZED } from './constants'
  * @feature US-MOD-05, US-MOD-02, F-25
  */
 export const apiStaff: StaffApi = {
-  loginUrl: (provider) => `/api/v1/auth/login/${provider}`,
+  loginUrl: (provider, returnTo) =>
+    `/api/v1/auth/login/${provider}?${new URLSearchParams({ return_to: returnTo })}`,
   async session() {
     try {
       const { data, response } = await fetchClient.GET('/api/v1/staff/me')
-      if (data) {
+      if (data?.role) {
         return { kind: 'member', email: data.email, role: data.role }
       }
       if (response.status === HTTP_UNAUTHORIZED) {
@@ -44,11 +46,9 @@ export const apiStaff: StaffApi = {
   },
   async signOut() {
     try {
-      const { data } = await fetchClient.GET('/api/v1/auth/me')
-      if (data) {
-        await fetchClient.POST('/api/v1/auth/logout', {
-          headers: { [CSRF_HEADER]: data.csrf_token },
-        })
+      const headers = await csrfHeaders()
+      if (headers) {
+        await fetchClient.POST('/api/v1/auth/logout', { headers })
       }
     } catch {
       // an unreachable API leaves the cookie, which expires on its own

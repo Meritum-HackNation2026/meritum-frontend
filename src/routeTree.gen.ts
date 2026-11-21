@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JakDzialaRouteImport } from './routes/jak-dziala'
 import { Route as PanelIndexRouteImport } from './routes/panel/index'
+import { Route as PanelAdministracjaRouteImport } from './routes/panel/administracja'
 import { Route as PrywatnoscIndexRouteImport } from './routes/prywatnosc/index'
 import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/discord'
 import { Route as PrywatnoscSmsRouteImport } from './routes/prywatnosc/sms'
@@ -31,6 +32,11 @@ const JakDzialaRoute = JakDzialaRouteImport.update({
 const PanelIndexRoute = PanelIndexRouteImport.update({
   id: '/panel/',
   path: '/panel/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelAdministracjaRoute = PanelAdministracjaRouteImport.update({
+  id: '/panel/administracja',
+  path: '/panel/administracja',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrywatnoscIndexRoute = PrywatnoscIndexRouteImport.update({
@@ -62,6 +68,7 @@ const SprawdzenieCheckIdRoute = SprawdzenieCheckIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/panel/administracja': typeof PanelAdministracjaRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/panel/administracja': typeof PanelAdministracjaRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/panel/administracja': typeof PanelAdministracjaRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
   '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/jak-dziala'
+    | '/panel/administracja'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/jak-dziala'
+    | '/panel/administracja'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/jak-dziala'
+    | '/panel/administracja'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
     | '/prywatnosc/wtyczka'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JakDzialaRoute: typeof JakDzialaRoute
+  PanelAdministracjaRoute: typeof PanelAdministracjaRoute
   PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
   PrywatnoscSmsRoute: typeof PrywatnoscSmsRoute
   PrywatnoscWtyczkaRoute: typeof PrywatnoscWtyczkaRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/panel'
       fullPath: '/panel/'
       preLoaderRoute: typeof PanelIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/administracja': {
+      id: '/panel/administracja'
+      path: '/panel/administracja'
+      fullPath: '/panel/administracja'
+      preLoaderRoute: typeof PanelAdministracjaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prywatnosc/': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JakDzialaRoute: JakDzialaRoute,
+  PanelAdministracjaRoute: PanelAdministracjaRoute,
   PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,
   PrywatnoscSmsRoute: PrywatnoscSmsRoute,
   PrywatnoscWtyczkaRoute: PrywatnoscWtyczkaRoute,

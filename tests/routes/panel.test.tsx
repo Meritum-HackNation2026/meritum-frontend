@@ -35,9 +35,9 @@ test('a person without a staff session sees the sign-in page, not the cases', as
   await openPanel()
   assert.ok(await screen.findByRole('heading', { name: pl.staff.sign_in.title }))
   const google = screen.getByRole('link', { name: pl.account.sign_in_google })
-  assert.equal(google.getAttribute('href'), '/api/v1/auth/login/google')
+  assert.equal(google.getAttribute('href'), '/api/v1/auth/login/google?return_to=%2Fpanel')
   const microsoft = screen.getByRole('link', { name: pl.account.sign_in_microsoft })
-  assert.equal(microsoft.getAttribute('href'), '/api/v1/auth/login/microsoft')
+  assert.equal(microsoft.getAttribute('href'), '/api/v1/auth/login/microsoft?return_to=%2Fpanel')
   assert.equal(paths(fetch).includes('/api/v1/moderation/cases'), false)
 })
 
@@ -143,7 +143,7 @@ test('an analyst sees evaluation in the navigation and never asks for cases', as
   assert.equal(paths(fetch).includes('/api/v1/moderation/cases'), false)
 })
 
-test('an administrator sees the cases and evaluation', async (t) => {
+test('an administrator sees the cases, evaluation and administration', async (t) => {
   fakeApi(t, {
     '/api/v1/staff/me': [200, { email: 'admin@example.org', role: 'admin' }],
     '/api/v1/moderation/cases': [200, [quietCase]],
@@ -154,7 +154,7 @@ test('an administrator sees the cases and evaluation', async (t) => {
     within(nav)
       .getAllByRole('link')
       .map((link) => link.textContent),
-    [pl.moderation.queue_title, pl.evaluation.title],
+    [pl.moderation.queue_title, pl.evaluation.title, pl.staff.admin.title],
   )
   assert.ok(screen.getByText(quietCase.summary))
 })
@@ -166,7 +166,7 @@ test('a signed-in account without a role is told to ask the administrator', asyn
   assert.equal(paths(fetch).includes('/api/v1/moderation/cases'), false)
 })
 
-test('signing out sends the CSRF token and returns to the sign-in page', async (t) => {
+test('signing out sends the CSRF token and goes to the home page', async (t) => {
   let isSignedIn = true
   const fetch = t.mock.method(globalThis, 'fetch', (input: unknown) => {
     const path = requestPath(input)
@@ -183,9 +183,9 @@ test('signing out sends the CSRF token and returns to the sign-in page', async (
     }
     return Promise.resolve(answers[path] ?? Response.json([]))
   })
-  await openPanel()
+  const router = await openPanel()
   fireEvent.click(await screen.findByRole('button', { name: pl.account.sign_out }))
-  assert.ok(await screen.findByText(pl.staff.sign_in.signed_out))
+  await waitFor(() => assert.equal(router.state.location.pathname, '/'))
   const logout = fetch.mock.calls
     .map((call) => call.arguments[0])
     .find((input) => requestPath(input) === '/api/v1/auth/logout')
