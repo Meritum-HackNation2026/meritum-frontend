@@ -3,9 +3,10 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
 const agents = readFileSync('AGENTS.md', 'utf8')
+const importLine = /^@AGENTS\.md$/m
 
 test('CLAUDE.md imports AGENTS.md', () => {
-  assert.match(readFileSync('CLAUDE.md', 'utf8'), /^@AGENTS\.md$/m)
+  assert.match(readFileSync('CLAUDE.md', 'utf8'), importLine)
 })
 
 test('AGENTS.md keeps the rule groups issue #52 asks for', () => {
