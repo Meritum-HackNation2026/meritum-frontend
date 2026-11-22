@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCallback } from 'react'
 import { apiAnswers, apiStaff } from '@/api'
+import { inRail } from '@/components/app-shell'
 import { caseIdOf, caseParam, loadPanel, Panel } from '@/moderation'
 
 /**
@@ -29,6 +30,7 @@ function CasePage() {
       answers={apiAnswers}
       openCaseId={caseIdOf(caseId)}
       onOpenCase={openCase}
+      rail={inRail}
     />
   )
 }

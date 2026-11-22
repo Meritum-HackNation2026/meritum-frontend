@@ -42,7 +42,7 @@ export function AnswerForm({
   )
   const general = errors.find((e) => e.row === null)
   return (
-    <form onSubmit={form.submit} noValidate className="grid gap-3 border-t pt-4">
+    <form onSubmit={form.submit} noValidate className="grid gap-3 pt-4">
       <h3 className="text-body font-bold">{copy.title}</h3>
       <label htmlFor={`${caseId}-answer`} className="text-small font-semibold">
         {copy.text_label}

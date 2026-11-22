@@ -91,3 +91,11 @@ export const DEMO_VALIDITIES = [
  * @feature US-OBS-06, F-28
  */
 export const MS_PER_HOUR = 3_600_000
+
+/**
+ * From this width the rail stands beside the column (Tailwind `lg` in the layout), so the
+ * panel navigation moves into it; below it the navigation stands before the content.
+ *
+ * @feature US-MOD-05, US-DST-01, F-25, F-01
+ */
+export const WIDE_SCREEN_QUERY = '(min-width: 64rem)'

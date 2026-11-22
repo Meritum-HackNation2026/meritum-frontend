@@ -22,7 +22,7 @@ export function AnswerSent({ draft, sources }: { draft: AnswerDraft; sources: An
       ref={section}
       tabIndex={-1}
       aria-labelledby="answer-sent-title"
-      className="grid gap-3 border-t pt-4 outline-none"
+      className="grid gap-3 pt-4 outline-none"
     >
       <h3 id="answer-sent-title" className="text-body font-bold">
         {copy.sent_title}

@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { apiEval, apiStaff } from '@/api'
+import { Rail } from '@/components/app-shell'
 import { Panel } from '@/moderation'
 import { EvalPage, loadEval } from '@/observability'
 
@@ -25,7 +26,7 @@ function EvalRoute() {
   const { session, runs } = Route.useLoaderData()
   const readOnly = session.kind === 'member' && session.readOnly
   return (
-    <Panel data={{ session }} api={apiStaff}>
+    <Panel data={{ session }} api={apiStaff} rail={(content) => <Rail>{content}</Rail>}>
       <EvalPage runs={runs} api={apiEval} readOnly={readOnly} />
     </Panel>
   )

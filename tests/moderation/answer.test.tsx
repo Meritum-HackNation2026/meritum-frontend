@@ -132,6 +132,7 @@ test('the panel marks the answered case „z odpowiedzią” in the queue', asyn
           session: { kind: 'member', email: null, role: 'moderator', readOnly: false },
           cases: [open],
         }}
+        rail={(content) => content}
       />
     </TooltipProvider>,
   )
