@@ -1,6 +1,8 @@
 import { useLocation } from '@tanstack/react-router'
+import { type FormEvent, useCallback, useState } from 'react'
 import { t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { LOGIN_PROVIDERS } from './constants'
 import type { LoginProvider, StaffApi } from './ports'
 
@@ -37,6 +39,50 @@ export function SignIn({ api, notice }: { api: StaffApi; notice: string | null }
           </Button>
         ))}
       </div>
+      <JuryForm />
     </section>
+  )
+}
+
+/**
+ * Login and password for the jury: the API signs them in as the demo administrator.
+ *
+ * @returns The form; the page reloads into the panel after a good password.
+ * @feature US-MOD-05, F-25
+ */
+function JuryForm() {
+  const [error, setError] = useState('')
+  const submit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const data = new FormData(event.currentTarget)
+    const response = await fetch('/api/v1/auth/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: data.get('login'), password: data.get('password') }),
+    })
+    if (response.ok) window.location.reload()
+    else setError('Nieprawidłowy login lub hasło.')
+  }, [])
+  return (
+    <form onSubmit={submit} className="grid gap-2 border-t pt-4" aria-labelledby="jury-sign-in">
+      <h2 id="jury-sign-in" className="text-body font-bold">
+        Logowanie dla jury
+      </h2>
+      <Input name="login" autoComplete="username" placeholder="Login" aria-label="Login" required />
+      <Input
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        placeholder="Hasło"
+        aria-label="Hasło"
+        required
+      />
+      <p role="alert" className="text-body text-destructive empty:hidden">
+        {error}
+      </p>
+      <Button type="submit" size="lg" className="h-11 rounded-pill">
+        Zaloguj
+      </Button>
+    </form>
   )
 }

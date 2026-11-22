@@ -4,6 +4,7 @@ import type { Handoff } from '@/moderation'
 import { AccountSection, useAccount } from './_account'
 import { useAttachments } from './_attachments'
 import { DeleteChecksDialog, useErase } from './_delete-checks'
+import { FileDrop } from './_file-drop'
 import { rememberQuestion } from './_history'
 import { historyItems } from './_new-check'
 import { PageArchive } from './_page-archive'
@@ -169,20 +170,22 @@ export function CheckPage({
           <div aria-live="polite" className="min-w-0 empty:hidden *:mb-3">
             {attachments.messages}
           </div>
-          <Composer
-            value={value}
-            onValueChange={setValue}
-            onSubmit={send}
-            pending={busy}
-            serverError={refusal}
-            tools={attachments.tools}
-            attachment={attachments.attachment}
-            onSendAttachment={attachments.onSend}
-            placeholder={t.conversation.next_placeholder}
-            // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
-            // row ran out; this reaches into it until the design system lets it shrink
-            className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
-          />
+          <FileDrop {...attachments.drop} disabled={busy}>
+            <Composer
+              value={value}
+              onValueChange={setValue}
+              onSubmit={send}
+              pending={busy}
+              serverError={refusal}
+              tools={attachments.tools}
+              attachment={attachments.attachment}
+              onSendAttachment={attachments.onSend}
+              placeholder={t.conversation.next_placeholder}
+              // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
+              // row ran out; this reaches into it until the design system lets it shrink
+              className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
+            />
+          </FileDrop>
         </section>
       )}
       <div className="grid gap-1.5 text-small text-muted-foreground text-pretty">

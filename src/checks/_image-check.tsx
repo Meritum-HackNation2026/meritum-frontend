@@ -39,7 +39,7 @@ async function checkImage(
 /**
  * A screenshot or photo attached to the message field (ADR-30): the chosen file, sending it
  * (upload, then a check of its `image_id`) and the first refusal. A file over `MAX_IMAGE_MB` is
- * refused before it is sent. An accepted check is handed on with its id and the thread's line
+ * refused as soon as it is attached. An accepted check is handed on with its id and the thread's line
  * for the file.
  *
  * @param uploader - Uploads the image (the `src/api` adapter in the app).
@@ -79,22 +79,26 @@ export function useImageCheck(
       setPending(false)
     }
   }, [file, uploader, sender, onAccepted])
-  const pick = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const chosen = event.target.files?.[0] ?? null
-      setFile(chosen)
-      setRefusal(null)
-      if (chosen) {
-        onPicked()
-      }
-    },
-    [onPicked],
-  )
   const remove = useCallback(() => {
     setFile(null)
     setRefusal(null)
   }, [])
-  return { file, pending, refusal, send, pick, remove }
+  const attach = useCallback(
+    (chosen: File) => {
+      setFile(chosen)
+      setRefusal(chosen.size > MAX_IMAGE_BYTES ? 'image_too_large' : null)
+      onPicked()
+    },
+    [onPicked],
+  )
+  const pick = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const chosen = event.target.files?.[0]
+      return chosen ? attach(chosen) : remove()
+    },
+    [attach, remove],
+  )
+  return { file, pending, refusal, send, pick, attach, remove }
 }
 
 type ImageCheck = ReturnType<typeof useImageCheck>
