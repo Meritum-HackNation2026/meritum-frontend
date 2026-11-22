@@ -172,7 +172,7 @@ export function CheckPage({
             (erased ? t.channel_privacy.deleted : t.extension.popup_delete_failed)}
         </p>
       </div>
-      <div className="sticky bottom-0 z-10 -mx-4 grid bg-background px-4 pt-2 pb-4">
+      <div className="sticky bottom-0 z-10 -mx-4 grid bg-background px-4 pt-2 pb-3 sm:pb-4">
         <div aria-live="polite" className="min-w-0 *:mb-3">
           <RecordingRefusal recording={recording} />
         </div>

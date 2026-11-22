@@ -33,7 +33,7 @@ export function PanelLink({ api }: { api: StaffApi }) {
   return (
     <Link
       to="/panel"
-      className="rounded-md text-small font-semibold underline-offset-3 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+      className="rounded-md text-small whitespace-nowrap font-semibold underline-offset-3 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
     >
       {t.staff.sign_in.title}
     </Link>

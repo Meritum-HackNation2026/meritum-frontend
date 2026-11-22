@@ -149,7 +149,8 @@ for (const [kind, send, question] of [
     'a recording',
     () => {
       const file = new File(['ID3'], 'wywiad.mp3', { type: 'audio/mpeg' })
-      const picker = screen.getByLabelText(pl.conversation.attach_audio)
+      fireEvent.click(screen.getByRole('button', { name: pl.conversation.attach_audio }))
+      const picker = document.querySelector('input[type="file"]') as HTMLInputElement
       fireEvent.change(picker, { target: { files: [file] } })
       fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
     },

@@ -33,13 +33,13 @@ function Layout() {
     <TooltipProvider>
       <div className="min-h-dvh">
         <header className="border-b bg-card">
-          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
             <MeritumMark className="size-7" />
             <div>
               <p className="text-body font-semibold">Meritum</p>
               <p className="text-small text-muted-foreground">obywatelski radar dezinformacji</p>
             </div>
-            <div className="ml-auto flex items-center gap-3">
+            <div className="ml-auto flex shrink-0 items-center gap-3">
               <PanelLink api={apiStaff} />
               <Notifications inbox={inbox} />
             </div>

@@ -58,8 +58,15 @@ function audioForm(): HTMLElement {
   return screen.getByRole('form', { name: pl.form.title })
 }
 
+const fileInput = () => document.querySelector('input[type="file"]') as HTMLInputElement
+
+function openMicrophone() {
+  fireEvent.click(screen.getByRole('button', { name: pl.conversation.attach_audio }))
+}
+
 function choose(file: File) {
-  fireEvent.change(screen.getByLabelText(pl.conversation.attach_audio), {
+  openMicrophone()
+  fireEvent.change(fileInput(), {
     target: { files: [file] },
   })
 }
@@ -174,10 +181,10 @@ test('the file cannot be changed while the recording is sent', async (t) => {
   t.mock.method(globalThis, 'fetch', () => new Promise<Response>((resolve) => (answer = resolve)))
   renderPage()
   chooseAndCheck(recording())
-  const input = screen.getByLabelText(pl.conversation.attach_audio)
-  await waitFor(() => assert.equal((input as HTMLInputElement).disabled, true))
+  const button = () => screen.getByRole('button', { name: pl.conversation.attach_audio })
+  await waitFor(() => assert.equal((button() as HTMLButtonElement).disabled, true))
   answer(new Response(JSON.stringify({ detail: 'x' }), { status: 500 }))
-  await waitFor(() => assert.equal((input as HTMLInputElement).disabled, false))
+  await waitFor(() => assert.equal((button() as HTMLButtonElement).disabled, false))
 })
 
 test('a recording the API finds too large shows the size message', async (t) => {
@@ -186,4 +193,16 @@ test('a recording the API finds too large shows the size message', async (t) => 
   chooseAndCheck(recording())
   const alert = await within(audioForm()).findByRole('alert')
   assert.equal(alert.textContent, 'Plik jest za duży. Wyślij nagranie do 20 MB albo je przytnij.')
+})
+
+test('the microphone button says who transcribes, the cost and retention before any file is chosen', () => {
+  renderPage()
+  assert.equal(document.body.textContent?.includes(pl.form.audio_cost), false)
+  openMicrophone()
+  const text = document.body.textContent ?? ''
+  assert.ok(text.includes(pl.form.audio_cost))
+  assert.ok(
+    text.includes('Transkrypcję robi Google Speech-to-Text v2 (Chirp 3) (GCP, multi-region eu).'),
+  )
+  assert.ok(text.includes('najpóźniej po 30 dniach.'))
 })
