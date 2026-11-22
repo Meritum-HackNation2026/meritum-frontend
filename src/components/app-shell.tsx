@@ -26,6 +26,18 @@ export function Rail({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Puts content into the rail. A stable function for components that take the rail as a render
+ * prop (the check page, the panel), so routes do not pass a new arrow function on every render.
+ *
+ * @param content - The rail content.
+ * @returns The content wrapped in Rail.
+ * @feature US-DST-01, F-01
+ */
+export function inRail(content: ReactNode) {
+  return <Rail>{content}</Rail>
+}
+
+/**
  * Layout of every page: the „Przejdź do treści” link (WCAG 2.4.1), the sticky top bar, the main
  * region with a column up to 720 px from the bar's left edge and a rail slot of 320 px inside a
  * container up to 1152 px (DESIGN_SYSTEM.md 5), and the one-row footer. A page that holds

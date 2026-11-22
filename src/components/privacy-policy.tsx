@@ -1,18 +1,28 @@
 import { Link } from '@tanstack/react-router'
+import { FileTextIcon } from 'lucide-react'
 import { useId } from 'react'
+import { Rail } from '@/components/app-shell'
+import { OnPageToc } from '@/components/on-page-toc'
 import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
 
 type Channel = keyof typeof privacy.policies
 type Processor = (typeof privacy.processors.items)[number]
 
-// The channel policies, linked from every policy page since the footer has only „Prywatność”.
 const policyPages = [
   ['/prywatnosc', privacy.policies.web.title],
   ['/prywatnosc/discord', privacy.policies.discord.title],
   ['/prywatnosc/wtyczka', privacy.policies.extension.title],
   ['/prywatnosc/sms', privacy.policies.sms.title],
 ] as const
+
+// Anchors of the titled sections, for „Na tej stronie” in the rail.
+const anchors = {
+  controller: 'administrator',
+  signIn: 'logowanie',
+  processors: 'podmioty',
+  mcp: 'klienci-mcp',
+}
 
 const { columns } = privacy.processors
 const registry: Processor[] = [...privacy.processors.items, ...privacy.processors.planned_items]
@@ -38,13 +48,13 @@ function ProcessorTable({ lead, items }: { lead: string; items: Processor[] }) {
         aria-labelledby={leadId}
         // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must take focus to scroll by keyboard (WCAG 2.1.1)
         tabIndex={0}
-        className="overflow-x-auto rounded-lg border focus-visible:outline-2 focus-visible:outline-ring"
+        className="overflow-x-auto rounded-md focus-visible:outline-2 focus-visible:outline-ring"
       >
         <table aria-labelledby={leadId} className="w-full text-left text-small">
-          <thead className="bg-muted">
+          <thead className="text-meta text-muted-foreground">
             <tr>
               {[columns.name, columns.region, columns.data, columns.purpose].map((label) => (
-                <th key={label} scope="col" className="px-3 py-2 font-semibold">
+                <th key={label} scope="col" className="py-2 pr-4 font-normal">
                   {label}
                 </th>
               ))}
@@ -52,13 +62,13 @@ function ProcessorTable({ lead, items }: { lead: string; items: Processor[] }) {
           </thead>
           <tbody>
             {items.map((p) => (
-              <tr key={p.id} className="border-t align-top">
-                <th scope="row" className="px-3 py-2 font-semibold">
+              <tr key={p.id} className="align-top">
+                <th scope="row" className="py-2 pr-4 font-semibold">
                   {p.name}
                 </th>
-                <td className="px-3 py-2">{p.region}</td>
-                <td className="px-3 py-2">{p.data}</td>
-                <td className="px-3 py-2">{p.purpose}</td>
+                <td className="py-2 pr-4">{p.region}</td>
+                <td className="py-2 pr-4">{p.data}</td>
+                <td className="py-2 pr-4">{p.purpose}</td>
               </tr>
             ))}
           </tbody>
@@ -68,10 +78,37 @@ function ProcessorTable({ lead, items }: { lead: string; items: Processor[] }) {
   )
 }
 
+// The other channels' policies, linked from every policy page since the footer has only „Prywatność”.
+function PolicyLinks() {
+  const titleId = useId()
+  return (
+    <nav aria-labelledby={titleId} className="grid gap-3">
+      <h2 id={titleId} className="flex items-center gap-2 font-semibold text-small">
+        <FileTextIcon aria-hidden="true" className="size-4 shrink-0" />
+        <span>{pl.nav.privacy}</span>
+      </h2>
+      <ul className="-mx-3 grid gap-0.5">
+        {policyPages.map(([to, title]) => (
+          <li key={to}>
+            <Link
+              to={to}
+              activeOptions={{ exact: true }}
+              className="block rounded-lg px-3 py-1.5 text-muted-foreground text-small text-pretty hover:bg-muted hover:text-foreground aria-[current=page]:font-semibold aria-[current=page]:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              {title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
 /**
  * One channel's privacy policy: who controls the data, what is processed and why, how
  * long it is kept, how to delete it, aggregate telemetry, IP addresses and the processors
- * of that channel from the ADR-14 register. Every text comes from copy/privacy.json.
+ * of that channel from the ADR-14 register. The rail holds „Na tej stronie” and the links to
+ * every channel's policy. Every text comes from copy/privacy.json.
  *
  * @param props.channel - The channel whose policy to show.
  * @returns The policy as an article.
@@ -81,25 +118,20 @@ function ProcessorTable({ lead, items }: { lead: string; items: Processor[] }) {
 export function PrivacyPolicy({ channel }: { channel: Channel }) {
   const policy = privacy.policies[channel]
   const { controller, external_mcp_clients: mcp } = privacy
+  const sections = [
+    { id: anchors.controller, title: controller.title },
+    ...('sign_in' in policy ? [{ id: anchors.signIn, title: policy.sign_in.title }] : []),
+    { id: anchors.processors, title: privacy.processors.title },
+    { id: anchors.mcp, title: mcp.title },
+  ]
   return (
     <article className="space-y-8 text-body">
+      <Rail>
+        <OnPageToc sections={sections} />
+        <PolicyLinks />
+      </Rail>
       <h1 className="text-title font-semibold">{policy.title}</h1>
-      <nav aria-label={pl.nav.privacy}>
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-small">
-          {policyPages.map(([to, title]) => (
-            <li key={to}>
-              <Link
-                to={to}
-                activeOptions={{ exact: true }}
-                className="inline-flex min-h-11 items-center rounded-md text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground aria-[current=page]:font-semibold focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
-              >
-                {title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <section className="space-y-2">
+      <section id={anchors.controller} className="space-y-2">
         <h2 className="font-semibold">{controller.title}</h2>
         <p>{controller.name}</p>
         <p>{controller.no_partnership}</p>
@@ -117,14 +149,14 @@ export function PrivacyPolicy({ channel }: { channel: Channel }) {
         <p>{policy.ip_addresses}</p>
       </section>
       {'sign_in' in policy && (
-        <section className="space-y-2">
+        <section id={anchors.signIn} className="space-y-2">
           <h2 className="font-semibold">{policy.sign_in.title}</h2>
           <p>{policy.sign_in.scopes}</p>
           <p>{policy.sign_in.purpose}</p>
           <p>{policy.sign_in.retention}</p>
         </section>
       )}
-      <section className="space-y-3">
+      <section id={anchors.processors} className="space-y-3">
         <h2 className="font-semibold">{privacy.processors.title}</h2>
         <ProcessorTable lead={policy.processors_lead} items={lookup(policy.processors)} />
         <ProcessorTable
@@ -132,7 +164,7 @@ export function PrivacyPolicy({ channel }: { channel: Channel }) {
           items={lookup(policy.planned_processors)}
         />
       </section>
-      <section className="space-y-2">
+      <section id={anchors.mcp} className="space-y-2">
         <h2 className="font-semibold">{mcp.title}</h2>
         <p>{mcp.text}</p>
       </section>

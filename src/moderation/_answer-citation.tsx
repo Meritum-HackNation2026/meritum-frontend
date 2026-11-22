@@ -61,7 +61,7 @@ export function AnswerCitationFields({
   const remove = useCallback(() => onRemove(row.key), [onRemove, row.key])
   const list = Array.isArray(sources) ? sources : []
   return (
-    <fieldset className="grid gap-2 border-t pt-3">
+    <fieldset className="grid gap-2 pt-3">
       <legend className="sr-only">{`${copy.citations_title} ${position}`}</legend>
       <label htmlFor={`${id}-source`} className="text-small font-semibold">
         {copy.source_label}

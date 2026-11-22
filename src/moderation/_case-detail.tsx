@@ -56,7 +56,7 @@ export function CaseDetail({
   const checkIds = c.claims.flatMap((claim) => claim.check_ids)
   const titleId = `case-${c.id}`
   return (
-    <article aria-labelledby={titleId} className="grid gap-4 rounded-lg border bg-card p-5">
+    <article aria-labelledby={titleId} className="grid gap-4">
       <header className="grid gap-1">
         <p className="flex flex-wrap items-center gap-2 text-small text-muted-foreground">
           <span className="font-mono">{c.id}</span>
@@ -88,7 +88,7 @@ export function CaseDetail({
       </p>
       <ol className="grid gap-3">
         {c.claims.map((claim) => (
-          <li key={claim.claim} className="grid gap-1 border-t pt-3">
+          <li key={claim.claim} className="grid gap-1">
             <p className="text-body">{claim.claim}</p>
             <ul className="flex flex-wrap gap-x-3 text-small">
               {claim.check_ids.map((checkId) => (

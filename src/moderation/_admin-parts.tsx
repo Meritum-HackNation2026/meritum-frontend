@@ -99,18 +99,18 @@ export function Field(props: {
 }
 
 /**
- * Classes of the lists on the administration page, matching the case queue's table.
+ * Classes of the lists on the administration page, matching the case queue's table: no rules
+ * between rows, and a wide table scrolls in its own box that takes focus.
  *
  * @feature US-MOD-05, F-25
  */
 export const tableClass = {
-  wrap: 'overflow-x-auto',
+  wrap: 'overflow-x-auto rounded-md focus-visible:outline-2 focus-visible:outline-ring',
   table: 'w-full border-collapse text-small',
   head: 'text-left text-meta text-muted-foreground',
   th: 'py-2 pr-4 font-normal',
-  row: 'border-t border-border/70 align-middle',
+  row: 'align-middle',
   td: 'py-2 pr-4',
-  empty:
-    'rounded-md border border-dashed border-border px-3 py-2.5 text-small text-muted-foreground',
+  empty: 'text-small text-muted-foreground',
   input: 'h-11 rounded-md text-body',
 }

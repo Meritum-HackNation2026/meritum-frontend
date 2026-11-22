@@ -29,7 +29,7 @@ function Metrics({ metrics }: { metrics: EvalMetrics }) {
   return (
     <dl className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
       {measured.map(([key, value]) => (
-        <div key={key} className="flex justify-between gap-4 border-b py-1.5 text-small">
+        <div key={key} className="flex justify-between gap-4 py-1.5 text-small">
           <dt>{t.method.metrics.names[key]}</dt>
           <dd className="tabular-nums">{formatMetric(value)}</dd>
         </div>
@@ -121,7 +121,7 @@ export function RunItem({
   )
   const dataset = run.dataset === GOLDEN_SET ? t.evaluation.golden_set : run.dataset
   return (
-    <li className="flex items-start gap-3 rounded-lg border bg-card p-3">
+    <li className="flex items-start gap-3">
       <input
         type="checkbox"
         aria-labelledby={labelId}

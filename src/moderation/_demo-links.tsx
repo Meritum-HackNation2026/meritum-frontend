@@ -37,7 +37,7 @@ function LinkRow(props: {
   }, [props, link.url])
   const revoke = useCallback(() => props.onRevoke(link), [props, link])
   return (
-    <li className="grid gap-2 border-t border-border/70 py-3">
+    <li className="grid gap-2 py-3">
       <p className="text-small">
         <span id={nameId} className="font-semibold">
           {accountName(link.account)}

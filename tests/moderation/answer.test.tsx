@@ -14,7 +14,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import examples from '@/contracts/examples.json'
 import type { ModeratorCase } from '@/contracts/meritum'
@@ -26,6 +26,7 @@ const a = pl.moderation.answer
 const fragmentText = /gotówka jest prawnym środkiem/
 const noChannel = /discord|sms|\+48/i
 const noop = () => undefined
+const sameContent = (content: ReactNode) => content
 const failIfSent = () => assert.fail('sent')
 const open = examples.ModeratorCase as ModeratorCase
 
@@ -132,6 +133,7 @@ test('the panel marks the answered case „z odpowiedzią” in the queue', asyn
           session: { kind: 'member', email: null, role: 'moderator', readOnly: false },
           cases: [open],
         }}
+        rail={sameContent}
       />
     </TooltipProvider>,
   )

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { type ReactNode, useCallback, useContext } from 'react'
+import { useCallback, useContext } from 'react'
 import {
   apiAccount,
   apiArchives,
@@ -13,7 +13,7 @@ import {
 } from '@/api'
 import { CheckPage } from '@/checks'
 import { AiNotice } from '@/components/ai-notice'
-import { Rail } from '@/components/app-shell'
+import { inRail } from '@/components/app-shell'
 import { InboxContext } from '@/notifications'
 
 /**
@@ -57,8 +57,4 @@ function Result() {
       notice={<AiNotice />}
     />
   )
-}
-
-function inRail(content: ReactNode) {
-  return <Rail>{content}</Rail>
 }

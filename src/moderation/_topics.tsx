@@ -45,7 +45,8 @@ function TopicList(props: { topics: RiskTopic[]; onRemove: (name: string) => voi
     return <p className={tableClass.empty}>{copy.empty}</p>
   }
   return (
-    <div className={tableClass.wrap}>
+    // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must take focus to scroll by keyboard (WCAG 2.1.1)
+    <div className={tableClass.wrap} tabIndex={0}>
       <table className={tableClass.table}>
         <thead>
           <tr className={tableClass.head}>
