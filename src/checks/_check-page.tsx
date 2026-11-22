@@ -1,12 +1,11 @@
 import { type ReactNode, useCallback, useState } from 'react'
 import { Composer, fill, t, Welcome } from '@/components/meritum'
-import type { CheckRequest } from '@/contracts/meritum'
 import type { Handoff } from '@/moderation'
 import { AccountSection, useAccount } from './_account'
 import { useAttachments } from './_attachments'
 import { DeleteChecksDialog } from './_delete-checks'
 import { forgetChecks, rememberQuestion } from './_history'
-import { type ErrorKey, validateCheck } from './_request'
+import { useSend } from './_send'
 import { conversationTurns, Thread, withAccountTurns } from './_thread'
 import type { PageArchives } from './archive/ports'
 import { RETENTION_DAYS } from './constants'
@@ -17,7 +16,6 @@ import type {
   ImageUploader,
   ProgressSource,
   ResultReader,
-  SendOutcome,
   SessionEraser,
 } from './ports'
 
@@ -42,34 +40,6 @@ function useErase(
   }, [eraser, onErased, onEmptied])
   const ask = useCallback(() => setConfirming(true), [])
   return { confirming, setConfirming, ask, erased, erase }
-}
-
-/** Sends a typed or picked request: zod first, then the API; an accepted check is handed on. */
-function useSend(sender: CheckSender, onAccepted: (checkId: string, question: string) => void) {
-  const [sending, setSending] = useState(false)
-  const [outcome, setOutcome] = useState<SendOutcome | ErrorKey | null>(null)
-  const send = useCallback(
-    async (form: CheckRequest) => {
-      const request = validateCheck(form)
-      if (typeof request === 'string') {
-        setOutcome(request)
-        return
-      }
-      setSending(true)
-      setOutcome(null)
-      try {
-        const next = await sender.send(request)
-        setOutcome(next)
-        if (typeof next === 'object') {
-          onAccepted(next.checkId, request.text ?? request.url ?? '')
-        }
-      } finally {
-        setSending(false)
-      }
-    },
-    [sender, onAccepted],
-  )
-  return { sending, refusal: typeof outcome === 'string' ? outcome : null, send }
 }
 
 type CheckPageProps = {

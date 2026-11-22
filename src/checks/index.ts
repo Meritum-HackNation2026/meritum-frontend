@@ -1,6 +1,7 @@
 export { AccountMenu } from './_account-menu'
 export { CheckPage } from './_check-page'
 export { findSavedCheck, forgetChecks, rememberQuestion, saveCheck, savedChecks } from './_history'
+export { NewCheckPage, SessionHistory } from './_new-check'
 export { PageArchive } from './_page-archive'
 export { validateCheck } from './_request'
 export { ResultPage } from './_result-page'

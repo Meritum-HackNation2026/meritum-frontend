@@ -9,9 +9,8 @@ import pl from '@/copy/pl.json'
 import { PanelLink } from '@/moderation'
 import { type Inbox, Notifications } from '@/notifications'
 
-// „Sprawdź” points at the home page until the check page /sprawdz exists (issue 123 in this repo).
 const navLinks = [
-  { to: '/', label: pl.nav.check, icon: SearchCheckIcon, exact: true },
+  { to: '/sprawdz', label: pl.nav.check, icon: SearchCheckIcon, exact: true },
   { to: '/jak-dziala', label: pl.nav.how, icon: BookOpenIcon, exact: false },
 ] as const
 
