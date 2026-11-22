@@ -1,7 +1,8 @@
 import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { apiNotifications, apiStaff } from '@/api'
 import { MeritumMark } from '@/components/meritum/meritum-mark'
+import { usePageTitle } from '@/components/page-title'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
@@ -28,6 +29,8 @@ const footerLinks = [
 
 function Layout() {
   const [inbox] = useState(() => createInbox(apiNotifications))
+  const main = useRef<HTMLElement>(null)
+  usePageTitle(main)
   // components/meritum/README.md: hints (InfoButton) need one TooltipProvider around the app
   return (
     <TooltipProvider>
@@ -36,8 +39,8 @@ function Layout() {
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
             <MeritumMark className="size-7" />
             <div>
-              <p className="text-body font-semibold">Meritum</p>
-              <p className="text-small text-muted-foreground">obywatelski radar dezinformacji</p>
+              <p className="text-body font-semibold">{pl.brand.name}</p>
+              <p className="text-small text-muted-foreground">{pl.brand.subtitle}</p>
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-3">
               <PanelLink api={apiStaff} />
@@ -45,7 +48,7 @@ function Layout() {
             </div>
           </div>
         </header>
-        <main className="mx-auto max-w-3xl px-4 py-8">
+        <main ref={main} className="mx-auto max-w-3xl px-4 py-8">
           <InboxContext value={inbox}>
             <Outlet />
           </InboxContext>
