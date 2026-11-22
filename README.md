@@ -44,6 +44,8 @@ Adaptery w `src/api` wołają REST przez klienta [openapi-fetch](https://openapi
 
 Zapytanie z formularza sprawdza przed wysłaniem schemat [zod](https://zod.dev/) (`validateCheck` w `src/checks`), z tymi samymi limitami co kontrakt; odmowa to klucz `errors` z `copy/pl.json`. Stan po stronie klienta trzymamy w [zustand](https://zustand.docs.pmnd.rs/), tabele budujemy na [TanStack Table](https://tanstack.com/table) v9; przykład obu z hookiem `meritumQueries` jest w `tests/api/queries.test.tsx`, a pierwsze prawdziwe użycie będzie w panelu moderatora.
 
+Pole sprawdzania przyjmuje też pliki bez przycisków: obraz (PNG, JPEG, WebP do 10 MB) albo nagranie (OGG, MP3, M4A, WAV do 20 MB) można wkleić ze schowka albo upuścić na pole (`FileDrop` w `src/checks`). Wklejony tekst zostaje tekstem. Limity są te same co w API; innych plików, na przykład PDF, backend nie przyjmuje, więc pole odpowiada `errors.file_unsupported`. Pytania wysłanego razem z obrazem nie ma, bo w kontrakcie `image_id` wyklucza `text`.
+
 ## Źródła komponentów
 
 Komponentu szukamy w tej kolejności i bierzemy z pierwszego źródła, które go ma:

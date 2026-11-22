@@ -101,7 +101,8 @@
     "audio_question": "Nagranie: {name}",
     "attach_image": "Dodaj obraz",
     "remove_image": "Usuń obraz",
-    "image_question": "Obraz: {name}"
+    "image_question": "Obraz: {name}",
+    "drop_hint": "Upuść tutaj obraz albo nagranie"
   },
   "recording": {
     "$comment": "Live voice recording in the message field (meritum-frontend#81). start and stop name the buttons; elapsed names the timer and level the sound meter for screen readers; listen and discard act on the finished recording; file_name is the name the recording gets in the thread. The three errors replace the recording control only, adding a file stays possible. limit_reached has the {max_minutes} limit of form.audio_limits.",
@@ -590,6 +591,8 @@
     "audio_too_long": "Nagranie jest za długie. Wyślij najwyżej {max_minutes} min albo je przytnij.",
     "image_too_large": "Obraz jest za duży. Wyślij plik do {max_mb} MB albo przytnij zrzut ekranu.",
     "image_format_unsupported": "Nie umiemy odczytać tego pliku. Wyślij obraz w formacie {formats}.",
+    "file_unsupported": "Takich plików jeszcze nie sprawdzamy. Wyślij obraz ({image_formats}) albo nagranie ({audio_formats}), albo wklej tekst lub link.",
+    "one_file": "Sprawdzamy jeden plik naraz. Dodaliśmy pierwszy: {name}.",
     "check_not_found": "Nie mamy zapisanego wyniku pod tym adresem. Zapis mógł zostać usunięty albo adres jest nieprawidłowy. To nie jest ocena treści. Wklej treść jeszcze raz i kliknij „Sprawdź”.",
     "rate_limited_handoff": "Za dużo zgłoszeń w krótkim czasie. Spróbuj za minutę.",
     "handoff_not_found": "Tego wyniku nie da się już przekazać, bo nie mamy go zapisanego. Sprawdź treść jeszcze raz.",
