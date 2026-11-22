@@ -79,13 +79,15 @@ function chooseAndCheck(file: File) {
   fireEvent.click(within(form()).getByRole('button', { name: pl.form.submit }))
 }
 
-test('a chosen image shows its name, the limits and the OCR note before it is sent', () => {
+test('a chosen image shows its name, the limits, the OCR note, cost and retention before it is sent', () => {
   renderPage()
   choose(screenshot())
   const text = form().textContent ?? ''
   assert.ok(within(form()).getByText('post.png'))
   assert.ok(text.includes(pl.form.image_note))
   assert.ok(text.includes('Plik do 10 MB. Formaty: PNG, JPEG, WebP.'))
+  assert.ok(text.includes(pl.form.image_cost))
+  assert.ok(text.includes(pl.form.image_retention.replace('{days}', '30')))
   fireEvent.click(screen.getByRole('button', { name: pl.conversation.remove_image }))
   assert.ok(screen.getByLabelText(pl.form.input_label))
 })
