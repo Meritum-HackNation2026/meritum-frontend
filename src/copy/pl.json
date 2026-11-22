@@ -52,6 +52,21 @@
     "remove_audio": "Usuń nagranie",
     "audio_question": "Nagranie: {name}"
   },
+  "recording": {
+    "$comment": "Live voice recording in the message field (meritum-frontend#81). start and stop name the buttons; elapsed names the timer and level the sound meter for screen readers; listen and discard act on the finished recording; file_name is the name the recording gets in the thread. The three errors replace the recording control only, adding a file stays possible. limit_reached has the {max_minutes} limit of form.audio_limits.",
+    "start": "Nagraj",
+    "stop": "Zatrzymaj",
+    "recording_now": "Nagrywanie trwa",
+    "elapsed": "Czas nagrania",
+    "level": "Poziom dźwięku",
+    "listen": "Odsłuchaj nagranie",
+    "discard": "Odrzuć nagranie",
+    "file_name": "Nagranie z mikrofonu",
+    "limit_reached": "Nagrywanie zakończyło się samo po {max_minutes} min, to najdłuższe nagranie, jakie sprawdzamy.",
+    "denied": "Nie mamy dostępu do mikrofonu. Zezwól na niego w przeglądarce albo dodaj plik z nagraniem.",
+    "unsupported": "Ta przeglądarka nie nagrywa dźwięku. Dodaj plik z nagraniem.",
+    "failed": "Nie udało się zapisać nagrania. Spróbuj jeszcze raz albo dodaj plik z nagraniem."
+  },
   "account": {
     "optional": "Logowanie nie jest potrzebne. Zaloguj się, jeśli chcesz zachować historię po zamknięciu przeglądarki.",
     "sign_in_google": "Zaloguj się kontem Google",
@@ -347,6 +362,28 @@
       "few": "{count} różne osoby pytające",
       "many": "{count} różnych osób pytających",
       "other": "{count} różnej osoby pytającej"
+    },
+    "answer": {
+      "$comment": "Moderator's answer form in the case detail (meritum-frontend#30, US-MOD-07, F-39, ADR-06). {n} is the citation's position, from 1. Never names who asked.",
+      "title": "Odpowiedź moderatora",
+      "text_label": "Treść odpowiedzi",
+      "citations_title": "Cytaty ze źródeł",
+      "source_label": "Źródło z katalogu",
+      "source_placeholder": "Wybierz źródło",
+      "source_loading": "Wczytujemy źródła…",
+      "fragment_label": "Fragment źródła, dosłownie",
+      "add_citation": "Dodaj cytat",
+      "remove_citation": "Usuń cytat {n}",
+      "send": "Wyślij odpowiedź",
+      "sending": "Wysyłamy…",
+      "sent_title": "Wysłana odpowiedź",
+      "sent_note": "Odpowiedź trafiła jako powiadomienie do osób, które pytały. Nie jest publiczna.",
+      "text_required": "Wpisz treść odpowiedzi.",
+      "citation_required": "Dodaj co najmniej jeden cytat ze źródła.",
+      "citation_incomplete": "Cytat {n}: wybierz źródło i wklej fragment.",
+      "citation_not_verbatim": "Cytat {n} nie przeszedł weryfikacji: tego fragmentu nie ma dosłownie w tekście źródła. Popraw go albo usuń. Odpowiedź nie została wysłana.",
+      "sources_failed": "Nie udało się wczytać źródeł z katalogu. Odśwież stronę.",
+      "not_sent": "Nie udało się wysłać odpowiedzi. Twoje wpisy zostały. Spróbuj jeszcze raz."
     }
   },
   "staff": {
