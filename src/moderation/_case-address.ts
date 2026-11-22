@@ -1,3 +1,5 @@
+const leadingHash = /^#/
+
 /**
  * The case number as it stands in a panel address: `#S-4` is `/panel/sprawy/S-4`, because a `#`
  * in a path would start the fragment.
@@ -7,7 +9,7 @@
  * @feature US-MOD-01, F-25
  */
 export function caseParam(caseId: string): string {
-  return caseId.replace(/^#/, '')
+  return caseId.replace(leadingHash, '')
 }
 
 /**
