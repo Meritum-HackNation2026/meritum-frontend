@@ -1,7 +1,11 @@
 import { Link } from '@tanstack/react-router'
+import { useCallback, useState } from 'react'
 import { plural, t } from '@/components/meritum'
 import type { ModeratorCase } from '@/contracts/meritum'
+import { AnswerForm } from './_answer-form'
+import { AnswerSent } from './_answer-sent'
 import { DEFAULT_DISTINCT_ASKERS } from './constants'
+import type { AnswerApi, AnswerDraft, AnswerSource } from './ports'
 
 const copy = t.moderation
 
@@ -12,11 +16,32 @@ const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
  * recognised, the distinct askers and every claim with the checks that asked it (the question
  * count is in the queue row). Shows only contract fields, so no channel ids or their hashes.
  *
+ * An open case also has the moderator's answer form when an answer API is given; after a send
+ * the form gives way to the sent answer.
+ *
  * @param props.moderatorCase - The open case.
+ * @param props.answers - Reads the catalogue and sends the answer; without it there is no form.
+ * @param props.onAnswered - Told the case id once the answer was sent, so the panel can mark the case answered.
  * @returns The case detail.
- * @feature US-MOD-05, US-MOD-02, F-25
+ * @feature US-MOD-05, US-MOD-02, US-MOD-07, F-25, F-39
  */
-export function CaseDetail({ moderatorCase: c }: { moderatorCase: ModeratorCase }) {
+export function CaseDetail({
+  moderatorCase: c,
+  answers,
+  onAnswered,
+}: {
+  moderatorCase: ModeratorCase
+  answers?: AnswerApi | undefined
+  onAnswered?: (caseId: string) => void
+}) {
+  const [sent, setSent] = useState<{ draft: AnswerDraft; sources: AnswerSource[] } | null>(null)
+  const markSent = useCallback(
+    (draft: AnswerDraft, sources: AnswerSource[]) => {
+      setSent({ draft, sources })
+      onAnswered?.(c.id)
+    },
+    [c.id, onAnswered],
+  )
   const titleId = `case-${c.id}`
   return (
     <article aria-labelledby={titleId} className="grid gap-4 rounded-lg border bg-card p-5">
@@ -69,6 +94,10 @@ export function CaseDetail({ moderatorCase: c }: { moderatorCase: ModeratorCase 
           </li>
         ))}
       </ol>
+      {sent && <AnswerSent draft={sent.draft} sources={sent.sources} />}
+      {!sent && answers && c.state === 'open' && (
+        <AnswerForm caseId={c.id} api={answers} onSent={markSent} />
+      )}
     </article>
   )
 }

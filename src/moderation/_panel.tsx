@@ -6,7 +6,7 @@ import { CaseDetail } from './_case-detail'
 import { CaseQueue } from './_queue'
 import { type PanelData, type PanelSection, sectionsFor } from './_session'
 import { SignIn } from './_sign-in'
-import type { StaffApi, StaffSession } from './ports'
+import type { AnswerApi, StaffApi, StaffSession } from './ports'
 
 // Sections whose page exists today; export (frontend/022) joins here with its page.
 const pages: Partial<Record<PanelSection, { to: NonNullable<LinkProps['to']>; label: string }>> = {
@@ -22,16 +22,35 @@ const notices: Record<Exclude<StaffSession['kind'], 'member'>, string | null> = 
   failed: t.staff.sign_in.failed,
 }
 
-function CasesSection({ cases }: { cases: PanelData['cases'] }) {
+function CasesSection({
+  cases,
+  answers,
+}: {
+  cases: PanelData['cases']
+  answers?: AnswerApi | undefined
+}) {
   const [openId, setOpenId] = useState<string>()
+  // cases the moderator answered in this visit: the list is not read again until a reload
+  const [answered, setAnswered] = useState<readonly string[]>([])
+  const markAnswered = useCallback((id: string) => setAnswered((ids) => [...ids, id]), [])
   if (cases === null) {
     return <p className="text-body">{t.errors.offline}</p>
   }
-  const open = cases.find((c) => c.id === openId)
+  const shown = cases.map((c) =>
+    answered.includes(c.id) ? { ...c, state: 'answered' as const } : c,
+  )
+  const open = shown.find((c) => c.id === openId)
   return (
     <div className="grid grid-cols-1 gap-6">
-      <CaseQueue cases={cases} selectedId={openId} onOpen={setOpenId} />
-      {open && <CaseDetail moderatorCase={open} />}
+      <CaseQueue cases={shown} selectedId={openId} onOpen={setOpenId} />
+      {open && (
+        <CaseDetail
+          key={open.id}
+          moderatorCase={open}
+          answers={answers}
+          onAnswered={markAnswered}
+        />
+      )}
     </div>
   )
 }
@@ -45,17 +64,20 @@ function CasesSection({ cases }: { cases: PanelData['cases'] }) {
  *
  * @param props.data - The session from `loadPanel` or `loadAdmin`, with the cases when the page shows them.
  * @param props.api - The staff API (login addresses, sign-out).
+ * @param props.answers - The answer API; without it an open case has no answer form.
  * @param props.children - Another panel page in place of the cases (e.g. administration).
  * @returns The panel.
- * @feature US-MOD-05, US-MOD-02, US-POW-05, F-25, F-26
+ * @feature US-MOD-05, US-MOD-02, US-POW-05, US-MOD-07, F-25, F-26, F-39
  */
 export function Panel({
   data,
   api,
+  answers,
   children,
 }: {
   data: Pick<PanelData, 'session'> & Partial<Pick<PanelData, 'cases'>>
   api: StaffApi
+  answers?: AnswerApi | undefined
   children?: ReactNode
 }) {
   const navigate = useNavigate()
@@ -101,7 +123,10 @@ export function Panel({
           {t.account.sign_out}
         </Button>
       </div>
-      {children ?? (sections.includes('cases') && <CasesSection cases={data.cases ?? null} />)}
+      {children ??
+        (sections.includes('cases') && (
+          <CasesSection cases={data.cases ?? null} answers={answers} />
+        ))}
     </div>
   )
 }
