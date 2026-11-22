@@ -194,8 +194,13 @@
     "out_of_scope": "Sprawdzamy twierdzenia o faktach z życia publicznego. Tego pytania nie obsługujemy.",
     "technical_failure": "Nie udało się sprawdzić. To nie jest ocena treści. Spróbuj za kilka minut.",
     "out_of_scope_image": "Na razie nie sprawdzamy obrazów. Przepisz tekst z obrazka albo wklej link do źródła.",
-    "out_of_scope_audio_format": "Tego formatu nagrania nie obsługujemy. Wyślij inny plik audio albo przepisz tekst.",
     "technical_failure_url": "Nie udało się otworzyć strony z linku: jest niedostępna albo wymaga logowania. To nie jest ocena treści. Wklej tekst."
+  },
+  "out_of_scope_code": {
+    "$comment": "CheckResult.out_of_scope_code and CachedResult.out_of_scope_code, out_of_scope only; status_hint.out_of_scope stays for a result without a code. status_hint.out_of_scope_image is kept for channels that read it. audio replaces status_hint.out_of_scope_audio_format and does not say why the recording was rejected: limitation_code gives the formats or the length limit (design-system#89).",
+    "image": "Na razie nie sprawdzamy obrazów. Przepisz tekst z obrazka albo wklej link do źródła.",
+    "audio": "Tego nagrania nie sprawdzimy. Wyślij inne nagranie albo przepisz tekst.",
+    "not_informational": "Nie widzimy tu twierdzenia o faktach z życia publicznego, więc nie mamy czego sprawdzić. Napisz jednym zdaniem, co chcesz sprawdzić."
   },
   "failure_code": {
     "$comment": "CheckResult.failure_code, technical_failure only; status_hint.technical_failure stays for a result without a code. status_hint.technical_failure_url is kept for channels that read it. Never names a key or a provider.",

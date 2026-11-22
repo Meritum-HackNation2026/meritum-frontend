@@ -133,7 +133,11 @@ function Card({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
   return result.status === 'done' ? (
     <CheckResultCard result={result} handoff={handoff} />
   ) : (
-    <ResultState status={result.status} failureCode={result.failure_code} />
+    <ResultState
+      status={result.status}
+      failureCode={result.failure_code}
+      outOfScopeCode={result.out_of_scope_code}
+    />
   )
 }
 

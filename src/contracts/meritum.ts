@@ -172,6 +172,10 @@ export type Message = string | null;
  */
 export type FailureCode =
   ("provider_unavailable" | "web_search_unavailable" | "transcription_failed" | "url_unavailable" | "not_ready") | null;
+/**
+ * out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.
+ */
+export type OutOfScopeCode = ("image" | "audio" | "not_informational") | null;
 export type Limitations = string[];
 /**
  * Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Not paired with limitations by index: each code has its own text in copy/pl.json, and limitations may also hold texts with no code (e.g. notes on the corpus scope).
@@ -191,6 +195,10 @@ export type AiDisclosure = true;
 export type Status1 = "done" | "needs_clarification" | "out_of_scope";
 export type Claims1 = ClaimResult[];
 export type Message1 = string | null;
+/**
+ * out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.
+ */
+export type OutOfScopeCode1 = ("image" | "audio" | "not_informational") | null;
 export type Limitations1 = string[];
 /**
  * Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Not paired with limitations by index: each code has its own text in copy/pl.json, and limitations may also hold texts with no code (e.g. notes on the corpus scope).
@@ -566,6 +574,7 @@ export interface CheckResult {
   claims?: Claims;
   message?: Message;
   failure_code?: FailureCode;
+  out_of_scope_code?: OutOfScopeCode;
   limitations?: Limitations;
   limitation_codes?: LimitationCodes;
   transcript?: Transcript;
@@ -592,6 +601,7 @@ export interface CachedResult {
   status: Status1;
   claims?: Claims1;
   message?: Message1;
+  out_of_scope_code?: OutOfScopeCode1;
   limitations?: Limitations1;
   limitation_codes?: LimitationCodes1;
   transcript?: Transcript1;

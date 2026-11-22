@@ -81,11 +81,12 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
   )
 }
 
-/** Failure code text for a technical failure that has one, otherwise the status hint. */
+/** Failure or out-of-scope code text when the result has one, otherwise the status hint. */
 function statusText(result: CheckResult): string {
   if (result.status === "done") return "" // narrows the type: status_hint has no "done"
-  const code = result.status === "technical_failure" ? result.failure_code : null
-  return code ? t.failure_code[code] : t.status_hint[result.status]
+  if (result.status === "technical_failure" && result.failure_code) return t.failure_code[result.failure_code]
+  if (result.status === "out_of_scope" && result.out_of_scope_code) return t.out_of_scope_code[result.out_of_scope_code]
+  return t.status_hint[result.status]
 }
 
 /** Limitation codes worded from copy; the API's limitation texts only when it sent no codes. */

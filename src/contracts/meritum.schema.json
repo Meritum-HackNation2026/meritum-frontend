@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Meritum contracts",
-  "x-contract-version": 7,
+  "x-contract-version": 8,
   "$defs": {
     "CheckRequest": {
       "additionalProperties": false,
@@ -904,6 +904,24 @@
           "description": "technical_failure only; never names a key or a provider.",
           "title": "Failure Code"
         },
+        "out_of_scope_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "image",
+                "audio",
+                "not_informational"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.",
+          "title": "Out Of Scope Code"
+        },
         "limitations": {
           "default": [],
           "items": {
@@ -1031,6 +1049,24 @@
           ],
           "default": null,
           "title": "Message"
+        },
+        "out_of_scope_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "image",
+                "audio",
+                "not_informational"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.",
+          "title": "Out Of Scope Code"
         },
         "limitations": {
           "default": [],
