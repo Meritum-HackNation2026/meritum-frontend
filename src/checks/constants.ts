@@ -206,4 +206,4 @@ export const WAV_INT16_MIN = 0x8000
  * @feature US-SPR-11, F-08
  */
 export const RECORDER_BUTTON =
-  'inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-pill px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
+  'inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-pill px-4 font-semibold transition-transform duration-150 ease-out-meritum active:scale-97 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'

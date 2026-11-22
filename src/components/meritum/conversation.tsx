@@ -22,7 +22,7 @@ function Time({ at }: { at: string }) {
   // a damaged history entry must not break the whole thread
   if (Number.isNaN(date.getTime())) return null
   return (
-    <time dateTime={at} className="font-mono text-meta tabular-nums text-muted-foreground">
+    <time dateTime={at} className="text-small tabular-nums text-muted-foreground">
       {TIME.format(date)}
     </time>
   )
@@ -76,8 +76,9 @@ export function Reply({ children, at, className }: { children: ReactNode; at?: s
 }
 
 /**
- * The empty conversation (6.8): the first tagline set large, what happens to a pasted text, an optional slot
- * (the AI notice) and two or three example claims; a click sends one as a question. The page gives the h1.
+ * The empty conversation (6.8): the first tagline set large, what happens to a pasted text and an optional slot,
+ * then two or three example claims set as hanging quotes, beside it from 1024 px; a click sends one as a question.
+ * The page gives the h1. The AI notice is not passed here: it stands once, above the composer.
  *
  * @param props - `onPick(claim)`, `disabled` while a check is sent, the notice as `children` and an optional class.
  * @returns The welcome.
@@ -95,13 +96,13 @@ export function Welcome({
   className?: string
 }) {
   return (
-    <div className={cn("grid min-w-0 gap-6 font-sans", className)}>
-      <div className="grid gap-3">
-        <p className="text-headline font-bold tracking-tight text-balance font-stretch-semi-expanded">{t.brand.taglines[0]}</p>
+    <div className={cn("grid min-w-0 gap-8 font-sans lg:grid-cols-2 lg:items-end lg:gap-16", className)}>
+      <div className="grid gap-4">
+        <p className="text-headline font-bold tracking-tight text-balance font-stretch-semi-expanded lg:text-display">{t.brand.taglines[0]}</p>
         <p className="max-w-prose text-body text-muted-foreground text-pretty">{t.form.lead}</p>
+        {children}
       </div>
-      {children}
-      <div className="grid gap-2">
+      <div className="grid gap-3">
         <p className="text-small text-muted-foreground">{t.conversation.examples_lead}</p>
         <ul className="grid gap-2">
           {t.conversation.examples.map((claim) => (
@@ -110,13 +111,17 @@ export function Welcome({
                 type="button"
                 disabled={disabled}
                 onClick={() => onPick(claim)}
+                aria-label={`„${claim}”`}
                 className={cn(
-                  "w-full rounded-lg border border-border bg-card px-4 py-3 text-left text-body text-card-foreground hover:border-foreground/40 disabled:opacity-60",
+                  "relative w-full rounded-lg py-3 pr-4 pl-10 text-left text-title font-semibold tracking-tight text-pretty text-card-foreground hover:bg-secondary disabled:opacity-60",
                   PRESS,
                   FOCUS,
                 )}
               >
-                „{claim}”
+                <span aria-hidden="true" className="absolute top-2 left-3 select-none text-headline leading-none font-bold text-verified">
+                  „
+                </span>
+                {claim}”
               </button>
             </li>
           ))}
@@ -232,7 +237,7 @@ export function Composer({
         <div className="flex items-center gap-2">
           {tools}
           {!attachment && value.length > 0 && (
-            <span id={`${id}-count`} className={cn("font-mono text-meta tabular-nums", value.length > MAX ? "text-scam-foreground" : "text-muted-foreground")}>
+            <span id={`${id}-count`} className={cn("text-meta tabular-nums", value.length > MAX ? "text-scam-foreground" : "text-muted-foreground")}>
               {value.length.toLocaleString("pl-PL")} / {MAX.toLocaleString("pl-PL")}
             </span>
           )}

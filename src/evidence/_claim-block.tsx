@@ -28,7 +28,7 @@ export function ClaimBlock({ claim, children }: { claim: ClaimResult; children: 
   // the conflict note already says what differs
   const isUnresolvedInNote = conflict && Boolean(claim.unresolved)
   return (
-    <article className="border-b border-border/70 px-3.5 py-3 last-of-type:border-b-0">
+    <article className="border-t border-border/70 px-3.5 py-4 first-of-type:border-t-0">
       <VerdictSection claim={claim.claim} verdict={claim.verdict} />
       <ExplanationSection explanation={claim.explanation} />
       <EvidenceTimeline claim={claim} isConflict={conflict} />

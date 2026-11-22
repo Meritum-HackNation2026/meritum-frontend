@@ -23,7 +23,7 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
     <section
       aria-label="Meritum: wynik sprawdzenia"
       className={cn(
-        "animate-rise min-w-0 border border-border bg-[var(--host-card,var(--card))] font-[family-name:var(--host-font,var(--font-sans))] text-card-foreground",
+        "animate-rise min-w-0 border border-border bg-[var(--host-card,var(--card))] in-data-reply:border-transparent font-[family-name:var(--host-font,var(--font-sans))] text-card-foreground",
         "rounded-[var(--host-radius,var(--radius))]",
         className,
       )}
@@ -57,7 +57,7 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
         </div>
       )}
 
-      <footer className="mt-3 grid gap-1.5 border-t border-border px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
+      <footer className="mt-1 grid gap-1.5 px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
         {result.escalation && (
           <p className="text-small text-foreground">
             {result.escalation.state === "recommended"
@@ -75,7 +75,7 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
             </ul>
           </div>
         )}
-        <p>{t.result.ai_disclosure}</p>
+        <p className="in-data-reply:hidden">{t.result.ai_disclosure}</p>
       </footer>
     </section>
   )
@@ -99,30 +99,28 @@ function ClaimBlock({ claim: c }: { claim: ClaimResult }) {
   const citations = c.citations ?? []
   const conflict = c.verdict === "insufficient_evidence" && citations.length > 0
   return (
-    <article className="border-b border-border/70 px-3.5 py-3 last-of-type:border-b-0">
-      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-        <h3 className="min-w-[60%] flex-1 font-sans text-body font-bold text-pretty">
-          <span className="sr-only">{t.result.claim}: </span>
-          {c.claim}
-        </h3>
-        <VerdictBadge verdict={c.verdict} />
-      </div>
-      <p className="mt-0.5 text-small text-muted-foreground">{t.verdict_hint[c.verdict]}</p>
+    <article className="border-t border-border/70 px-3.5 py-4 first-of-type:border-t-0">
+      <h3 className="grid gap-1">
+        <VerdictBadge verdict={c.verdict} size="lg" />
+        <span className="font-sans text-body font-semibold text-pretty">
+          <span className="sr-only">{t.result.claim}: </span>„{c.claim}”
+        </span>
+      </h3>
+      <p className="mt-1 text-small text-muted-foreground">{t.verdict_hint[c.verdict]}</p>
 
-      <div className="mt-2.5">
+      <div className="mt-3">
         <h4 className="sr-only">{t.result.explanation}</h4>
         <p className="text-body text-pretty">{c.explanation}</p>
-        <p className="mt-1 text-meta text-muted-foreground">{t.result.explanation_hint}</p>
       </div>
 
       {conflict ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <p className="text-small text-pretty">{fill(t.result.conflict, { difference: c.unresolved ?? "" })}</p>
           <div className="mt-1 grid gap-x-4 sm:grid-cols-2">
             {(["supports", "refutes"] as const).map((side) => (
               <div key={side}>
                 <h4 className="mt-2 text-meta font-semibold text-muted-foreground">{side === "supports" ? "Źródła potwierdzające" : "Źródła przeczące"}</h4>
-                <ul className="divide-y divide-border/70">
+                <ul className="grid gap-1">
                 {citations
                   .filter((x) => x.stance === side)
                   .map((x) => (
@@ -135,9 +133,9 @@ function ClaimBlock({ claim: c }: { claim: ClaimResult }) {
         </div>
       ) : (
         citations.length > 0 && (
-          <div className="mt-3">
-            <h4 className="text-meta font-semibold text-muted-foreground">{t.result.sources_title}</h4>
-            <ul className="divide-y divide-border/70">
+          <div className="mt-4">
+            <h4 className="text-small font-semibold text-muted-foreground">{t.result.sources_title}</h4>
+            <ul className="grid gap-1">
               {citations.map((x) => (
                 <CitationItem key={x.source.id + x.fragment} citation={x} />
               ))}
@@ -179,7 +177,7 @@ function ClaimBlock({ claim: c }: { claim: ClaimResult }) {
 
 /** Warnings and context lines: neutral, one per row, never red and never a verdict. */
 function Note({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn("mt-2.5 flex flex-wrap items-center gap-x-1.5 border-t border-border/70 pt-2 text-small text-pretty", className)}>{children}</p>
+  return <p className={cn("mt-3 flex flex-wrap items-center gap-x-1.5 text-small text-pretty", className)}>{children}</p>
 }
 
 function StatusIcon() {

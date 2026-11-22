@@ -23,7 +23,7 @@ const running = { check_id: 'c_01', steps: [{ code: 'receive', status: 'active' 
 /** A progress stream that never reports, so only the API read drives the page. */
 class SilentEventSource {
   close() {
-    return undefined
+    // nothing to stop: this stream never opened a connection
   }
 }
 

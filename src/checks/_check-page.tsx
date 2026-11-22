@@ -108,7 +108,7 @@ type CheckPageProps = {
  * @param props.onAccepted - Called with the id of an accepted check.
  * @param props.onErased - Called after the server deleted the records; empties the inbox.
  * @param props.activeCheckId - The check of the result address, shown as the current turn.
- * @param props.notice - The AI notice, above the field.
+ * @param props.notice - The AI notice, once on the screen, above the field.
  * @returns The conversation page.
  * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, F-01, F-08, F-20, F-21
  */
@@ -142,12 +142,11 @@ export function CheckPage({
   const busy = sending || recording.pending
 
   return (
-    <div className="grid min-w-0 gap-10">
+    // the empty page widens to two columns from 1024 px (data-wide, read by the layout)
+    <div className="grid min-w-0 gap-10" data-wide={turns.length === 0 ? '' : undefined}>
       <h1 className="sr-only">{t.form.title}</h1>
       {turns.length === 0 ? (
-        <Welcome onPick={pick} disabled={busy}>
-          {notice}
-        </Welcome>
+        <Welcome onPick={pick} disabled={busy} />
       ) : (
         <Thread
           turns={turns}
@@ -158,7 +157,7 @@ export function CheckPage({
         />
       )}
       <div className="grid gap-1.5 text-small text-muted-foreground text-pretty">
-        {turns.length > 0 && notice}
+        {notice}
         <p>
           {fill(t.form.privacy, { days: RETENTION_DAYS })}{' '}
           <button

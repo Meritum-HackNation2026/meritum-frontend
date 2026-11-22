@@ -10,8 +10,8 @@ import type {
 import { DECISIVE_VERDICTS } from './constants'
 
 /**
- * The claim with its verdict as a word on a badge in its colour (red only for „Fałszywe”),
- * then the verdict's hint. The row wraps, so long labels move below the claim.
+ * The head of a claim (DESIGN_SYSTEM.md 6.4): the verdict word set large in its colour (red only
+ * for „Fałszywe”), the first thing the card says, then the claim in quotes and the verdict's hint.
  *
  * @param props.claim - The claim text.
  * @param props.verdict - The claim's verdict.
@@ -21,20 +21,20 @@ import { DECISIVE_VERDICTS } from './constants'
 export function VerdictSection({ claim, verdict }: { claim: Claim; verdict: Verdict }) {
   return (
     <>
-      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-        <h3 className="min-w-0 flex-1 basis-48 font-bold text-body text-pretty">
-          <span className="sr-only">{t.result.claim}: </span>
-          {claim}
-        </h3>
-        <VerdictBadge verdict={verdict} />
-      </div>
-      <p className="mt-0.5 text-small text-muted-foreground">{t.verdict_hint[verdict]}</p>
+      <h3 className="grid gap-1">
+        <VerdictBadge verdict={verdict} size="lg" />
+        <span className="font-semibold text-body text-pretty">
+          <span className="sr-only">{t.result.claim}: </span>„<span>{claim}</span>”
+        </span>
+      </h3>
+      <p className="mt-1 text-small text-muted-foreground">{t.verdict_hint[verdict]}</p>
     </>
   )
 }
 
 /**
- * The AI-written explanation in its own block, apart from the quotes, with the AI note.
+ * The explanation in its own block, apart from the quotes. The AI line stands once, in the card's
+ * footer or above the composer, never per claim (design-system, issue 108).
  *
  * @param props.explanation - The claim's explanation.
  * @returns The explanation section.
@@ -42,10 +42,9 @@ export function VerdictSection({ claim, verdict }: { claim: Claim; verdict: Verd
  */
 export function ExplanationSection({ explanation }: { explanation: Explanation }) {
   return (
-    <div className="mt-2.5">
+    <div className="mt-3">
       <h4 className="sr-only">{t.result.explanation}</h4>
       <p className="text-body text-pretty">{explanation}</p>
-      <p className="mt-1 text-meta text-muted-foreground">{t.result.explanation_hint}</p>
     </div>
   )
 }
@@ -86,7 +85,7 @@ export function UnresolvedSection({ unresolved }: { unresolved?: Unresolved | un
   }
   return (
     <div className="mt-2.5">
-      <h4 className="font-semibold text-meta text-muted-foreground">{t.result.unresolved}</h4>
+      <h4 className="font-semibold text-small text-muted-foreground">{t.result.unresolved}</h4>
       <p className="text-small text-pretty">{unresolved}</p>
     </div>
   )
@@ -105,7 +104,7 @@ export function TechniqueSection({ technique }: { technique?: Technique | undefi
   }
   const { name, how_to_spot: howToSpot } = t.techniques[technique]
   return (
-    <div className="mt-2.5 border-t border-border/70 pt-2 text-small text-pretty">
+    <div className="mt-3 text-small text-pretty">
       <p className="font-semibold">{name}</p>
       <p>{howToSpot}</p>
     </div>

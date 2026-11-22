@@ -124,4 +124,6 @@ test('the home page shows the AI notice with the privacy link', async () => {
   const main = await screen.findByRole('main')
   assert.ok(await within(main).findByText(pl.ai_notice.first_contact, { exact: false }))
   assert.ok(within(main).getByRole('link', { name: policies.web.title }))
+  // design-system#108: the AI notice stands once on the screen
+  assert.equal(within(main).getAllByText(pl.ai_notice.first_contact, { exact: false }).length, 1)
 })

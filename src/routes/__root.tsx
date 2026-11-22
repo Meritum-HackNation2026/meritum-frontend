@@ -36,7 +36,7 @@ function Layout() {
     <TooltipProvider>
       <div className="min-h-dvh">
         <header className="border-b bg-card">
-          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
             <MeritumMark className="size-7" />
             <div>
               <p className="text-body font-semibold">{pl.brand.name}</p>
@@ -48,13 +48,16 @@ function Layout() {
             </div>
           </div>
         </header>
-        <main ref={main} className="mx-auto max-w-3xl px-4 py-8">
+        <main
+          ref={main}
+          className="mx-auto max-w-3xl px-4 py-8 has-wide:max-w-6xl lg:has-wide:py-16"
+        >
           <InboxContext value={inbox}>
             <Outlet />
           </InboxContext>
         </main>
         <footer className="border-t">
-          <ul className="mx-auto flex max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
+          <ul className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-small">
             {footerLinks.map(([to, title]) => (
               <li key={to}>
                 <Link
