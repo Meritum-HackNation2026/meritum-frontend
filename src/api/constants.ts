@@ -161,7 +161,8 @@ export const CSRF_HEADER = 'X-CSRF-Token'
 /**
  * Refusals of POST /api/v1/audio by `message_key` (meritum-backend's README: 413
  * `errors.audio_too_large`, 422 `errors.audio_too_long`, 415
- * `status_hint.out_of_scope_audio_format`); a refusal with another key is `busy`.
+ * `status_hint.out_of_scope_audio_format`, `out_of_scope_code.audio` once the backend syncs
+ * design-system#90); a refusal with another key is `busy`.
  *
  * @feature US-SPR-11, F-08
  */
@@ -169,6 +170,7 @@ export const AUDIO_REFUSALS = {
   'errors.audio_too_large': 'audio_too_large',
   'errors.audio_too_long': 'audio_too_long',
   'status_hint.out_of_scope_audio_format': 'unsupported_format',
+  'out_of_scope_code.audio': 'unsupported_format',
 } as const satisfies Record<string, UploadOutcome>
 
 /**

@@ -79,6 +79,22 @@ test('out of scope shows the general out-of-scope line, not a verdict', async ()
   assertNoVerdict()
 })
 
+test('out of scope for an image says what to send instead', async () => {
+  renderResult(nonVerdict('out_of_scope', { out_of_scope_code: 'image' }))
+  assert.ok(await screen.findByText(pl.status.out_of_scope))
+  assert.ok(screen.getByText(pl.out_of_scope_code.image))
+  assert.equal(screen.queryByText(pl.status_hint.out_of_scope), null)
+  assert.equal(screen.queryByText(leakedCopyKey), null)
+  assertNoVerdict()
+})
+
+test('out of scope with a code the copy does not know keeps the general line', async () => {
+  const newer = 'video' as unknown as NonNullable<CheckResult['out_of_scope_code']>
+  renderResult(nonVerdict('out_of_scope', { out_of_scope_code: newer }))
+  assert.ok(await screen.findByText(pl.status.out_of_scope))
+  assert.ok(screen.getByText(pl.status_hint.out_of_scope))
+})
+
 test('needs clarification asks to write the claim to check, never the message', async () => {
   renderResult(nonVerdict('needs_clarification', { message: 'czy to prawda?' }))
   assert.ok(await screen.findByText(pl.status.needs_clarification))

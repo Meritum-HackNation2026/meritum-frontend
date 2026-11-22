@@ -143,10 +143,7 @@ export function AudioCheck({
       </form>
       <div aria-live="polite" className="min-w-0">
         {refusal === 'unsupported_format' && (
-          <ResultState
-            status="out_of_scope"
-            hint={`${t.status_hint.out_of_scope_audio_format} ${limitsLine}`}
-          />
+          <ResultState status="out_of_scope" hint={`${t.out_of_scope_code.audio} ${limitsLine}`} />
         )}
       </div>
     </div>

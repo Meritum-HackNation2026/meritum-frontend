@@ -119,7 +119,7 @@ test('an unsupported format ends as out of scope, saying what can be sent', asyn
   const card = await screen.findByRole('region', { name: pl.result.label })
   const text = card.textContent ?? ''
   assert.ok(text.includes(pl.status.out_of_scope))
-  assert.ok(text.includes(pl.status_hint.out_of_scope_audio_format))
+  assert.ok(text.includes(pl.out_of_scope_code.audio))
   assert.ok(text.includes('Formaty: OGG, MP3, M4A, WAV.'))
   assert.deepEqual(opened, [])
 })
