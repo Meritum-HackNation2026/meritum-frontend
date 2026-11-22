@@ -33,8 +33,11 @@ function fakeApi(t: TestContext) {
   })
 }
 
+const opened: string[] = []
+const onAccepted = (id: string) => opened.push(id)
+
 function renderPage(): string[] {
-  const opened: string[] = []
+  opened.length = 0
   render(
     <CheckPage
       sender={apiCheckSender}
@@ -44,13 +47,14 @@ function renderPage(): string[] {
       reader={apiResultReader}
       progress={apiProgressSource}
       handoff={apiHandoff}
-      onAccepted={opened.push.bind(opened)}
+      onAccepted={onAccepted}
       {...finishedCheck()}
     />,
   )
   return opened
 }
 
+const noop = () => undefined
 const form = () => screen.getByRole('form', { name: pl.form.title })
 const field = () => screen.getByLabelText(pl.form.input_label)
 const png = (name = 'zrzut.png') => new File(['PNG bajty'], name, { type: 'image/png' })
@@ -134,10 +138,7 @@ test('of several dropped files the first supported one is attached, with a note'
   renderPage()
   drop(new File(['%PDF'], 'ustawa.pdf', { type: 'application/pdf' }), png(), mp3())
   assert.ok(within(form()).getByText('zrzut.png'))
-  assert.equal(
-    screen.getByText(/Sprawdzamy jeden plik naraz/).textContent,
-    'Sprawdzamy jeden plik naraz. Dodaliśmy pierwszy: zrzut.png.',
-  )
+  assert.ok(screen.getByText('Sprawdzamy jeden plik naraz. Dodaliśmy pierwszy: zrzut.png.'))
 })
 
 test('the new check page takes a pasted image too', () => {
@@ -146,7 +147,7 @@ test('the new check page takes a pasted image too', () => {
       sender={apiCheckSender}
       uploader={apiAudioUploader}
       imageUploader={apiImageUploader}
-      onAccepted={() => undefined}
+      onAccepted={noop}
     />,
   )
   paste([png()])
