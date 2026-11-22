@@ -1,4 +1,5 @@
 import { type FormEvent, useId, useState } from "react"
+import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -7,28 +8,35 @@ import { cn } from "@/lib/utils"
 
 import { fill, t } from "./copy"
 
+const MIN = 3
 const MAX = 4000
 const MAX_URL = 2083 // CheckRequest.url maxLength in the contract
 
 type ErrorKey = keyof typeof t.errors
 
+// Each message is an `errors` key, so the page shows the Polish text from copy/pl.json.
+const textSchema = z
+  .string()
+  .trim()
+  .min(MIN, "empty" satisfies ErrorKey)
+  .max(MAX, "too_long" satisfies ErrorKey)
+const urlSchema = z
+  .url({ protocol: /^https?$/, error: "invalid_url" satisfies ErrorKey })
+  .max(MAX_URL, "url_too_long" satisfies ErrorKey)
+
 /**
- * Text or a full http(s) link of at most 2083 characters; a bare "www.x.pl" or another scheme ("ftp://…")
- * is rejected with a hint rather than guessed or sent as text.
+ * Text or a full http(s) link of at most 2083 characters, checked with a zod schema; a bare "www.x.pl" or another
+ * scheme ("ftp://…") is rejected with a hint rather than guessed or sent as text.
  */
 export function toRequest(raw: string, channel: CheckRequest["channel"] = "web"): CheckRequest | ErrorKey {
   const value = raw.trim()
-  if (/^\S+$/.test(value) && /^([a-z][a-z\d+.-]*:\/\/|www\.)/i.test(value)) {
-    try {
-      const url = new URL(value)
-      if (url.protocol !== "http:" && url.protocol !== "https:") return "invalid_url"
-      return url.href.length > MAX_URL ? "url_too_long" : { channel, url: url.href }
-    } catch {
-      return "invalid_url"
-    }
+  const isLink = /^\S+$/.test(value) && /^([a-z][a-z\d+.-]*:\/\/|www\.)/i.test(value)
+  const parsed = (isLink ? urlSchema : textSchema).safeParse(value)
+  if (!parsed.success) {
+    const key = parsed.error.issues[0]?.message
+    return key && Object.hasOwn(t.errors, key) ? (key as ErrorKey) : "empty"
   }
-  if (value.length > MAX) return "too_long"
-  return value.length < 3 ? "empty" : { channel, text: value }
+  return isLink ? { channel, url: parsed.data } : { channel, text: parsed.data }
 }
 
 /**
