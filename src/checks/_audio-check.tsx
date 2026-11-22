@@ -51,8 +51,8 @@ async function checkRecording(
 
 /**
  * A recording attached to the message field (ADR-30): the chosen file, sending it (upload, then
- * a check of its `audio_id`) and the first refusal. A file over `MAX_AUDIO_MB` is refused before
- * it is sent. An accepted check is handed on with its id and the thread's line for the file.
+ * a check of its `audio_id`) and the first refusal. A file over `MAX_AUDIO_MB` is refused as soon
+ * as it is attached. An accepted check is handed on with its id and the thread's line for the file.
  *
  * @param uploader - Uploads the recording (the `src/api` adapter in the app).
  * @param sender - Starts the check of the uploaded recording.
@@ -89,14 +89,19 @@ export function useRecording(
       setPending(false)
     }
   }, [file, uploader, sender, onAccepted])
-  const pick = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setFile(event.target.files?.[0] ?? null)
-    setRefusal(null)
-  }, [])
   const attach = useCallback((recorded: File) => {
     setFile(recorded)
-    setRefusal(null)
+    setRefusal(recorded.size > MAX_AUDIO_BYTES ? 'audio_too_large' : null)
   }, [])
+  const pick = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const chosen = event.target.files?.[0]
+      if (chosen) {
+        attach(chosen)
+      }
+    },
+    [attach],
+  )
   const remove = useCallback(() => {
     setFile(null)
     setRefusal(null)

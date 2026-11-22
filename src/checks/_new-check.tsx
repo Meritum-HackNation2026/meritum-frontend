@@ -3,6 +3,7 @@ import { CheckHistory, Composer, type HistoryItem, t } from '@/components/meritu
 import { Button } from '@/components/ui/button'
 import { useAccount } from './_account'
 import { useAttachments } from './_attachments'
+import { FileDrop } from './_file-drop'
 import { rememberQuestion, savedChecks } from './_history'
 import { useSend } from './_send'
 import { conversationTurns, withAccountTurns } from './_turns'
@@ -71,20 +72,22 @@ export function NewCheckPage({
         <div aria-live="polite" className="min-w-0 *:mb-3">
           {attachments.messages}
         </div>
-        <Composer
-          value={value}
-          onValueChange={setValue}
-          onSubmit={send}
-          pending={busy}
-          serverError={refusal}
-          tools={attachments.tools}
-          attachment={attachments.attachment}
-          onSendAttachment={attachments.onSend}
-          placeholder={t.form.input_placeholder}
-          // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
-          // row ran out; this reaches into it until the design system lets it shrink
-          className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
-        />
+        <FileDrop {...attachments.drop} disabled={busy}>
+          <Composer
+            value={value}
+            onValueChange={setValue}
+            onSubmit={send}
+            pending={busy}
+            serverError={refusal}
+            tools={attachments.tools}
+            attachment={attachments.attachment}
+            onSendAttachment={attachments.onSend}
+            placeholder={t.form.input_placeholder}
+            // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
+            // row ran out; this reaches into it until the design system lets it shrink
+            className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
+          />
+        </FileDrop>
       </div>
       <div className="grid gap-3">
         <p className="text-small text-muted-foreground">{t.conversation.examples_lead}</p>
