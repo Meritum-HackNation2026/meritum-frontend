@@ -1,31 +1,28 @@
-import { useId } from 'react'
+import {
+  BookTextIcon,
+  ChartNoAxesColumnIcon,
+  LibraryIcon,
+  RouteIcon,
+  ScaleIcon,
+} from 'lucide-react'
 import pl from '@/copy/pl.json'
-import privacy from '@/copy/privacy.json'
-import { CatalogTables } from './_catalog-tables'
+import { CatalogList } from './_catalog-list'
+import { MethodDetails } from './_method-details'
+import { QuestionPath, VerdictLegend } from './_method-path'
+import { MethodSection } from './_method-section'
 import { RunMetrics } from './_run-metrics'
-import { CATALOG_SECTION_ID } from './constants'
+import { METHOD_SECTIONS } from './constants'
 import type { CatalogRow, EvalRunSummary } from './types'
 
 const { method } = pl
-const { controller } = privacy
-
-function TextSection({ section }: { section: { title: string; text: string[] } }) {
-  return (
-    <section className="space-y-2">
-      <h2 className="font-semibold">{section.title}</h2>
-      {section.text.map((paragraph) => (
-        <p key={paragraph}>{paragraph}</p>
-      ))}
-    </section>
-  )
-}
+const [path, verdicts, catalogSection, metrics, details] = METHOD_SECTIONS
 
 /**
- * The "Jak działa Meritum" page: the method by the IFCN and EFCSN principles (sources,
- * verdict and strength, who runs the project and the data controller), the source
- * catalogue with exclusions, the metrics of the last evaluation run, the corrections
- * policy, what "Zgłoś błąd" does and the road to the pilot. Texts come from copy/pl.json
- * and copy/privacy.json.
+ * The "Jak działa Meritum" page as the path of a question: the twelve steps of a check, the
+ * five possible answers, the source catalogue with exclusions, the metrics of the last
+ * evaluation run and the principles (IFCN and EFCSN: sources, verdict, corrections, „Zgłoś
+ * błąd”, the pilot, the team and the data controller) in rows that open. Texts come from
+ * copy/pl.json and copy/privacy.json; the route puts MethodToc into the rail.
  *
  * @param props.catalog - Catalogue entries, or null while catalog.json is not published.
  * @param props.run - Summary of the last finished evaluation run, or null when there is none.
@@ -39,43 +36,39 @@ export function MethodPage({
   catalog: readonly CatalogRow[] | null
   run: EvalRunSummary | null
 }) {
-  const catalogId = useId()
   return (
-    <article className="space-y-8 text-body">
-      <header className="space-y-2">
-        <h1 className="text-title font-semibold">{pl.result.how_it_works}</h1>
-        <p>{method.lead}</p>
+    <article className="grid gap-14 text-body">
+      <header className="grid gap-3">
+        <h1 className="font-bold text-headline tracking-tight text-balance">
+          {pl.result.how_it_works}
+        </h1>
+        <p className="max-w-prose text-muted-foreground text-pretty">{method.lead}</p>
       </header>
-      <TextSection section={method.sources} />
-      <TextSection section={method.verdict} />
-      <section id={CATALOG_SECTION_ID} className="space-y-3">
-        <h2 id={catalogId} className="font-semibold">
-          {method.catalog.title}
-        </h2>
-        {catalog ? (
-          <>
-            <p>{method.catalog.lead}</p>
-            <CatalogTables entries={catalog} titleId={catalogId} />
-          </>
-        ) : (
-          <p>{method.catalog.unavailable}</p>
-        )}
-      </section>
-      <section className="space-y-3">
-        <h2 className="font-semibold">{method.metrics.title}</h2>
-        <p>{method.metrics.lead}</p>
+      <MethodSection id={path.id} icon={RouteIcon} title={path.title} lead={method.path.lead}>
+        <QuestionPath />
+      </MethodSection>
+      <MethodSection id={verdicts.id} icon={ScaleIcon} title={verdicts.title}>
+        <VerdictLegend />
+      </MethodSection>
+      <MethodSection
+        id={catalogSection.id}
+        icon={LibraryIcon}
+        title={catalogSection.title}
+        lead={catalog ? method.catalog.lead : method.catalog.unavailable}
+      >
+        {catalog && <CatalogList entries={catalog} />}
+      </MethodSection>
+      <MethodSection
+        id={metrics.id}
+        icon={ChartNoAxesColumnIcon}
+        title={metrics.title}
+        lead={method.metrics.lead}
+      >
         <RunMetrics run={run} />
-      </section>
-      <TextSection section={method.corrections} />
-      <TextSection section={method.report_error} />
-      <TextSection section={method.pilot} />
-      <TextSection section={method.team} />
-      <section className="space-y-2">
-        <h2 className="font-semibold">{controller.title}</h2>
-        <p>{controller.name}</p>
-        <p>{controller.deployment}</p>
-        <p>{controller.contact}</p>
-      </section>
+      </MethodSection>
+      <MethodSection id={details.id} icon={BookTextIcon} title={details.title}>
+        <MethodDetails />
+      </MethodSection>
     </article>
   )
 }

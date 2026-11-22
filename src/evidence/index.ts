@@ -1,5 +1,6 @@
 export { CheckResultCard } from './_check-result-card'
 export { MethodPage } from './_method-page'
+export { MethodToc } from './_method-toc'
 export { CATALOG_SECTION_ID, METRIC_KEYS } from './constants'
 export type { LatestRunSource } from './ports'
 export type { CatalogRow, EvalRunSummary } from './types'

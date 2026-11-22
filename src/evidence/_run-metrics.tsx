@@ -9,8 +9,9 @@ const number = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: METRIC_FRA
 const [beforeDate, afterDate] = text.run_date.split('{date}')
 
 /**
- * Metrics of the last finished evaluation run: its date, the measured values only and
- * the link to the reproduction bundle; without a finished run, a message and no numbers.
+ * Metrics of the last finished evaluation run as large numbers with their names, only the
+ * values the API measured, then the run's date and the link to the reproduction bundle; without
+ * a finished run, a message and no numbers.
  *
  * @param props.run - Summary of the last finished run, or null when there is none yet.
  * @returns The metrics, or the message.
@@ -26,25 +27,31 @@ export function RunMetrics({ run }: { run: EvalRunSummary | null }) {
   })
   return (
     <>
-      <p>
+      {measured.length > 0 && (
+        <dl className="grid gap-x-10 gap-y-6 sm:grid-cols-3">
+          {measured.map(([key, value]) => (
+            // dt stays first for screen readers; the number shows above its name
+            <div key={key} className="flex flex-col-reverse justify-end gap-1">
+              <dt className="text-muted-foreground text-small text-pretty">{names[key]}</dt>
+              <dd className="font-mono font-semibold text-headline tracking-tight tabular-nums">
+                {number.format(value)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <p className="text-muted-foreground text-small">
         {beforeDate}
         <time dateTime={run.finished_at} className="font-mono">
           {formatDate(run.finished_at)}
         </time>
         {afterDate}
       </p>
-      {measured.length > 0 && (
-        <dl className="divide-y rounded-lg border">
-          {measured.map(([key, value]) => (
-            <div key={key} className="flex justify-between gap-4 px-3 py-2">
-              <dt>{names[key]}</dt>
-              <dd className="font-mono">{number.format(value)}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
       <p>
-        <a href={run.bundle_url} className="underline underline-offset-3">
+        <a
+          href={run.bundle_url}
+          className="underline underline-offset-3 hover:text-muted-foreground"
+        >
           {text.reproduce}
         </a>
       </p>
