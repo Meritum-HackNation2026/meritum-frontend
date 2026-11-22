@@ -10,7 +10,7 @@ import { PanelLink } from '@/moderation'
 import { createInbox, InboxContext, Notifications } from '@/notifications'
 
 /**
- * Layout of every page: the Meritum header with the notifications bell, the page below it and
+ * Layout of every page: a „Przejdź do treści” link that skips the header (WCAG 2.4.1), the Meritum header with the notifications bell, the page below it and
  * a link back to the panel for staff, and a footer with the "Jak działa Meritum" page and the privacy policy of every channel. Toasts
  * show on every page.
  *
@@ -35,6 +35,12 @@ function Layout() {
   return (
     <TooltipProvider>
       <div className="min-h-dvh">
+        <a
+          href="#tresc"
+          className="sr-only rounded-md bg-card px-4 py-3 font-semibold text-foreground underline underline-offset-3 shadow-float focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          {pl.layout.skip_to_content}
+        </a>
         <header className="border-b bg-card">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
             <MeritumMark className="size-7" />
@@ -48,9 +54,12 @@ function Layout() {
             </div>
           </div>
         </header>
+        {/* tabIndex -1: the browser moves focus here when the skip link is followed */}
         <main
           ref={main}
-          className="mx-auto max-w-3xl px-4 py-8 has-wide:max-w-6xl lg:has-wide:py-16"
+          id="tresc"
+          tabIndex={-1}
+          className="mx-auto max-w-3xl px-4 py-8 focus:outline-none has-wide:max-w-6xl lg:has-wide:py-16"
         >
           <InboxContext value={inbox}>
             <Outlet />
