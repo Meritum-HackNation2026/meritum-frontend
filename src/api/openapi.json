@@ -978,6 +978,30 @@
       }
     },
     "/api/v1/staff/demo-links": {
+      "get": {
+        "tags": [
+          "jury"
+        ],
+        "summary": "List Demo Links",
+        "description": "List the demo links that can still be opened.\n\nArgs:\n    response: outgoing response with caching disabled.\n    _admin: the signed-in administrator.\n    store: link store.\n    settings: environment.\n\nReturns:\n    Demo link metadata, newest first.\n\nRaises:\n    HTTPException: 404 outside dev or 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "operationId": "list_demo_links_api_v1_staff_demo_links_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DemoLink"
+                  },
+                  "type": "array",
+                  "title": "Response List Demo Links Api V1 Staff Demo Links Get"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "jury"
@@ -1025,13 +1049,21 @@
           "jury"
         ],
         "summary": "Revoke Demo Link",
-        "description": "Revoke a demo link so it stops working at once.\n\nArgs:\n    body: the account and token of the link.\n    _admin: the signed-in administrator (not a demo session).\n    _csrf: the account, CSRF checked.\n    store: link store.\n\nRaises:\n    HTTPException: 404 when no such link exists, 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "description": "Revoke a demo link so it stops working at once.\n\nArgs:\n    body: the link identifier, or the original account and token.\n    _admin: the signed-in administrator (not a demo session).\n    _csrf: the account, CSRF checked.\n    store: link store.\n    settings: environment.\n\nRaises:\n    HTTPException: 404 when no such link exists, 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
         "operationId": "revoke_demo_link_api_v1_staff_demo_links_revoke_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DemoLinkRevocation"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DemoLinkRevocation"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DemoLinkId"
+                  }
+                ],
+                "title": "Body"
               }
             }
           },
@@ -3966,6 +3998,51 @@
           "admin"
         ]
       },
+      "DemoLink": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "account": {
+            "$ref": "#/components/schemas/DemoAccount"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "account",
+          "issued_at",
+          "expires_at"
+        ],
+        "title": "DemoLink",
+        "description": "Metadata of a demo link, suitable for listing without its URL.\n\nAttributes:\n    id: hex digest used only to identify a link for management.\n    account: technical account opened by the link.\n    issued_at: when the administrator issued it.\n    expires_at: link deadline.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+      },
+      "DemoLinkId": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "DemoLinkId",
+        "description": "Identify a demo link without its URL.\n\nAttributes:\n    id: the identifier returned by the staff API.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+      },
       "DemoLinkRequest": {
         "properties": {
           "account": {
@@ -4363,6 +4440,10 @@
       },
       "IssuedDemoLink": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "url": {
             "type": "string",
             "title": "Url"
@@ -4375,11 +4456,12 @@
         },
         "type": "object",
         "required": [
+          "id",
           "url",
           "expires_at"
         ],
         "title": "IssuedDemoLink",
-        "description": "The administrator's only copy of the link.\n\nAttributes:\n    url: backend address that signs the visitor in.\n    expires_at: last moment the link works.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+        "description": "The administrator's only copy of the link.\n\nAttributes:\n    id: identifier for managing the link.\n    url: backend address that signs the visitor in.\n    expires_at: last moment the link works.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
       },
       "IssuedJuryLink": {
         "properties": {

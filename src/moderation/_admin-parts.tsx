@@ -40,7 +40,7 @@ export type Notice = { kind: 'done' | 'error'; text: string } | null
  */
 export function AdminSection(props: {
   title: string
-  lead: string
+  lead?: string
   notice: Notice
   children: ReactNode
 }) {
@@ -50,7 +50,9 @@ export function AdminSection(props: {
       <h2 id={id} className="text-title font-bold text-balance">
         {props.title}
       </h2>
-      <p className="max-w-prose text-body text-muted-foreground text-pretty">{props.lead}</p>
+      {props.lead && (
+        <p className="max-w-prose text-body text-muted-foreground text-pretty">{props.lead}</p>
+      )}
       {props.children}
       <p role="status" className="text-body text-pretty empty:hidden">
         {props.notice?.kind === 'done' ? props.notice.text : null}
