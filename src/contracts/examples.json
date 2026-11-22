@@ -112,8 +112,16 @@
     "status": "out_of_scope",
     "corpus_version": "2026-11-21.1",
     "message": "Nagranie w nieobsługiwanym formacie.",
+    "out_of_scope_code": "audio",
     "limitations": ["Nie sprawdziliśmy nagrania: ten format nie jest obsługiwany."],
     "limitation_codes": ["audio_format_unsupported"]
+  },
+  "CheckResult.out_of_scope_image": {
+    "check_id": "c_06",
+    "status": "out_of_scope",
+    "corpus_version": "2026-11-21.1",
+    "message": "Obraz bez tekstu do sprawdzenia.",
+    "out_of_scope_code": "image"
   },
   "CachedResult": {
     "status": "done",
