@@ -23,6 +23,10 @@ import { CaseDetail, Panel } from '@/moderation'
 import { fakeAnswers, sources } from './fake-answers'
 
 const a = pl.moderation.answer
+const fragmentText = /gotówka jest prawnym środkiem/
+const noChannel = /discord|sms|\+48/i
+const noop = () => undefined
+const failIfSent = () => assert.fail('sent')
 const open = examples.ModeratorCase as ModeratorCase
 
 // the case detail links to checks, so it needs a router around it
@@ -49,12 +53,13 @@ async function fillForm(): Promise<void> {
 test('a sent answer is shown with its citation and the case becomes answered', async () => {
   const { api, calls } = fakeAnswers()
   const states: string[] = []
-  await show(<CaseDetail moderatorCase={open} answers={api} onAnswered={(id) => states.push(id)} />)
+  const record = (id: string) => states.push(id)
+  await show(<CaseDetail moderatorCase={open} answers={api} onAnswered={record} />)
   await fillForm()
   fireEvent.click(screen.getByRole('button', { name: a.send }))
   assert.ok(await screen.findByText(a.sent_title))
   assert.ok(screen.getByText('Gotówka nadal działa.'))
-  assert.ok(screen.getByText(/gotówka jest prawnym środkiem/))
+  assert.ok(screen.getByText(fragmentText))
   assert.deepEqual(calls, [
     {
       caseId: open.id,
@@ -70,9 +75,7 @@ test('a sent answer is shown with its citation and the case becomes answered', a
 
 test('a citation the API rejects is named, the answer is not sent and the form keeps its data', async () => {
   const { api } = fakeAnswers({ rejected: [0] })
-  await show(
-    <CaseDetail moderatorCase={open} answers={api} onAnswered={() => assert.fail('sent')} />,
-  )
+  await show(<CaseDetail moderatorCase={open} answers={api} onAnswered={failIfSent} />)
   await fillForm()
   fireEvent.click(screen.getByRole('button', { name: a.send }))
   assert.ok(await screen.findByText(a.citation_not_verbatim.replace('{n}', '1')))
@@ -89,18 +92,16 @@ test('a citation the API rejects is named, the answer is not sent and the form k
 
 test('an answer without text or citation is not sent and says what is missing', async () => {
   const { api, calls } = fakeAnswers()
-  await show(<CaseDetail moderatorCase={open} answers={api} onAnswered={() => undefined} />)
+  await show(<CaseDetail moderatorCase={open} answers={api} onAnswered={noop} />)
   fireEvent.click(await screen.findByRole('button', { name: a.send }))
   assert.ok(await screen.findByText(a.text_required))
   assert.deepEqual(calls, [])
 })
 
 test('the case detail never shows who asked or a channel id', async () => {
-  await show(
-    <CaseDetail moderatorCase={open} answers={fakeAnswers().api} onAnswered={() => undefined} />,
-  )
+  await show(<CaseDetail moderatorCase={open} answers={fakeAnswers().api} onAnswered={noop} />)
   await screen.findByLabelText(a.text_label)
-  assert.doesNotMatch(document.body.textContent ?? '', /discord|sms|\+48/i)
+  assert.doesNotMatch(document.body.textContent ?? '', noChannel)
 })
 
 test('a case that already has an answer shows no form', async () => {
@@ -108,7 +109,7 @@ test('a case that already has an answer shows no form', async () => {
     <CaseDetail
       moderatorCase={{ ...open, state: 'answered' }}
       answers={fakeAnswers().api}
-      onAnswered={() => undefined}
+      onAnswered={noop}
     />,
   )
   assert.equal(screen.queryByLabelText(a.text_label), null)

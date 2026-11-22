@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { type ChangeEvent, useCallback, useId } from 'react'
 import { fill, t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
@@ -23,8 +23,9 @@ export type CitationRow = { key: number; source_id: string; fragment: string }
  * @param props.row - What is typed so far.
  * @param props.sources - The catalogue; null while loading, `failed` when unreadable.
  * @param props.error - Why this citation cannot be sent, or null.
- * @param props.onChange - Told the new values of the row.
- * @param props.onRemove - Removes the row; null when it is the only one.
+ * @param props.onEdit - Told the row's key and its new values.
+ * @param props.onRemove - Removes the row by its key.
+ * @param props.removable - False when it is the only row.
  * @returns The citation fields.
  * @feature US-MOD-07, F-39, ADR-06
  */
@@ -33,18 +34,31 @@ export function AnswerCitationFields({
   row,
   sources,
   error,
-  onChange,
+  onEdit,
   onRemove,
+  removable,
 }: {
   position: number
   row: CitationRow
   sources: AnswerSource[] | null | 'failed'
   error: string | null
-  onChange: (values: Pick<CitationRow, 'source_id' | 'fragment'>) => void
-  onRemove: (() => void) | null
+  onEdit: (key: number, values: Pick<CitationRow, 'source_id' | 'fragment'>) => void
+  onRemove: (key: number) => void
+  removable: boolean
 }) {
   const id = useId()
   const errorId = `${id}-error`
+  const pickSource = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) =>
+      onEdit(row.key, { source_id: event.target.value, fragment: row.fragment }),
+    [onEdit, row],
+  )
+  const typeFragment = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>) =>
+      onEdit(row.key, { source_id: row.source_id, fragment: event.target.value }),
+    [onEdit, row],
+  )
+  const remove = useCallback(() => onRemove(row.key), [onRemove, row.key])
   const list = Array.isArray(sources) ? sources : []
   return (
     <fieldset className="grid gap-2 border-t pt-3">
@@ -57,7 +71,7 @@ export function AnswerCitationFields({
         className="w-full"
         value={row.source_id}
         disabled={sources === null}
-        onChange={(event) => onChange({ source_id: event.target.value, fragment: row.fragment })}
+        onChange={pickSource}
       >
         <NativeSelectOption value="">
           {sources === null ? copy.source_loading : copy.source_placeholder}
@@ -77,20 +91,20 @@ export function AnswerCitationFields({
         value={row.fragment}
         aria-invalid={error !== null}
         aria-describedby={error ? errorId : undefined}
-        onChange={(event) => onChange({ source_id: row.source_id, fragment: event.target.value })}
+        onChange={typeFragment}
       />
       {error && (
         <p id={errorId} role="alert" className="text-small font-semibold text-pretty">
           {error}
         </p>
       )}
-      {onRemove && (
+      {removable && (
         <Button
           type="button"
           variant="ghost"
           size="sm"
           className="justify-self-start rounded-pill"
-          onClick={onRemove}
+          onClick={remove}
         >
           {fill(copy.remove_citation, { n: position })}
         </Button>

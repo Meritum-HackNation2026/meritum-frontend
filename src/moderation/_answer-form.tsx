@@ -1,4 +1,5 @@
 import { LoaderCircle } from 'lucide-react'
+import { type ChangeEvent, useCallback } from 'react'
 import { t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -34,6 +35,11 @@ export function AnswerForm({
 }) {
   const form = useAnswerForm(caseId, checkIds, api, onSent)
   const { errors, rows } = form
+  const { setText } = form
+  const changeText = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>) => setText(event.target.value),
+    [setText],
+  )
   const general = errors.find((e) => e.row === null)
   return (
     <form onSubmit={form.submit} noValidate className="grid gap-3 border-t pt-4">
@@ -45,7 +51,7 @@ export function AnswerForm({
         id={`${caseId}-answer`}
         value={form.text}
         aria-invalid={general?.message === copy.text_required}
-        onChange={(event) => form.setText(event.target.value)}
+        onChange={changeText}
       />
       <h4 className="text-small font-semibold">{copy.citations_title}</h4>
       {rows.map((row, index) => (
@@ -55,8 +61,9 @@ export function AnswerForm({
           row={row}
           sources={form.sources}
           error={errors.find((e) => e.row === index)?.message ?? null}
-          onChange={(values) => form.editRow(row.key, values)}
-          onRemove={rows.length > 1 ? () => form.removeRow(row.key) : null}
+          onEdit={form.editRow}
+          onRemove={form.removeRow}
+          removable={rows.length > 1}
         />
       ))}
       <Button

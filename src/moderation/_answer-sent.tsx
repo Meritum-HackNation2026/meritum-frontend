@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { t } from '@/components/meritum'
 import type { AnswerDraft, AnswerSource } from './ports'
 
@@ -14,9 +15,11 @@ const copy = t.moderation.answer
  * @feature US-MOD-07, F-39, ADR-06
  */
 export function AnswerSent({ draft, sources }: { draft: AnswerDraft; sources: AnswerSource[] }) {
+  const section = useRef<HTMLElement>(null)
+  useEffect(() => section.current?.focus(), [])
   return (
     <section
-      ref={(element) => element?.focus()}
+      ref={section}
       tabIndex={-1}
       aria-labelledby="answer-sent-title"
       className="grid gap-3 border-t pt-4 outline-none"
