@@ -44,8 +44,8 @@
   }
 }
 
-/* Everything clickable says so (DESIGN_SYSTEM.md 9): a pointer and a 0.15 s colour fade; an icon in
-   a control dips to 0.82 while pressed. Reduced motion drops the movement and the fade. */
+/* Everything clickable says so (DESIGN_SYSTEM.md 9): a pointer and a 0.15 s colour fade. Under reduced
+   motion the colour changes at once. */
 @layer base {
   :is(a[href], button, [role="button"], [role="menuitem"], summary) {
     cursor: pointer;
@@ -56,17 +56,71 @@
   :is(button, [role="button"]):disabled {
     cursor: default;
   }
-  :is(a[href], button) svg {
-    transition: transform 150ms var(--ease-out-meritum);
-  }
-  :is(a[href], button):active svg {
-    transform: scale(0.82);
+  /* the theme button keeps its three icons in one cell and shows the current one (display-menu) */
+  :is(a[href], button) svg[data-theme-icon]:not([data-current]) {
+    opacity: 0;
   }
   @media (prefers-reduced-motion: reduce) {
-    :is(a[href], button, [role="button"], [role="menuitem"], summary),
-    :is(a[href], button) svg {
+    :is(a[href], button, [role="button"], [role="menuitem"], summary) {
       transition: none;
-      transform: none;
+    }
+  }
+}
+
+/* Icons in links and buttons answer the pointer (frontend#141): they grow a little on hover and on
+   keyboard focus, arrows and chevrons move 2-3 px the way they lead, and a pressed icon dips to 0.82.
+   The icon moves, never its control, so nothing shifts around it. Hover needs a device that can
+   hover, so a tap leaves nothing behind; reduced motion skips the whole block. */
+@layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    :is(a[href], button) svg {
+      transition-property: transform, opacity, scale;
+      transition-duration: 150ms;
+      transition-timing-function: var(--ease-out-meritum);
+    }
+    :is(a[href], button) svg[data-theme-icon] {
+      transition-duration: 200ms;
+    }
+    :is(a[href], button) svg[data-theme-icon]:not([data-current]) {
+      scale: 0.6;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      :is(a[href], button):not(:disabled):hover svg {
+        transform: scale(1.08);
+      }
+      :is(a[href], button):not(:disabled):hover :is(.lucide-arrow-right, .lucide-chevron-right) {
+        transform: translateX(3px);
+      }
+      :is(a[href], button):not(:disabled):hover .lucide-chevron-down {
+        transform: translateY(2px);
+      }
+      :is(a[href], button):not(:disabled):hover .lucide-chevron-up {
+        transform: translateY(-2px);
+      }
+    }
+    :is(a[href], button):focus-visible svg {
+      transform: scale(1.08);
+    }
+    :is(a[href], button):focus-visible :is(.lucide-arrow-right, .lucide-chevron-right) {
+      transform: translateX(3px);
+    }
+    :is(a[href], button):focus-visible .lucide-chevron-down {
+      transform: translateY(2px);
+    }
+    :is(a[href], button):focus-visible .lucide-chevron-up {
+      transform: translateY(-2px);
+    }
+    :is(a[href], button):not(:disabled):active svg {
+      transform: scale(0.82);
+    }
+    :is(a[href], button):not(:disabled):active :is(.lucide-arrow-right, .lucide-chevron-right) {
+      transform: translateX(3px) scale(0.82);
+    }
+    :is(a[href], button):not(:disabled):active .lucide-chevron-down {
+      transform: translateY(2px) scale(0.82);
+    }
+    :is(a[href], button):not(:disabled):active .lucide-chevron-up {
+      transform: translateY(-2px) scale(0.82);
     }
   }
 }

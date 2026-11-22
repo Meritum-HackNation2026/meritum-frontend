@@ -68,3 +68,18 @@ test('after signing out of the panel the home page has no panel link', async (t)
     assert.equal(within(header).queryByRole('link', { name: pl.staff.sign_in.title }), null),
   )
 })
+
+const phoneOnly = /\bmax-md:hidden\b/
+
+test('below 768 px the panel link moves from the bar into the phone menu', async (t) => {
+  fakeApi(t, [200, moderator])
+  await open('/')
+  const header = screen.getByRole('banner')
+  const inBar = await within(header).findByRole('link', { name: pl.staff.sign_in.title })
+  assert.match(inBar.className, phoneOnly, 'the bar keeps it from 768 px up')
+  fireEvent.click(within(header).getByRole('button', { name: pl.nav.menu }))
+  const menu = await screen.findByRole('dialog')
+  const inMenu = await within(menu).findByRole('link', { name: pl.staff.sign_in.title })
+  assert.equal(inMenu.getAttribute('href'), '/panel')
+  assert.doesNotMatch(inMenu.className, phoneOnly)
+})
