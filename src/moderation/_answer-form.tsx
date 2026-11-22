@@ -69,7 +69,8 @@ export function AnswerForm({
       <Button
         type="button"
         variant="outline"
-        className="justify-self-start rounded-pill"
+        size="lg"
+        className="h-11 justify-self-start rounded-pill px-4"
         onClick={form.addRow}
       >
         {copy.add_citation}
@@ -83,7 +84,8 @@ export function AnswerForm({
         type="submit"
         aria-disabled={form.pending}
         aria-busy={form.pending}
-        className="justify-self-start aria-disabled:opacity-50"
+        size="lg"
+        className="h-11 justify-self-start rounded-pill px-5 aria-disabled:opacity-50"
       >
         {form.pending && (
           <LoaderCircle

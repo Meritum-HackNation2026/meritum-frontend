@@ -68,7 +68,7 @@ export function AnswerCitationFields({
       </label>
       <NativeSelect
         id={`${id}-source`}
-        className="w-full"
+        className="w-full [&_select]:h-11 [&_select]:rounded-md [&_select]:text-body"
         value={row.source_id}
         disabled={sources === null}
         onChange={pickSource}

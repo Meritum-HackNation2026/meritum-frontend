@@ -53,17 +53,25 @@ function Loaded({
   }
   return (
     <article className="grid gap-4">
-      <h1 className="text-h2 font-bold">{copy.title}</h1>
+      <h1 className="text-title font-bold">{copy.title}</h1>
       <p className="text-body whitespace-pre-line text-pretty">{outcome.answer.text}</p>
       <section aria-labelledby="asker-citations" className="grid gap-2 border-t pt-4">
         <h2 id="asker-citations" className="text-body font-bold">
           {copy.citations_title}
         </h2>
-        <ul className="grid gap-3">
+        <ul className="grid gap-2">
           {outcome.answer.citations.map(({ fragment, source }) => (
-            <li key={`${source}-${fragment}`} className="grid gap-0.5 text-small">
-              <q className="text-pretty">{fragment}</q>
-              <span className="text-muted-foreground">{source}</span>
+            <li key={`${source}-${fragment}`} className="grid gap-1.5 py-2 pl-6">
+              <blockquote className="relative text-body text-pretty">
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-1 -left-6 select-none font-bold text-title text-verified leading-none"
+                >
+                  „
+                </span>
+                {fragment}”
+              </blockquote>
+              <p className="text-muted-foreground text-small">{source}</p>
             </li>
           ))}
         </ul>

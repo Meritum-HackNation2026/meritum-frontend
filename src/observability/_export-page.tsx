@@ -85,7 +85,12 @@ export function ExportPage(props: { api: ExportApi }) {
         <label htmlFor={periodId} className="text-small font-semibold">
           {copy.period}
         </label>
-        <NativeSelect id={periodId} value={days} onChange={changePeriod}>
+        <NativeSelect
+          id={periodId}
+          value={days}
+          onChange={changePeriod}
+          className="[&_select]:h-11 [&_select]:rounded-md [&_select]:text-body"
+        >
           {EXPORT_PERIODS.map((period) => (
             <NativeSelectOption key={period} value={period}>
               {copy.periods[String(period) as keyof typeof copy.periods]}
@@ -107,7 +112,7 @@ export function ExportPage(props: { api: ExportApi }) {
       <p className="text-small text-pretty">{copy.disarm_notice}</p>
       <p className="text-small text-muted-foreground text-pretty">{copy.privacy_note}</p>
       <div className="flex flex-wrap items-center gap-3">
-        <Button className="h-10 rounded-pill px-5" disabled={pending} onClick={download}>
+        <Button size="lg" className="h-11 rounded-pill px-5" disabled={pending} onClick={download}>
           {copy.download}
         </Button>
         <p role="status" className="text-small empty:sr-only">
