@@ -147,3 +147,63 @@ export const AUDIO_ACCEPT = 'audio/*,.ogg,.opus,.mp3,.m4a,.wav'
  * @feature US-SPR-11, F-08
  */
 export const TRANSCRIBER_ID = 'speech_to_text'
+
+/**
+ * Seconds after which a live recording stops by itself: five seconds under `MAX_AUDIO_MINUTES`,
+ * so the API's length check never refuses it for a few extra tenths of a second.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const RECORDING_LIMIT_SECONDS = MAX_AUDIO_MINUTES * 60 - 5
+
+/**
+ * Sample rate of a recording converted to WAV: speech needs no more, and ten minutes of 16-bit
+ * mono stay near 19 MB, under `MAX_AUDIO_MB`.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const WAV_SAMPLE_RATE = 16000
+
+/**
+ * Recording types tried first with `MediaRecorder`: the API reads OGG Opus and M4A from the
+ * bytes. A browser that offers neither (Chrome records WebM) is converted to WAV.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const NATIVE_RECORDING_TYPES = [
+  { mime: 'audio/ogg;codecs=opus', extension: 'ogg' },
+  { mime: 'audio/mp4', extension: 'm4a' },
+] as const
+
+/**
+ * Milliseconds between two reads of the recording clock and the sound level.
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const RECORDING_TICK_MS = 100
+
+/** Bytes before the samples of a WAV file (RIFF, fmt and data headers). @feature US-SPR-11, F-08 */
+export const WAV_HEADER_BYTES = 44
+
+/** Bytes of one 16-bit sample. @feature US-SPR-11, F-08 */
+export const WAV_BYTES_PER_SAMPLE = 2
+
+/** The WAV format code of uncompressed PCM. @feature US-SPR-11, F-08 */
+export const WAV_PCM_FORMAT = 1
+
+/** Bits of one WAV sample. @feature US-SPR-11, F-08 */
+export const WAV_BITS = 16
+
+/** Largest positive 16-bit sample. @feature US-SPR-11, F-08 */
+export const WAV_INT16_MAX = 0x7fff
+
+/** Magnitude of the most negative 16-bit sample. @feature US-SPR-11, F-08 */
+export const WAV_INT16_MIN = 0x8000
+
+/**
+ * Classes of the pill buttons of the recording control („Nagraj”, „Zatrzymaj”).
+ *
+ * @feature US-SPR-11, F-08
+ */
+export const RECORDER_BUTTON =
+  'inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-pill px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'

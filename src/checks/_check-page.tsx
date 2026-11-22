@@ -10,6 +10,8 @@ import {
 } from './_audio-check'
 import { DeleteChecksDialog } from './_delete-checks'
 import { forgetChecks, rememberQuestion } from './_history'
+import { useMicrophone } from './_microphone'
+import { MicrophoneMessage } from './_recorder'
 import { type ErrorKey, validateCheck } from './_request'
 import { conversationTurns, Thread } from './_thread'
 import { RETENTION_DAYS } from './constants'
@@ -135,6 +137,7 @@ export function CheckPage({
   )
   const { sending, refusal, send } = useSend(sender, accept)
   const recording = useRecording(uploader, sender, accept)
+  const mic = useMicrophone(recording.attach)
   const pick = useCallback((claim: string) => send({ channel: 'web', text: claim }), [send])
   const busy = sending || recording.pending
 
@@ -175,6 +178,7 @@ export function CheckPage({
       <div className="sticky bottom-0 z-10 -mx-4 grid bg-background px-4 pt-2 pb-3 sm:pb-4">
         <div aria-live="polite" className="min-w-0 *:mb-3">
           <RecordingRefusal recording={recording} />
+          <MicrophoneMessage mic={mic} />
         </div>
         <Composer
           value={value}
@@ -182,7 +186,7 @@ export function CheckPage({
           onSubmit={send}
           pending={busy}
           serverError={refusal}
-          tools={<RecordingButton recording={recording} />}
+          tools={<RecordingButton recording={recording} mic={mic} />}
           attachment={recording.file ? <RecordingAttachment recording={recording} /> : undefined}
           onSendAttachment={recording.send}
           placeholder={
