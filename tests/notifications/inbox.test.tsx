@@ -156,3 +156,10 @@ test('the inbox lists newest first even when the stream beats the saved inbox', 
     ['n_01', 'n_00'],
   )
 })
+
+test('the end of an evaluation run is a notification linking to the evaluation page', () => {
+  const done = { ...checkDone, kind: 'eval_run_done', check_id: undefined, link: '/panel/eval' }
+  const parsed = parseNotification(done)
+  assert.equal(parsed?.link, '/panel/eval')
+  assert.equal(parsed && notificationText(parsed), pl.notifications.kind.eval_run_done)
+})

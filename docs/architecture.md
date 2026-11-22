@@ -31,6 +31,7 @@ Obecne wyjątki:
 - widoki domeny w React (`src/checks/_*.tsx`: formularz `_check-page.tsx` i pasek postępu `_check-progress.tsx`) to okablowanie UI: mogą importować Reacta; pliki `.ts` w `src/checks/` dalej nie mogą;
 - widoki strony „Jak działa Meritum” (`src/evidence/_*.tsx`) to okablowanie UI domeny `evidence`: mogą importować Reacta; pliki `.ts` tej domeny dalej nie mogą;
 - „Zgłoś błąd”, wiersz przekazania na karcie wyniku i widoki panelu moderatora (`src/moderation/_*.tsx`: logowanie, kolejka spraw z TanStack Table, szczegóły sprawy) to okablowanie UI domeny `moderation`: mogą importować Reacta i TanStack; pliki `.ts` tej domeny dalej nie mogą;
+- widoki strony ewaluacji (`src/observability/_*.tsx`: lista przebiegów, porównanie) to okablowanie UI domeny `observability`: mogą importować Reacta; pliki `.ts` tej domeny dalej nie mogą;
 - `performance/noBarrelFile` jest wyłączone dla `src/lib/utils.ts` (alias `cn` z shadcn) i `src/*/index.ts` (publiczne API domeny);
 - knip pomija zależności komponentów shadcn (`class-variance-authority`, `lucide-react`, `radix-ui`) i `@swc/core` (parser dependency-cruisera); `pnpm-workspace.yaml` nie pozwala `@swc/core` ani `esbuild` (używa go `tsx` w `pnpm test`) uruchamiać skryptu instalacyjnego (binarki przychodzą z pakietów platformy), a openapi-typescript dostaje tam własny TypeScript 5.9.3, bo TypeScript 7 nie ma jeszcze API kompilatora, którego potrzebuje.
 

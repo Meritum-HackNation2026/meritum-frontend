@@ -6,7 +6,7 @@ import { HTTP_FORBIDDEN, HTTP_UNAUTHORIZED } from './constants'
 
 /**
  * Staff API of meritum-backend through the OpenAPI client: sign-in with OIDC (backend#15), the
- * role from GET /api/v1/staff/me (backend#22) and the cases. Never throws: an unreachable API is
+ * role from GET /api/v1/staff/me (backend#22, a jury session read-only: backend#32) and the cases. Never throws: an unreachable API is
  * `failed` or no cases; a 401 on the cases is an ended session, a 403 a role taken away.
  *
  * @feature US-MOD-05, US-MOD-02, F-25
@@ -18,7 +18,12 @@ export const apiStaff: StaffApi = {
     try {
       const { data, response } = await fetchClient.GET('/api/v1/staff/me')
       if (data?.role) {
-        return { kind: 'member', email: data.email, role: data.role }
+        return {
+          kind: 'member',
+          email: data.email,
+          role: data.role,
+          readOnly: data.read_only === true,
+        }
       }
       if (response.status === HTTP_UNAUTHORIZED) {
         return { kind: 'signed_out' }

@@ -55,13 +55,14 @@ export type StaffRole = 'moderator' | 'analyst' | 'admin'
 export type LoginProvider = 'google' | 'microsoft'
 
 /**
- * Who opened the panel: a staff member with a role, nobody signed in, a session that ended
- * while the panel loaded, a signed-in account without a role, or an API that did not answer.
+ * Who opened the panel: a staff member with a role (a jury session has no address and only
+ * reads), nobody signed in, a session that ended while the panel loaded, a signed-in account
+ * without a role, or an API that did not answer.
  *
  * @feature US-MOD-05, F-25
  */
 export type StaffSession =
-  | { kind: 'member'; email: string | null; role: StaffRole }
+  | { kind: 'member'; email: string | null; role: StaffRole; readOnly: boolean }
   | { kind: 'signed_out' }
   | { kind: 'expired' }
   | { kind: 'no_access' }

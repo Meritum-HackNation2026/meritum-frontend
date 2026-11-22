@@ -1,7 +1,14 @@
 import { type EvalRunSummary, type LatestRunSource, METRIC_KEYS } from '@/evidence'
 import { LATEST_RUN_ENDPOINT, LATEST_RUN_TIMEOUT_MS } from './constants'
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+/**
+ * Whether an API value is a JSON object.
+ *
+ * @param value - Parsed JSON.
+ * @returns True for a non-null object.
+ * @feature US-ZRD-12, US-OBS-06, F-29, F-28
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
@@ -9,12 +16,25 @@ function isHttpsUrl(value: unknown): value is string {
   return typeof value === 'string' && URL.canParse(value) && new URL(value).protocol === 'https:'
 }
 
-function isDate(value: unknown): value is string {
+/**
+ * Whether an API value is a date string that parses.
+ *
+ * @param value - Parsed JSON.
+ * @returns True for a parseable date string.
+ * @feature US-ZRD-12, US-OBS-06, F-29, F-28
+ */
+export function isDate(value: unknown): value is string {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value))
 }
 
-// Keeps only known metrics with finite numbers, so nothing unmeasured shows.
-function measuredMetrics(metrics: Record<string, unknown>): EvalRunSummary['metrics'] {
+/**
+ * Keeps only known metrics with finite numbers, so nothing unmeasured shows.
+ *
+ * @param metrics - The metrics object from the API.
+ * @returns The measured metrics.
+ * @feature US-ZRD-12, US-OBS-06, F-29, F-28
+ */
+export function measuredMetrics(metrics: Record<string, unknown>): EvalRunSummary['metrics'] {
   const measured: EvalRunSummary['metrics'] = {}
   for (const key of METRIC_KEYS) {
     const value = metrics[key]
