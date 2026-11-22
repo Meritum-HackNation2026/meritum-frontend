@@ -30,7 +30,10 @@ function fakeApi(t: TestContext, status = 202) {
 }
 
 /** Renders the form and records the check ids it hands on after the API accepted them. */
-function renderPage(progress: ProgressSource = apiProgressSource): string[] {
+function renderPage(
+  progress: ProgressSource = apiProgressSource,
+  activeCheckId?: string,
+): string[] {
   const opened: string[] = []
   const onAccepted = opened.push.bind(opened)
   render(
@@ -42,6 +45,7 @@ function renderPage(progress: ProgressSource = apiProgressSource): string[] {
       progress={progress}
       handoff={apiHandoff}
       onAccepted={onAccepted}
+      {...(activeCheckId ? { activeCheckId } : {})}
     />,
   )
   return opened
@@ -167,4 +171,21 @@ test('once a check is in the thread the field asks for the next claim', (t) => {
   rememberQuestion('c_01', 'Pytanie')
   renderPage({ watch: () => () => undefined })
   assert.equal(placeholder(), pl.conversation.next_placeholder)
+})
+
+test('the result address has its own h1, the empty page keeps the form title', (t) => {
+  fakeApi(t)
+  rememberQuestion('c_01', 'Pytanie')
+  renderPage({ watch: () => () => undefined }, 'c_01')
+  const headings = screen.getAllByRole('heading', { level: 1 })
+  assert.deepEqual(
+    headings.map((h) => h.textContent),
+    [pl.result.page_title],
+  )
+})
+
+test('the check page without a result address is named after the form', (t) => {
+  fakeApi(t)
+  renderPage()
+  assert.equal(screen.getByRole('heading', { level: 1 }).textContent, pl.form.title)
 })
