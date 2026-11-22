@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Meritum contracts",
-  "x-contract-version": 14,
+  "x-contract-version": 15,
   "$defs": {
     "CheckRequest": {
       "additionalProperties": false,
@@ -76,6 +76,21 @@
           "default": null,
           "description": "Uploaded audio file or Discord voice message; transcribed in an EU region, then checked like text.",
           "title": "Audio Id"
+        },
+        "image_id": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Uploaded screenshot or photo with text; read by OCR in an EU region, then checked like text. Excludes text, url and audio_id.",
+          "title": "Image Id"
         },
         "channel_user_id": {
           "anyOf": [
@@ -954,6 +969,8 @@
               "image_search_not_run",
               "audio_format_unsupported",
               "audio_too_long",
+              "image_format_unsupported",
+              "image_too_large",
               "corpus_scope",
               "no_publications"
             ],
@@ -1102,6 +1119,8 @@
               "image_search_not_run",
               "audio_format_unsupported",
               "audio_too_long",
+              "image_format_unsupported",
+              "image_too_large",
               "corpus_scope",
               "no_publications"
             ],

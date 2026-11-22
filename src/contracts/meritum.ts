@@ -12,6 +12,10 @@ export type PageUrl = string | null;
  */
 export type AudioId = string | null;
 /**
+ * Uploaded screenshot or photo with text; read by OCR in an EU region, then checked like text. Excludes text, url and audio_id.
+ */
+export type ImageId = string | null;
+/**
  * Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.
  */
 export type ChannelUserId = string | null;
@@ -189,6 +193,8 @@ export type LimitationCodes = (
   | "image_search_not_run"
   | "audio_format_unsupported"
   | "audio_too_long"
+  | "image_format_unsupported"
+  | "image_too_large"
   | "corpus_scope"
   | "no_publications"
 )[];
@@ -217,6 +223,8 @@ export type LimitationCodes1 = (
   | "image_search_not_run"
   | "audio_format_unsupported"
   | "audio_too_long"
+  | "image_format_unsupported"
+  | "image_too_large"
   | "corpus_scope"
   | "no_publications"
 )[];
@@ -461,6 +469,7 @@ export interface CheckRequest {
   url?: Url;
   page_url?: PageUrl;
   audio_id?: AudioId;
+  image_id?: ImageId;
   channel_user_id?: ChannelUserId;
   session_id?: RequestSessionId;
 }
