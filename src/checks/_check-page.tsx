@@ -199,8 +199,8 @@ export function CheckPage({
           placeholder={
             shownTurns.length > 0 ? t.conversation.next_placeholder : t.form.input_placeholder
           }
-          // shortcut: at 150% on 320 px the synced Composer sizes to its placeholder and its send row
-          // runs out; reaches into it from here until the design system lets the field shrink
+          // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
+          // row ran out; this reaches into it until the design system lets it shrink
           className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
         />
       </div>
