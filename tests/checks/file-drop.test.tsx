@@ -29,7 +29,7 @@ function fakeApi(t: TestContext) {
   let call = 0
   return t.mock.method(globalThis, 'fetch', () => {
     const answer = answers[Math.min(call++, 1)]
-    return Promise.resolve(new Response(JSON.stringify(answer?.body), { status: answer?.status }))
+    return Promise.resolve(new Response(JSON.stringify(answer?.body), { status: answer?.status ?? 500 }))
   })
 }
 
