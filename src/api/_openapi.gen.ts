@@ -141,21 +141,35 @@ export interface paths {
         put?: never;
         /**
          * Interactions
-         * @description Answer a Discord interaction.
+         * @description Answer a Discord interaction; a command starts the same check as the web form.
+         *
+         *     The answer is deferred at once (Discord waits 3 s); the result follows as an
+         *     edit of that answer: one embed with a card button.
          *
          *     Args:
          *         request: the signed HTTP interaction.
-         *         settings: the app settings (the Discord public key).
+         *         settings: the Discord public key, the hash salt, the card's address.
+         *         jobs: the job queue port.
+         *         gate: the shared rate limits and the pending-checks threshold.
+         *         pii: masks personal data in the text before it is queued.
+         *         readiness: a service that is not ready refuses checks.
+         *         cache: the result cache.
+         *         records: check records; none for the user hash means first contact.
+         *         replies: the Discord sender of the result.
+         *         eraser: deletes records on /usun-moje-dane.
+         *         background: runs the reply after the answer.
          *
          *     Returns:
-         *         PONG for Discord's PING, else an ephemeral message.
+         *         PONG for Discord's PING, a deferred answer for a started check (ephemeral
+         *         unless ``publiczne`` is set), an
+         *         ephemeral delete confirmation, else an ephemeral refusal.
          *
          *     Raises:
          *         HTTPException: 404 when Discord is not configured, 401 for a bad signature,
          *             400 for an interaction type Meritum does not handle.
          *
          *     Features:
-         *         US-WTY-06, ADR-08
+         *         US-WTY-06, US-BEZ-05, US-BEZ-06, US-BEZ-07, F-03, F-20, F-21, ADR-08
          */
         post: operations["interactions_api_v1_discord_interactions_post"];
         delete?: never;
@@ -363,7 +377,8 @@ export interface paths {
          *         response: the response; gets the AI-Disclosure header with a result.
          *
          *     Returns:
-         *         The steps; ``result`` once the check finished (``ai_disclosure`` is true).
+         *         The steps and the answer draft so far; ``result`` instead of the draft
+         *         once the check finished (``ai_disclosure`` is true).
          *
          *     Raises:
          *         HTTPException: 404 when the id is unknown.
@@ -375,6 +390,67 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Target
+         * @description The target moderators are told on, without its secret.
+         *
+         *     Args:
+         *         _admin: the signed-in administrator.
+         *         configs: the target store.
+         *
+         *     Returns:
+         *         The kind, the address and whether a secret is stored.
+         *
+         *     Raises:
+         *         HTTPException: 404 when no target was set.
+         *
+         *     Features:
+         *         US-MOD-01, F-26
+         */
+        get: operations["read_target_api_v1_staff_notifications_get"];
+        /**
+         * Set Target
+         * @description Choose webhook, Google Chat or e-mail; it replaces the previous target.
+         *
+         *     Args:
+         *         config: the target (a webhook's secret signs its body).
+         *         _admin: the signed-in administrator.
+         *         _csrf: the account, CSRF checked.
+         *         configs: the target store.
+         *
+         *     Returns:
+         *         What was stored, without the secret.
+         *
+         *     Features:
+         *         US-MOD-01, F-26
+         */
+        put: operations["set_target_api_v1_staff_notifications_put"];
+        post?: never;
+        /**
+         * Clear Target
+         * @description Stop external notifications; the staff inbox keeps working.
+         *
+         *     Args:
+         *         _admin: the signed-in administrator.
+         *         _csrf: the account, CSRF checked.
+         *         configs: the target store.
+         *
+         *     Features:
+         *         US-MOD-01, F-26
+         */
+        delete: operations["clear_target_api_v1_staff_notifications_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -512,6 +588,112 @@ export interface paths {
          *         US-OBS-06, US-MOD-05, F-28, F-25
          */
         post: operations["redeem_jury_link_api_v1_auth_jury_links_redeem_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/demo-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue Demo Link
+         * @description Issue a reusable link into a technical account.
+         *
+         *     Args:
+         *         body: the account and optional deadline.
+         *         response: outgoing response with caching disabled.
+         *         _admin: the signed-in administrator (not a demo session).
+         *         _csrf: the account, CSRF checked.
+         *         store: link store.
+         *         settings: environment and public address.
+         *
+         *     Returns:
+         *         The URL (shown once) and its deadline.
+         *
+         *     Raises:
+         *         HTTPException: 404 outside dev, 422 for a bad deadline, 503 on storage failure.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        post: operations["issue_demo_link_api_v1_staff_demo_links_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/demo-links/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Demo Link
+         * @description Revoke a demo link so it stops working at once.
+         *
+         *     Args:
+         *         body: the account and token of the link.
+         *         _admin: the signed-in administrator (not a demo session).
+         *         _csrf: the account, CSRF checked.
+         *         store: link store.
+         *
+         *     Raises:
+         *         HTTPException: 404 when no such link exists, 503 on storage failure.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        post: operations["revoke_demo_link_api_v1_staff_demo_links_revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/demo/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open Demo Link
+         * @description Sign the visitor in as the technical account the link was issued for.
+         *
+         *     Args:
+         *         token: the raw token from the link.
+         *         request: the request holding the session.
+         *         origin: the client address used for rate limiting.
+         *         store: link store.
+         *         settings: environment.
+         *
+         *     Returns:
+         *         A redirect to the account's landing page, without the token.
+         *
+         *     Raises:
+         *         HTTPException: 404 outside dev or for an unknown or malformed link,
+         *             410 when expired, 429 when rate limited, 503 on storage failure.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        get: operations["open_demo_link_api_v1_auth_demo__token__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -658,6 +840,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/moderation/cases/{case_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Answer
+         * @description The answer the panel shows next to its case.
+         *
+         *     Args:
+         *         case_id: the case id.
+         *         _member: a signed-in moderator or administrator.
+         *         answers: where the answer is kept.
+         *
+         *     Returns:
+         *         The answer.
+         *
+         *     Raises:
+         *         HTTPException: 404 when the case has no answer.
+         *
+         *     Features:
+         *         US-MOD-07, F-39
+         */
+        get: operations["read_answer_api_v1_moderation_cases__case_id__answer_get"];
+        put?: never;
+        /**
+         * Answer Case
+         * @description Answer an open case: verify the quotes, notify the askers, mark it answered.
+         *
+         *     Nothing is sent or saved when a quote fails: the 422 names the failed ones.
+         *
+         *     Args:
+         *         case_id: the case id, e.g. ``#S-12``.
+         *         draft: the answer text and its quotes.
+         *         _member: a signed-in moderator.
+         *         _csrf: the account, CSRF checked.
+         *         cases: the case repository.
+         *         documents: the catalogue's source texts.
+         *         answers: where the answer is kept.
+         *         inbox: the notifications store.
+         *         request: the current request (holds the check records).
+         *
+         *     Returns:
+         *         The answer as sent, with the quotes as the sources write them.
+         *
+         *     Raises:
+         *         HTTPException: 404 unknown case, 409 not open, 422 with
+         *             ``rejected_quotes`` (indexes) when a quote is not verbatim.
+         *
+         *     Features:
+         *         US-MOD-07, US-POW-02, F-39, ADR-06
+         */
+        post: operations["answer_case_api_v1_moderation_cases__case_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/answers/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read My Answer
+         * @description The answer to a case, for an asker the notification reached.
+         *
+         *     Args:
+         *         case_id: the case id.
+         *         caller: the caller's session and account.
+         *         answers: where the answer is kept.
+         *         inbox: the notifications store.
+         *
+         *     Returns:
+         *         The answer.
+         *
+         *     Raises:
+         *         HTTPException: 404 unless the caller holds a ``moderator_answer``
+         *             notification for this case (the answer is not public).
+         *
+         *     Features:
+         *         US-MOD-07, US-POW-02, F-39
+         */
+        get: operations["read_my_answer_api_v1_moderation_answers__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/checks/{check_id}/events": {
         parameters: {
             query?: never;
@@ -798,6 +1077,7 @@ export interface paths {
          *         check_id: the finished check.
          *         claim_index: the claim's position in the check's result.
          *         response: the response; gets 503 when no case was saved.
+         *         announce: tells the moderators about the case after the response.
          *
          *     Returns:
          *         The case created or joined with its number and escalation.created or
@@ -839,6 +1119,7 @@ export interface paths {
          *         check_id: the finished check.
          *         claim_index: the claim's position in the check's result.
          *         response: the response; gets 503 when no case was saved.
+         *         announce: tells the moderators about the case after the response.
          *         pii: the personal-data masking gate.
          *         dispute: the person's optional reason, masked here before the workflow
          *             starts; no body or a blank reason sends none.
@@ -901,10 +1182,327 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Notification Stream
+         * @description Push the caller's notifications that arrive while the stream is open.
+         *
+         *     Ones already in the inbox when it opens are not sent again: the client
+         *     lists them with GET /api/v1/notifications. The stream closes after a few
+         *     minutes and EventSource reconnects.
+         *
+         *     Args:
+         *         store: the inbox store.
+         *         caller: the session (``?session=``) and the signed-in account.
+         *         ticks: the polling beat.
+         *
+         *     Yields:
+         *         Each new Notification once.
+         *
+         *     Features:
+         *         US-POW-01, US-POW-04, F-26
+         */
+        get: operations["notification_stream_api_v1_notifications_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notifications
+         * @description List the caller's notifications, newest first.
+         *
+         *     Args:
+         *         store: the inbox store.
+         *         caller: the session and the signed-in account.
+         *
+         *     Returns:
+         *         The notifications of both, read and unread.
+         *
+         *     Features:
+         *         US-POW-01, US-POW-04, F-26
+         */
+        get: operations["list_notifications_api_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        /**
+         * Clear Notifications
+         * @description Delete every notification of the caller's session and account.
+         *
+         *     Args:
+         *         store: the inbox store.
+         *         caller: the session and the signed-in account.
+         *
+         *     Features:
+         *         US-POW-01, US-BEZ-05, F-26
+         */
+        delete: operations["clear_notifications_api_v1_notifications_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Read
+         * @description Mark one of the caller's notifications as read.
+         *
+         *     Args:
+         *         notification_id: the notification's id.
+         *         store: the inbox store.
+         *         caller: the session and the signed-in account.
+         *
+         *     Raises:
+         *         HTTPException: 404 when no notification with that id is the caller's.
+         *
+         *     Features:
+         *         US-POW-01, F-26
+         */
+        post: operations["mark_read_api_v1_notifications__notification_id__read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eval/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Runs
+         * @description The latest runs with their metrics, newest first.
+         *
+         *     Args:
+         *         _member: an analyst, administrator or jury session.
+         *         store: the run index.
+         *         jobs: the job queue port.
+         *
+         *     Returns:
+         *         Up to the list limit of runs.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        get: operations["list_runs_api_v1_eval_runs_get"];
+        put?: never;
+        /**
+         * Start Run
+         * @description Enqueue an evaluation run on the golden set or an uploaded one.
+         *
+         *     Args:
+         *         body: the dataset: ``golden`` or an uploaded set's id.
+         *         member: the analyst or administrator.
+         *         _csrf: the account, CSRF checked (rejects a read-only session).
+         *         store: the run index.
+         *         jobs: the job queue port.
+         *         request: the request (settings in app state).
+         *
+         *     Returns:
+         *         The run id.
+         *
+         *     Raises:
+         *         HTTPException: 422 for an unknown dataset, 503 when the queue is down.
+         *
+         *     Features:
+         *         US-OBS-06, US-POW-05, F-28
+         */
+        post: operations["start_run_api_v1_eval_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eval/runs/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Latest Run
+         * @description Public: when the latest golden-set run finished and what it measured.
+         *
+         *     Args:
+         *         request: the request (settings in app state).
+         *         store: the run index.
+         *         jobs: the job queue port.
+         *
+         *     Returns:
+         *         ``finished_at``, ``bundle_url`` and the measured ``metrics``; no case results.
+         *
+         *     Raises:
+         *         HTTPException: 404 while no golden-set run has finished.
+         *
+         *     Features:
+         *         US-ZRD-12, F-29, F-28
+         */
+        get: operations["latest_run_api_v1_eval_runs_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eval/runs/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compare Runs
+         * @description Metric differences and the cases that changed result between two runs.
+         *
+         *     Args:
+         *         a: the first run id.
+         *         b: the second run id.
+         *         _member: an analyst, administrator or jury session.
+         *         store: the run index.
+         *         jobs: the job queue port.
+         *
+         *     Returns:
+         *         The metrics both measured and the changed cases.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        get: operations["compare_runs_api_v1_eval_runs_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eval/runs/{run_id}/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Run Cases
+         * @description Every case's predicted verdict so far.
+         *
+         *     Args:
+         *         run_id: the run id.
+         *         _member: an analyst, administrator or jury session.
+         *         store: the run index.
+         *         jobs: the job queue port.
+         *
+         *     Returns:
+         *         The cases of the run.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        get: operations["run_cases_api_v1_eval_runs__run_id__cases_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/eval/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Dataset
+         * @description Store a case file (CSV or JSON, at least 30 cases) to run on later.
+         *
+         *     Args:
+         *         file: the uploaded file.
+         *         _member: the analyst or administrator.
+         *         _csrf: the account, CSRF checked (rejects a read-only session).
+         *         store: the run index.
+         *
+         *     Returns:
+         *         The dataset id and its case count.
+         *
+         *     Raises:
+         *         HTTPException: 413 above the size limit, 422 for an invalid file.
+         *
+         *     Features:
+         *         US-OBS-05, F-26
+         */
+        post: operations["upload_dataset_api_v1_eval_datasets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AiMarker
+         * @description Machine-readable marker that an AI system wrote the verdicts and justifications.
+         *
+         *     Every channel gets the same marker from the result; how a channel shows it is up to
+         *     the channel.
+         */
+        AiMarker: {
+            /**
+             * Ai Generated
+             * @default true
+             * @constant
+             */
+            ai_generated: true;
+            /** Marker Provider */
+            provider: string;
+            /** Marker Model */
+            model: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+        };
         /**
          * AnalysisStatus
          * @description Polled (or streamed) by every channel while a check runs; mirrors the DBOS workflow.
@@ -915,6 +1513,11 @@ export interface components {
             /** Steps */
             steps: components["schemas"]["AnalysisStep"][];
             result?: components["schemas"]["CheckResult"] | null;
+            /**
+             * Draft
+             * @description Streamed draft of the answer, personal data masked; a preview, never a verdict.
+             */
+            draft?: string | null;
         };
         /**
          * AnalysisStep
@@ -931,6 +1534,43 @@ export interface components {
              * @enum {string}
              */
             status: "pending" | "active" | "done" | "skipped" | "failed";
+        };
+        /**
+         * Answer
+         * @description What was sent: no asker, no channel, no session.
+         *
+         *     Attributes:
+         *         case_id: the answered case.
+         *         text: the answer.
+         *         quotes: the verified quotes.
+         *
+         *     Features:
+         *         US-MOD-07, F-39
+         */
+        Answer: {
+            /** Case Id */
+            case_id: string;
+            /** Text */
+            text: string;
+            /** Quotes */
+            quotes: components["schemas"]["VerifiedQuote"][];
+        };
+        /**
+         * AnswerDraft
+         * @description Body of a moderator's answer.
+         *
+         *     Attributes:
+         *         text: the answer.
+         *         quotes: at least one quote, each verified.
+         *
+         *     Features:
+         *         US-MOD-07, F-39
+         */
+        AnswerDraft: {
+            /** Text */
+            text: string;
+            /** Quotes */
+            quotes: components["schemas"]["QuoteDraft"][];
         };
         /**
          * AudioAccepted
@@ -953,7 +1593,7 @@ export interface components {
          *     Attributes:
          *         status: always ``out_of_scope``, as core's UnsupportedAudioError.
          *         message_key: errors.audio_too_large, errors.audio_too_long or
-         *             status_hint.out_of_scope_audio_format (copy/pl.json).
+         *             out_of_scope_code.audio (copy/pl.json).
          *         formats: the formats that can be sent ({formats} of form.audio_limits).
          *         max_mb: the size limit ({max_mb} of the copy).
          *         max_minutes: the length limit ({max_minutes} of the copy).
@@ -990,6 +1630,11 @@ export interface components {
              */
             max_minutes: number;
         };
+        /** Body_upload_dataset_api_v1_eval_datasets_post */
+        Body_upload_dataset_api_v1_eval_datasets_post: {
+            /** File */
+            file: string;
+        };
         /**
          * CaseClaim
          * @description One claim in a case and the checks that asked it: unanswered ("insufficient_evidence"), or disputed by a user.
@@ -999,6 +1644,43 @@ export interface components {
             claim: string;
             /** Check Ids */
             check_ids: string[];
+        };
+        /**
+         * CaseVerdict
+         * @description One case of a run for the page.
+         *
+         *     Attributes:
+         *         case_id: the case id.
+         *         verdict: the predicted verdict; None when the check ended in a state.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        CaseVerdict: {
+            /** Case Id */
+            case_id: string;
+            /** Verdict */
+            verdict: ("confirmed" | "false" | "misleading" | "insufficient_evidence" | "not_verifiable") | null;
+        };
+        /**
+         * ChangedCase
+         * @description A case whose predicted verdict differs between the runs.
+         *
+         *     Attributes:
+         *         case_id: the case id.
+         *         a: the verdict in run a.
+         *         b: the verdict in run b.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        ChangedCase: {
+            /** Case Id */
+            case_id: string;
+            /** A */
+            a: ("confirmed" | "false" | "misleading" | "insufficient_evidence" | "not_verifiable") | null;
+            /** B */
+            b: ("confirmed" | "false" | "misleading" | "insufficient_evidence" | "not_verifiable") | null;
         };
         /**
          * CheckAccepted
@@ -1080,16 +1762,21 @@ export interface components {
              */
             failure_code?: ("provider_unavailable" | "web_search_unavailable" | "transcription_failed" | "url_unavailable" | "not_ready") | null;
             /**
+             * Out Of Scope Code
+             * @description out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.
+             */
+            out_of_scope_code?: ("image" | "audio" | "not_informational") | null;
+            /**
              * Limitations
              * @default []
              */
             limitations: string[];
             /**
              * Limitation Codes
-             * @description Codes next to the limitation texts; the channel words them from copy/pl.json. They never change the status.
+             * @description Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Paired with limitations by index: one code per text, same order.
              * @default []
              */
-            limitation_codes: ("fact_check_unavailable" | "image_search_not_run")[];
+            limitation_codes: ("fact_check_unavailable" | "image_search_not_run" | "audio_format_unsupported" | "audio_too_long" | "corpus_scope" | "no_publications")[];
             /**
              * Transcript
              * @description Audio input only: the automatic transcript, with personal data masked.
@@ -1108,6 +1795,8 @@ export interface components {
              * @constant
              */
             ai_disclosure: true;
+            /** @description Machine-readable marker that an AI system wrote the answer (AI Act art. 50(2)); required on a finished check. */
+            ai_marker?: components["schemas"]["AiMarker"] | null;
         };
         /**
          * Citation
@@ -1270,6 +1959,42 @@ export interface components {
             stance: "supports" | "refutes" | "context";
         };
         /**
+         * Comparison
+         * @description Two runs side by side.
+         *
+         *     Attributes:
+         *         metrics: the metrics both runs measured.
+         *         changed_cases: the cases whose predicted verdict differs.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        Comparison: {
+            /** Metrics */
+            metrics: {
+                [key: string]: components["schemas"]["MetricPair"];
+            };
+            /** Changed Cases */
+            changed_cases: components["schemas"]["ChangedCase"][];
+        };
+        /**
+         * DatasetSaved
+         * @description Answer to an accepted case file.
+         *
+         *     Attributes:
+         *         id: the dataset id to start a run with.
+         *         cases: how many cases it has.
+         *
+         *     Features:
+         *         US-OBS-05, F-26
+         */
+        DatasetSaved: {
+            /** Id */
+            id: string;
+            /** Cases */
+            cases: number;
+        };
+        /**
          * DeletedChecks
          * @description 202 answer: the deletion ran and the worker got the rest.
          *
@@ -1283,6 +2008,43 @@ export interface components {
         DeletedChecks: {
             /** Deleted */
             deleted: number;
+        };
+        /** @enum {string} */
+        DemoAccount: "obywatel" | "admin";
+        /**
+         * DemoLinkRequest
+         * @description Which technical account the new link opens.
+         *
+         *     Attributes:
+         *         account: ``obywatel`` or ``admin``.
+         *         expires_at: deadline, at most 7 days ahead; 24 hours when absent.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        DemoLinkRequest: {
+            account: components["schemas"]["DemoAccount"];
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /**
+         * DemoLinkRevocation
+         * @description The link to revoke, identified by its token.
+         *
+         *     Attributes:
+         *         account: the account the link opens.
+         *         token: the raw token (the last segment of the link).
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        DemoLinkRevocation: {
+            account: components["schemas"]["DemoAccount"];
+            /**
+             * Token
+             * Format: password
+             */
+            token: string;
         };
         /**
          * Dispute
@@ -1445,6 +2207,26 @@ export interface components {
             message_key: string;
         };
         /**
+         * IssuedDemoLink
+         * @description The administrator's only copy of the link.
+         *
+         *     Attributes:
+         *         url: backend address that signs the visitor in.
+         *         expires_at: last moment the link works.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        IssuedDemoLink: {
+            /** Url */
+            url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
          * IssuedJuryLink
          * @description The administrator's sole copy of the shareable link.
          *
@@ -1515,6 +2297,23 @@ export interface components {
             email_verified: boolean;
             /** Csrf Token */
             csrf_token: string;
+        };
+        /**
+         * MetricPair
+         * @description One metric in both runs.
+         *
+         *     Attributes:
+         *         a: its value in run a.
+         *         b: its value in run b.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        MetricPair: {
+            /** A */
+            a: number;
+            /** B */
+            b: number;
         };
         /**
          * ModeratorCase
@@ -1598,6 +2397,100 @@ export interface components {
             message_key: string;
         };
         /**
+         * Notification
+         * @description An inbox entry, pushed live over SSE or WebSocket from DBOS events and shown as a toast.
+         *
+         *     A toast the recipient did not act on stays in the inbox as unread. Addressed to one browser session or one
+         *     signed-in user (staff included). Text comes from copy/pl.json by `kind`.
+         */
+        Notification: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "check_progress" | "check_done" | "moderator_answer" | "new_evidence" | "case_assigned" | "system" | "eval_run_done";
+            /**
+             * Status
+             * @default unread
+             * @enum {string}
+             */
+            status: "unread" | "read";
+            /** Session Id */
+            session_id?: string | null;
+            /** User Id */
+            user_id?: string | null;
+            /** Check Id */
+            check_id?: string | null;
+            /** Case Id */
+            case_id?: string | null;
+            /**
+             * Step Code
+             * @description check_progress only: the finished pipeline step; the text is analysis.steps.<code> in copy/pl.json.
+             */
+            step_code?: ("receive" | "fetch_url" | "transcribe_audio" | "screen_injection" | "extract_claims" | "search_corpus" | "search_web" | "search_fact_checks" | "assess_evidence" | "verify_citations" | "write_answer" | "save_record") | null;
+            /**
+             * Message Code
+             * @description system only: what the message says; the text is notifications.system_message.<code> in copy/pl.json, never free text.
+             */
+            message_code?: ("maintenance_planned" | "service_degraded" | "service_restored") | null;
+            /**
+             * Link
+             * @description In-app path to open.
+             */
+            link: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Retention Until
+             * Format: date-time
+             */
+            retention_until: string;
+        };
+        /**
+         * NotifierConfig
+         * @description The administrator's choice of target for moderator notifications.
+         *
+         *     Attributes:
+         *         kind: webhook, google_chat or email.
+         *         url: the https address of the webhook or Google Chat space; none for
+         *             e-mail (the Worker's address comes from the settings).
+         *         secret: signs the webhook body (HMAC-SHA256); never returned by the API.
+         *
+         *     Features:
+         *         US-POW-05, US-MOD-01, F-26
+         */
+        NotifierConfig: {
+            kind: components["schemas"]["TargetKind"];
+            /** Url */
+            url?: string | null;
+            /** Secret */
+            secret?: string | null;
+        };
+        /**
+         * NotifierConfigView
+         * @description What the API shows of the configuration: the secret only as set or not.
+         *
+         *     Attributes:
+         *         kind: webhook, google_chat or email.
+         *         url: the target address, if any.
+         *         secret_set: whether a signing secret is stored.
+         *
+         *     Features:
+         *         US-POW-05, US-MOD-01, F-26
+         */
+        NotifierConfigView: {
+            kind: components["schemas"]["TargetKind"];
+            /** Url */
+            url: string | null;
+            /** Secret Set */
+            secret_set: boolean;
+        };
+        /**
          * PingInput
          * @description Input of the `ping` smoke-test workflow.
          *
@@ -1610,7 +2503,7 @@ export interface components {
         PingInput: {
             /**
              * Contract Version
-             * @default 3
+             * @default 4
              */
             contract_version: number;
             /**
@@ -1661,6 +2554,23 @@ export interface components {
              * @enum {string}
              */
             agreement: "consistent" | "conflicting";
+        };
+        /**
+         * QuoteDraft
+         * @description A quote the moderator pasted.
+         *
+         *     Attributes:
+         *         source_id: the catalogue source it comes from.
+         *         fragment: the text, which must occur verbatim in the source.
+         *
+         *     Features:
+         *         US-MOD-07, F-39, ADR-06
+         */
+        QuoteDraft: {
+            /** Source Id */
+            source_id: string;
+            /** Fragment */
+            fragment: string;
         };
         /**
          * Readiness
@@ -1721,6 +2631,43 @@ export interface components {
         };
         ReturnPath: string;
         /**
+         * RunSummary
+         * @description A run in the list: the page's ``EvalRun``.
+         *
+         *     Attributes:
+         *         id: the run id.
+         *         status: queued, running, done or failed.
+         *         dataset: ``golden`` or the uploaded file's name.
+         *         started_at: when it started.
+         *         finished_at: when it ended.
+         *         metrics: only the measured metrics.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        RunSummary: {
+            /** Id */
+            id: string;
+            /** Status */
+            status: string;
+            /** Dataset */
+            dataset: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Metrics
+             * @default {}
+             */
+            metrics: {
+                [key: string]: number;
+            };
+        };
+        /**
          * Source
          * @description A document from the audited corpus. Title, publisher, date and link are mandatory to show (MSZ section 2).
          */
@@ -1771,6 +2718,11 @@ export interface components {
              * @enum {string}
              */
             via: "corpus" | "rss" | "web_search" | "mcp";
+            /**
+             * Max Age Hours
+             * @description Age threshold from the source's catalogue entry (since v14); absent means 365 days.
+             */
+            max_age_hours?: number | null;
         };
         /**
          * SourceStatusWarning
@@ -1836,6 +2788,36 @@ export interface components {
             read_only: boolean;
         };
         /**
+         * StartRun
+         * @description Body of POST /api/v1/eval/runs.
+         *
+         *     Attributes:
+         *         dataset: ``golden`` or the id of an uploaded set.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        StartRun: {
+            /** Dataset */
+            dataset: string;
+        };
+        /**
+         * Started
+         * @description Answer to an accepted run.
+         *
+         *     Attributes:
+         *         id: the run id.
+         *
+         *     Features:
+         *         US-OBS-06, F-28
+         */
+        Started: {
+            /** Id */
+            id: string;
+        };
+        /** @enum {string} */
+        TargetKind: "webhook" | "google_chat" | "email";
+        /**
          * TooManyChecks
          * @description 429 answer: a message for people, never a verdict.
          *
@@ -1861,6 +2843,22 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * VerifiedQuote
+         * @description A quote as the source writes it, with the source's metadata.
+         *
+         *     Attributes:
+         *         source: the cited source.
+         *         fragment: the fragment exactly as in the source text.
+         *
+         *     Features:
+         *         US-MOD-07, F-39, ADR-06
+         */
+        VerifiedQuote: {
+            source: components["schemas"]["Source"];
+            /** Fragment */
+            fragment: string;
         };
         _StaffEmail: string;
     };
@@ -2182,7 +3180,7 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
-                    /** @description Set with a result: machine-readable marker of AI-generated content (AI Act art. 50(2)). */
+                    /** @description Set with a result: machine-readable marker of AI-generated content (AI Act art. 50(2)); model, provider and date come from result.ai_marker when it is set. */
                     "AI-Disclosure"?: string;
                     [name: string]: unknown;
                 };
@@ -2198,6 +3196,77 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    read_target_api_v1_staff_notifications_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotifierConfigView"];
+                };
+            };
+        };
+    };
+    set_target_api_v1_staff_notifications_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotifierConfig"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotifierConfigView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_target_api_v1_staff_notifications_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2333,6 +3402,101 @@ export interface operations {
             };
         };
     };
+    issue_demo_link_api_v1_staff_demo_links_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedDemoLink"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_demo_link_api_v1_staff_demo_links_revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoLinkRevocation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_demo_link_api_v1_auth_demo__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     issue_jury_link_api_v1_staff_jury_links_post: {
         parameters: {
             query?: {
@@ -2454,6 +3618,119 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_answer_api_v1_moderation_cases__case_id__answer_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Answer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_case_api_v1_moderation_cases__case_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Answer"];
+                };
+            };
+            /** @description case not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description case is not open */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description quote not found verbatim in its source */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    read_my_answer_api_v1_moderation_answers__case_id__get: {
+        parameters: {
+            query?: {
+                session?: string | null;
+            };
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Answer"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -2706,6 +3983,316 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Received"];
+                };
+            };
+        };
+    };
+    notification_stream_api_v1_notifications_stream_get: {
+        parameters: {
+            query?: {
+                session?: string | null;
+            };
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["TooManyChecks"];
+                };
+            };
+        };
+    };
+    list_notifications_api_v1_notifications_get: {
+        parameters: {
+            query?: {
+                session?: string | null;
+            };
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_notifications_api_v1_notifications_delete: {
+        parameters: {
+            query?: {
+                session?: string | null;
+            };
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_read_api_v1_notifications__notification_id__read_post: {
+        parameters: {
+            query?: {
+                session?: string | null;
+            };
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_runs_api_v1_eval_runs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"][];
+                };
+            };
+        };
+    };
+    start_run_api_v1_eval_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartRun"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Started"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    latest_run_api_v1_eval_runs_latest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    compare_runs_api_v1_eval_runs_compare_get: {
+        parameters: {
+            query: {
+                a: string;
+                b: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comparison"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_cases_api_v1_eval_runs__run_id__cases_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseVerdict"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_dataset_api_v1_eval_datasets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_dataset_api_v1_eval_datasets_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetSaved"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

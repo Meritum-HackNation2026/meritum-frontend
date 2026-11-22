@@ -15,6 +15,7 @@ const copy = t.moderation.answer
  * row while everything typed stays. A send already out blocks the next one.
  *
  * @param props.caseId - The case being answered.
+ * @param props.checkIds - The checks of the case, whose cited sources fill the picker.
  * @param props.api - Reads the catalogue and sends the answer (the `src/api` adapter in the app).
  * @param props.onSent - Told the sent draft with the catalogue, so the panel can show it.
  * @returns The answer form.
@@ -22,15 +23,18 @@ const copy = t.moderation.answer
  */
 export function AnswerForm({
   caseId,
+  checkIds,
   api,
   onSent,
 }: {
   caseId: string
+  checkIds: readonly string[]
   api: AnswerApi
   onSent: (draft: AnswerDraft, sources: AnswerSource[]) => void
 }) {
-  const form = useAnswerForm(caseId, api, onSent)
-  const { error, rows } = form
+  const form = useAnswerForm(caseId, checkIds, api, onSent)
+  const { errors, rows } = form
+  const general = errors.find((e) => e.row === null)
   return (
     <form onSubmit={form.submit} noValidate className="grid gap-3 border-t pt-4">
       <h3 className="text-body font-bold">{copy.title}</h3>
@@ -40,7 +44,7 @@ export function AnswerForm({
       <Textarea
         id={`${caseId}-answer`}
         value={form.text}
-        aria-invalid={error?.row === null && error.message === copy.text_required}
+        aria-invalid={general?.message === copy.text_required}
         onChange={(event) => form.setText(event.target.value)}
       />
       <h4 className="text-small font-semibold">{copy.citations_title}</h4>
@@ -50,7 +54,7 @@ export function AnswerForm({
           position={index + 1}
           row={row}
           sources={form.sources}
-          error={error?.row === index ? error.message : null}
+          error={errors.find((e) => e.row === index)?.message ?? null}
           onChange={(values) => form.editRow(row.key, values)}
           onRemove={rows.length > 1 ? () => form.removeRow(row.key) : null}
         />
@@ -63,9 +67,9 @@ export function AnswerForm({
       >
         {copy.add_citation}
       </Button>
-      {error?.row === null && (
+      {general && (
         <p role="alert" className="text-small font-semibold text-pretty">
-          {error.message}
+          {general.message}
         </p>
       )}
       <Button

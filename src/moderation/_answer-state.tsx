@@ -12,17 +12,17 @@ const emptyRow = (key: number): CitationRow => ({ key, source_id: '', fragment: 
 
 // Why the draft cannot be sent yet: the first problem, as the position of the row it belongs to
 // (or null for the text) and its text. Nothing is sent to the API until this is empty.
-function problem(text: string, rows: CitationRow[]): AnswerProblem | null {
+function problem(text: string, rows: CitationRow[]): AnswerProblem[] {
   if (!text.trim()) {
-    return { row: null, message: copy.text_required }
+    return [{ row: null, message: copy.text_required }]
   }
   const incomplete = rows.findIndex((row) => !(row.source_id && row.fragment.trim()))
   if (incomplete >= 0 && rows.length === 1 && !rows[0]?.source_id && !rows[0]?.fragment.trim()) {
-    return { row: null, message: copy.citation_required }
+    return [{ row: null, message: copy.citation_required }]
   }
   return incomplete >= 0
-    ? { row: incomplete, message: fill(copy.citation_incomplete, { n: incomplete + 1 }) }
-    : null
+    ? [{ row: incomplete, message: fill(copy.citation_incomplete, { n: incomplete + 1 }) }]
+    : []
 }
 
 const refusals = {
@@ -31,14 +31,14 @@ const refusals = {
   failed: copy.not_sent,
 }
 
-function outcomeProblem(outcome: Exclude<AnswerOutcome, 'sent'>): AnswerProblem {
+function outcomeProblems(outcome: Exclude<AnswerOutcome, 'sent'>): AnswerProblem[] {
   if (typeof outcome === 'object') {
-    return {
-      row: outcome.rejected,
-      message: fill(copy.citation_not_verbatim, { n: outcome.rejected + 1 }),
-    }
+    return outcome.rejected.map((row) => ({
+      row,
+      message: fill(copy.citation_not_verbatim, { n: row + 1 }),
+    }))
   }
-  return { row: null, message: refusals[outcome] }
+  return [{ row: null, message: refusals[outcome] }]
 }
 
 /**
@@ -47,6 +47,7 @@ function outcomeProblem(outcome: Exclude<AnswerOutcome, 'sent'>): AnswerProblem 
  * everything typed.
  *
  * @param caseId - The case being answered.
+ * @param checkIds - The checks of the case, whose cited sources fill the picker.
  * @param api - Reads the catalogue and sends the answer.
  * @param onSent - Told the sent draft with the catalogue.
  * @returns The fields' state and the submit handler.
@@ -54,6 +55,7 @@ function outcomeProblem(outcome: Exclude<AnswerOutcome, 'sent'>): AnswerProblem 
  */
 export function useAnswerForm(
   caseId: string,
+  checkIds: readonly string[],
   api: AnswerApi,
   onSent: (draft: AnswerDraft, sources: AnswerSource[]) => void,
 ) {
@@ -61,15 +63,15 @@ export function useAnswerForm(
   const [rows, setRows] = useState<CitationRow[]>([emptyRow(0)])
   const [sources, setSources] = useState<AnswerSource[] | null | 'failed'>(null)
   const [pending, setPending] = useState(false)
-  const [error, setError] = useState<AnswerProblem | null>(null)
+  const [errors, setErrors] = useState<AnswerProblem[]>([])
   const nextKey = useRef(1)
   useEffect(() => {
     let current = true
-    api.sources().then((list) => current && setSources(list ?? 'failed'))
+    api.sources(checkIds).then((list) => current && setSources(list ?? 'failed'))
     return () => {
       current = false
     }
-  }, [api])
+  }, [api, checkIds])
   const submit = useCallback(
     async (event: FormEvent) => {
       event.preventDefault()
@@ -77,8 +79,8 @@ export function useAnswerForm(
         return
       }
       const found = problem(text, rows)
-      setError(found)
-      if (found) {
+      setErrors(found)
+      if (found.length > 0) {
         return
       }
       const draft = {
@@ -94,7 +96,7 @@ export function useAnswerForm(
       if (outcome === 'sent') {
         onSent(draft, Array.isArray(sources) ? sources : [])
       } else {
-        setError(outcomeProblem(outcome))
+        setErrors(outcomeProblems(outcome))
       }
     },
     [api, caseId, onSent, pending, rows, sources, text],
@@ -109,5 +111,5 @@ export function useAnswerForm(
     (key: number) => setRows((all) => all.filter((row) => row.key !== key)),
     [],
   )
-  return { text, setText, rows, sources, pending, error, submit, addRow, editRow, removeRow }
+  return { text, setText, rows, sources, pending, errors, submit, addRow, editRow, removeRow }
 }

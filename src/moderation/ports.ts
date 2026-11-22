@@ -178,13 +178,13 @@ type AnswerCitation = { source_id: string; fragment: string }
 export type AnswerDraft = { text: string; citations: AnswerCitation[] }
 
 /**
- * What a send gave: sent (the case is `answered`, the askers are notified), the position
- * (from 0) of the citation that is not verbatim in its source, an ended session, a role taken
+ * What a send gave: sent (the case is `answered`, the askers are notified), the positions
+ * (from 0) of the citations that are not verbatim in their source, an ended session, a role taken
  * away, or an API that did not answer or refused the answer.
  *
  * @feature US-MOD-07, F-39, ADR-06
  */
-export type AnswerOutcome = 'sent' | { rejected: number } | 'expired' | 'no_access' | 'failed'
+export type AnswerOutcome = 'sent' | { rejected: number[] } | 'expired' | 'no_access' | 'failed'
 
 /**
  * The answer API of meritum-backend (`POST /moderation/cases/{id}/answer`, backend#36).
@@ -193,8 +193,14 @@ export type AnswerOutcome = 'sent' | { rejected: number } | 'expired' | 'no_acce
  * @feature US-MOD-07, F-39, ADR-06
  */
 export interface AnswerApi {
-  /** @returns The catalogue sources a citation can point to, or null when they cannot be read. */
-  sources(): Promise<AnswerSource[] | null>
+  /**
+   * Reads the catalogue sources a citation can point to: the sources the case's checks cited
+   * (the API has no list of the whole catalogue yet).
+   *
+   * @param checkIds - The checks of the case's claims.
+   * @returns The sources, or null when none can be read.
+   */
+  sources(checkIds: readonly string[]): Promise<AnswerSource[] | null>
   /**
    * Answers a case; the API checks every citation verbatim before it notifies anyone.
    *

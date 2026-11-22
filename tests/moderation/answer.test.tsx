@@ -69,7 +69,7 @@ test('a sent answer is shown with its citation and the case becomes answered', a
 })
 
 test('a citation the API rejects is named, the answer is not sent and the form keeps its data', async () => {
-  const { api } = fakeAnswers({ rejected: 0 })
+  const { api } = fakeAnswers({ rejected: [0] })
   await show(
     <CaseDetail moderatorCase={open} answers={api} onAnswered={() => assert.fail('sent')} />,
   )

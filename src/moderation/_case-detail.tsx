@@ -42,6 +42,7 @@ export function CaseDetail({
     },
     [c.id, onAnswered],
   )
+  const checkIds = c.claims.flatMap((claim) => claim.check_ids)
   const titleId = `case-${c.id}`
   return (
     <article aria-labelledby={titleId} className="grid gap-4 rounded-lg border bg-card p-5">
@@ -96,7 +97,7 @@ export function CaseDetail({
       </ol>
       {sent && <AnswerSent draft={sent.draft} sources={sent.sources} />}
       {!sent && answers && c.state === 'open' && (
-        <AnswerForm caseId={c.id} api={answers} onSent={markSent} />
+        <AnswerForm caseId={c.id} checkIds={checkIds} api={answers} onSent={markSent} />
       )}
     </article>
   )
