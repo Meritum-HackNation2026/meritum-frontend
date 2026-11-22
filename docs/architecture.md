@@ -25,7 +25,7 @@ Wąsko i z powodem: `// biome-ignore lint/<grupa>/<reguła>: <powód>` w linii, 
 
 Obecne wyjątki:
 
-- `src/routeTree.gen.ts` (generowany), `src/components/ui/` (shadcn), `src/styles/meritum.css`, `src/components/meritum/`, `src/contracts/` i `src/copy/` (kopie z `pnpm sync`: JSDoc z `@feature` trzeba dodać w design systemie) są poza testami architektury, Biome i knipem (`src/copy/` to sam JSON, knip go nie czyta); dependency-cruiser traktuje `src/contracts/` i `src/copy/` jak wspólne foldery (`notDomains`), nie domeny;
+- `src/routeTree.gen.ts` (generowany), `src/components/ui/` (shadcn), `src/styles/meritum.css`, `src/styles/display.css`, `src/components/meritum/`, `src/contracts/` i `src/copy/` (kopie z `pnpm sync`: JSDoc z `@feature` trzeba dodać w design systemie) są poza testami architektury, Biome i knipem (`src/copy/` to sam JSON, knip go nie czyta); dependency-cruiser traktuje `src/contracts/` i `src/copy/` jak wspólne foldery (`notDomains`), nie domeny;
 - `src/api/` to klient HTTP backendu, czyli adapter: może używać TanStack Query;
 - `src/api/_openapi.gen.ts` (generowany z `src/api/openapi.json` przez `pnpm openapi`) jest poza testami architektury, Biome i knipem, a `src/api/openapi.json` poza Biome; `tests/api/openapi.test.ts` pilnuje, że typy zgadzają się ze schematem;
 - widoki domeny w React (`src/checks/_*.tsx`: formularz `_check-page.tsx` i pasek postępu `_check-progress.tsx`) to okablowanie UI: mogą importować Reacta; pliki `.ts` w `src/checks/` dalej nie mogą;

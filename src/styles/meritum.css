@@ -4,37 +4,46 @@
   (after `@import "tailwindcss";`). Dark mode: add class `dark` (shadcn) or
   `data-theme="dark"` on <html>.
 
-  Direction: "Biuletyn synoptyczny" palette on clean white surfaces with 1px borders.
+  Direction: "Atrament". One white surface, ink, neutral greys, no accent colour; the verdicts are
+  the only colour. Dark mode is black. Sections are separated by space, not by rules or boxes.
+
+  These tokens change the web page and the panel. The extension widget has its own copy of the old
+  values in extension/widget.css, and everything under `[data-host]` (platform mocks, the Discord
+  mock) keeps the old values through the two rules at the end of this file.
+
+  The display settings (dark high-contrast theme, text-size scale) live in tokens/display.css,
+  imported after this file.
 */
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme=dark], [data-theme=dark] *));
 
 :root {
   /* shadcn/ui base roles */
-  --radius: 0.75rem;                 /* 12px: cards; buttons are pills, see --radius-pill */
-  --background: #F6F7F5;             /* app ground (panel, dashboard) */
-  --foreground: #14191E;             /* ink: all running text */
-  --card: #FFFFFF;
-  --card-foreground: #14191E;
+  --radius: 0.5rem;                  /* 8px: fields, rows, panels; buttons are pills, see --radius-pill */
+  --background: #FFFFFF;             /* one white surface: the page and everything on it */
+  --foreground: #0A0A0A;             /* ink: all running text */
+  --card: #FFFFFF;                   /* same as the page: a result is text on the page, not a box */
+  --card-foreground: #0A0A0A;
   --popover: #FFFFFF;
-  --popover-foreground: #14191E;
-  --primary: #14191E;                /* primary action is near-black, never a brand fill */
+  --popover-foreground: #0A0A0A;
+  --primary: #0A0A0A;                /* primary action is ink, never a brand fill */
   --primary-foreground: #FFFFFF;
-  --secondary: #E8ECEB;
-  --secondary-foreground: #14191E;
-  --muted: #F6F7F5;
-  --muted-foreground: #4C5862;       /* ink2: secondary text, 7.3:1 on white */
-  --accent: #E1EDF2;
-  --accent-foreground: #13506A;
+  --secondary: #EEF0F2;              /* greys lean a hair cool, so a highlight never reads as beige next to white */
+  --secondary-foreground: #0A0A0A;
+  --muted: #F3F4F6;                  /* hover rows, quiet fields */
+  --muted-foreground: #5A5D62;       /* ink2: secondary text, 6.6:1 on white, 6.0:1 on --muted */
+  --accent: #EEF0F2;                 /* no accent colour: hover and selection are grey */
+  --accent-foreground: #0A0A0A;
   --destructive: #C8213A;
-  --border: #D9DEDD;
-  --input: #C3CAC9;
-  --ring: #1D6A86;
+  --border: #E3E5E8;
+  --input: #C6C9CE;
+  --ring: #0A0A0A;                   /* focus ring is ink */
+  --link: #0A0A0A;                   /* links are ink and underlined; --verified is a verdict colour only */
 
   /* Meritum semantic states */
-  --verified: #1D6A86;               /* sea: verified context, links, consensus bars */
-  --verified-surface: #E1EDF2;
-  --verified-foreground: #13506A;    /* text on --verified-surface, 7.4:1 */
+  --verified: #0B7A4B;               /* green: the verdict "Potwierdzone" */
+  --verified-surface: #E4F4EC;
+  --verified-foreground: #0A6240;    /* text on --verified-surface, 6.5:1, and 7.4:1 on the page */
   --contested: #B7791F;              /* amber: under review / contested */
   --contested-surface: #F8EEDB;
   --contested-foreground: #7A4E08;
@@ -44,47 +53,48 @@
   --scam-border: #F0C9D0;
 
   /* charts (Live Dashboard) */
-  --chart-1: #14191E;                /* counted human votes */
+  --chart-1: #0A0A0A;                /* counted human votes */
   --chart-2: #C8213A;                /* rejected bot votes */
-  --chart-3: #1D6A86;
-  --chart-4: #A9B3B8;                /* inactive / past */
+  --chart-3: #0B7A4B;
+  --chart-4: #A9AEB5;                /* inactive / past */
   --chart-5: #B7791F;
 
   /* sidebar (admin panel) = page ground, never dark or saturated */
-  --sidebar: #F6F7F5;
-  --sidebar-foreground: #14191E;
-  --sidebar-primary: #14191E;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #0A0A0A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E8ECEB;
-  --sidebar-accent-foreground: #14191E;
-  --sidebar-border: #D9DEDD;
-  --sidebar-ring: #1D6A86;
+  --sidebar-accent: #EEF0F2;
+  --sidebar-accent-foreground: #0A0A0A;
+  --sidebar-border: #E3E5E8;
+  --sidebar-ring: #0A0A0A;
 }
 
 .dark,
 [data-theme="dark"] {
-  --background: #0B0F12;
-  --foreground: #E7ECEE;
-  --card: #0B0F12;
-  --card-foreground: #E7ECEE;
-  --popover: #151A1E;
-  --popover-foreground: #E7ECEE;
-  --primary: #E7ECEE;
-  --primary-foreground: #0B0F12;
-  --secondary: #22282C;
-  --secondary-foreground: #E7ECEE;
-  --muted: #151A1E;
-  --muted-foreground: #9AA6AE;
-  --accent: #123441;
-  --accent-foreground: #9FD8EC;
+  --background: #0A0A0A;             /* black, neutral: no blue in any ground */
+  --foreground: #EDEDED;
+  --card: #0A0A0A;
+  --card-foreground: #EDEDED;
+  --popover: #161616;
+  --popover-foreground: #EDEDED;
+  --primary: #EDEDED;
+  --primary-foreground: #0A0A0A;
+  --secondary: #1F1F1F;
+  --secondary-foreground: #EDEDED;
+  --muted: #161616;
+  --muted-foreground: #A1A1A1;
+  --accent: #1F1F1F;
+  --accent-foreground: #EDEDED;
   --destructive: #FF6B7D;
-  --border: #2F3336;
-  --input: #3A4146;
-  --ring: #5DB3CF;
+  --border: #262626;
+  --input: #3A3A3A;
+  --ring: #EDEDED;
+  --link: #EDEDED;
 
-  --verified: #5DB3CF;
-  --verified-surface: #123441;
-  --verified-foreground: #9FD8EC;
+  --verified: #4FCB8B;
+  --verified-surface: #12301F;
+  --verified-foreground: #8FE0B5;
   --contested: #F2C46D;
   --contested-surface: #3A2C10;
   --contested-foreground: #F2C46D;
@@ -93,24 +103,25 @@
   --scam-foreground: #FFB3BE;
   --scam-border: #5A2029;
 
-  --chart-1: #E7ECEE;
+  --chart-1: #EDEDED;
   --chart-2: #FF6B7D;
-  --chart-3: #5DB3CF;
-  --chart-4: #4C5862;
+  --chart-3: #4FCB8B;
+  --chart-4: #5C5C5C;
   --chart-5: #F2C46D;
 
-  --sidebar: #0B0F12;
-  --sidebar-foreground: #E7ECEE;
-  --sidebar-primary: #E7ECEE;
-  --sidebar-primary-foreground: #0B0F12;
-  --sidebar-accent: #22282C;
-  --sidebar-accent-foreground: #E7ECEE;
-  --sidebar-border: #2F3336;
-  --sidebar-ring: #5DB3CF;
+  --sidebar: #0A0A0A;
+  --sidebar-foreground: #EDEDED;
+  --sidebar-primary: #EDEDED;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #1F1F1F;
+  --sidebar-accent-foreground: #EDEDED;
+  --sidebar-border: #262626;
+  --sidebar-ring: #EDEDED;
 }
 
 @theme inline {
-  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;   /* the whole interface */
+  --font-logo: "Archivo", ui-sans-serif, system-ui, sans-serif;             /* the word "meritum" in the logotype only */
   --font-mono: "Azeret Mono", ui-monospace, monospace;  /* IDs, account handles, domains, times, figures only */
 
   --color-background: var(--background);
@@ -131,6 +142,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-link: var(--link);
 
   --color-verified: var(--verified);
   --color-verified-surface: var(--verified-surface);
@@ -158,10 +170,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --radius-sm: calc(var(--radius) - 6px);   /* 6px: chips in tables */
-  --radius-md: calc(var(--radius) - 4px);   /* 8px: inputs, tooltips */
-  --radius-lg: var(--radius);                /* 12px: cards, panels */
-  --radius-xl: calc(var(--radius) + 2px);    /* 14px: popovers */
+  --radius-sm: calc(var(--radius) - 6px);   /* 2px: chips in tables */
+  --radius-md: calc(var(--radius) - 4px);   /* 4px: inputs, tooltips */
+  --radius-lg: var(--radius);                /* 8px: fields, rows, panels */
+  --radius-xl: calc(var(--radius) + 2px);    /* 10px: popovers */
   --radius-pill: 9999px;                     /* buttons, badges, chips */
 
   --text-meta: 0.75rem;     --text-meta--line-height: 1rem;       /* 12px: widget header, axis labels */
@@ -173,7 +185,7 @@
   --text-display: 2.5rem;   --text-display--line-height: 1.05;    /* 40px: slides only */
 
   --ease-out-meritum: cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow-float: 0 12px 32px rgb(20 25 30 / 0.16), 0 0 0 1px rgb(20 25 30 / 0.08);  /* only what floats */
+  --shadow-float: 0 12px 32px rgb(10 10 10 / 0.16), 0 0 0 1px rgb(10 10 10 / 0.08);  /* only what floats */
 
   --animate-rise: rise 0.5s var(--ease-out-meritum) both;
   --animate-grow-x: grow-x 0.9s 0.4s var(--ease-out-meritum) both;
@@ -187,7 +199,27 @@
   on the widget root inside the extension's Shadow DOM, and `data-host="discord"`
   on the Discord mock's root. The frame adapts to the
   host; the Meritum mark, name, state colours and sources never change.
+
+  A skin keeps the look from before the Atrament theme: the first two rules below pin the old
+  grounds, ink and sea accent inside `[data-host]`, in light and dark, so the platform mocks and the
+  Discord mock (meritum-mocks copies this file) do not change until their own issue
+  (meritum-monorepo#39, Out of scope). Delete those two rules when the skins move to Atrament.
 */
+[data-host] {
+  --background: #F6F7F5; --foreground: #14191E; --card: #FFFFFF; --card-foreground: #14191E;
+  --popover: #FFFFFF; --popover-foreground: #14191E; --primary: #14191E; --primary-foreground: #FFFFFF;
+  --secondary: #E8ECEB; --secondary-foreground: #14191E; --muted: #F6F7F5; --muted-foreground: #4C5862;
+  --accent: #E1EDF2; --accent-foreground: #13506A; --border: #D9DEDD; --input: #C3CAC9; --ring: #1D6A86;
+  --link: #1D6A86; --verified: #1D6A86; --verified-surface: #E1EDF2; --verified-foreground: #13506A;
+}
+:is(.dark, [data-theme="dark"]) [data-host],
+[data-host]:is(.dark, [data-theme="dark"]) {
+  --background: #0B0F12; --foreground: #E7ECEE; --card: #0B0F12; --card-foreground: #E7ECEE;
+  --popover: #151A1E; --popover-foreground: #E7ECEE; --primary: #E7ECEE; --primary-foreground: #0B0F12;
+  --secondary: #22282C; --secondary-foreground: #E7ECEE; --muted: #151A1E; --muted-foreground: #9AA6AE;
+  --accent: #123441; --accent-foreground: #9FD8EC; --border: #2F3336; --input: #3A4146; --ring: #5DB3CF;
+  --link: #5DB3CF; --verified: #5DB3CF; --verified-surface: #123441; --verified-foreground: #9FD8EC;
+}
 [data-host] { --host-font: system-ui, sans-serif; --host-radius: 16px; --host-button-radius: 9999px; --host-card: var(--card); --host-border: 1px solid var(--border); --host-link: var(--verified); }
 [data-host="x"]         { --host-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --host-radius: 16px; --host-button-radius: 9999px; }
 [data-host="facebook"]  { --host-font: "Segoe UI Historic", "Segoe UI", Helvetica, Arial, sans-serif; --host-radius: 8px; --host-button-radius: 6px; }

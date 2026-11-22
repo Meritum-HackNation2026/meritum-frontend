@@ -28,9 +28,9 @@ sums() { if command -v sha256sum >/dev/null; then sha256sum --text "$@"; else sh
 # Parallel arrays (design-system path -> path here); quoted everywhere, so names with
 # spaces stay whole.
 from=(contracts/meritum.ts contracts/meritum.schema.json contracts/examples.json copy/pl.json copy/privacy.json
-  tokens/meritum.css)
+  tokens/meritum.css tokens/display.css)
 to=(src/contracts/meritum.ts src/contracts/meritum.schema.json src/contracts/examples.json
-  src/copy/pl.json src/copy/privacy.json src/styles/meritum.css)
+  src/copy/pl.json src/copy/privacy.json src/styles/meritum.css src/styles/display.css)
 # A plain assignment, not a process substitution, so set -e stops on a failed call.
 names=$(gh api "repos/$ds/contents/components/meritum?ref=$ds_ref" \
   --jq '.[] | select(.type == "file") | .name')
@@ -59,7 +59,7 @@ else
   exit 1
 fi
 
-rm -rf src/contracts src/copy src/components/meritum src/styles/meritum.css
+rm -rf src/contracts src/copy src/components/meritum src/styles/meritum.css src/styles/display.css
 cp -R "$stage/src/." src/
 printf '%s\n' "$sources" >SOURCE
 sorted=()

@@ -77,6 +77,13 @@ test('pnpm sync keeps names with spaces whole and sums every copy', () => {
     `copy of ${ds}/components/meritum/with%20space.tsx?ref=${sha}\n`,
   )
   assert.equal(sync.read('src/copy/pl.json'), `copy of ${ds}/copy/pl.json?ref=${sha}\n`)
+  for (const name of ['meritum', 'display']) {
+    assert.ok(sync.summed().includes(`src/styles/${name}.css`))
+    assert.equal(
+      sync.read(`src/styles/${name}.css`),
+      `copy of ${ds}/tokens/${name}.css?ref=${sha}\n`,
+    )
+  }
   assert.equal(sync.read('SOURCE'), `meritum-design-system ${sha}\n`)
   assert.equal(sync.has('src/contracts/catalog.json'), false)
 })

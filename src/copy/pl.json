@@ -8,6 +8,40 @@
       "Każde ustalenie ma źródło. Gdy źródeł brak, mówimy to wprost."
     ]
   },
+  "nav": {
+    "$comment": "Top bar and footer of the web page (meritum-monorepo#39, design-system#150). on_page titles the list of sections in the side rail of long pages.",
+    "check": "Sprawdź",
+    "how": "Jak działa",
+    "privacy": "Prywatność",
+    "sign_in": "Zaloguj się",
+    "menu": "Menu",
+    "account": "Konto",
+    "on_page": "Na tej stronie"
+  },
+  "display": {
+    "$comment": "Display menu in the top bar (design-system#147, meritum-monorepo#39). label names the menu button for screen readers. theme and text keys match the stored values: light, dark, contrast and m, l, xl, xxl.",
+    "title": "Wygląd",
+    "label": "Wygląd: motyw i rozmiar tekstu",
+    "theme_title": "Motyw",
+    "theme": {
+      "light": "Jasny",
+      "dark": "Ciemny",
+      "contrast": "Ciemny, wysoki kontrast"
+    },
+    "text_title": "Rozmiar tekstu",
+    "text": {
+      "m": "Domyślny",
+      "l": "Duży",
+      "xl": "Większy",
+      "xxl": "Największy"
+    }
+  },
+  "check_page": {
+    "$comment": "Page of one check and the home page (design-system#150). new starts a check from the side rail, next titles the field under a finished result, sample labels the example result on the home page.",
+    "new": "Nowe sprawdzenie",
+    "next": "Sprawdź kolejną informację",
+    "sample": "Przykładowy wynik"
+  },
   "layout": {
     "$comment": "Page frame shared by every route. skip_to_content is the first focusable link on each page and moves focus to <main> (meritum-frontend#89). error_* and not_found_* are the route error page and the 404 page (meritum-frontend#115).",
     "skip_to_content": "Przejdź do treści",
@@ -135,6 +169,19 @@
     "label": "Meritum",
     "page_title": "Wynik sprawdzenia",
     "claims_title": "Co sprawdziliśmy",
+    "claims_count": {
+      "$comment": "Shown after claims_title (design-system#148): pick the form with Intl.PluralRules('pl').select(count).",
+      "one": "{count} twierdzenie",
+      "few": "{count} twierdzenia",
+      "many": "{count} twierdzeń",
+      "other": "{count} twierdzenia"
+    },
+    "strength_facts": {
+      "$comment": "Labels of the three figures behind the strength of evidence (design-system#148).",
+      "independent": "Niezależne źródła",
+      "primary": "Urzędowe lub pierwotne",
+      "newest": "Najnowsze źródło"
+    },
     "claim": "Twierdzenie",
     "explanation": "Wyjaśnienie",
     "explanation_hint": "To nasze wyjaśnienie, przygotowane z pomocą AI. Podstawą są cytaty ze źródeł poniżej.",
@@ -278,6 +325,8 @@
   },
   "analysis": {
     "title": "Meritum sprawdza",
+    "step_of": "Krok {n} z {of}",
+    "show_steps": "Pokaż kroki",
     "draft": "Wersja wstępna. Werdykt pokażemy po sprawdzeniu cytatów.",
     "steps": {
       "receive": "Przyjmujemy pytanie",
@@ -346,6 +395,26 @@
   "source_tier": {
     "primary": "źródło urzędowe lub pierwotne",
     "secondary": "źródło wtórne"
+  },
+  "source_kind_hint": {
+    "$comment": "One sentence behind each source_kind label, shown on hover, focus and tap (design-system#148).",
+    "akt_prawny": "Ustawa, rozporządzenie albo inny akt opublikowany urzędowo.",
+    "dane_publiczne": "Dane opublikowane przez instytucję publiczną, na przykład w serwisie dane.gov.pl.",
+    "instytucja": "Oficjalna strona urzędu albo agencji państwowej.",
+    "fact_check": "Ustalenie redakcji, która zawodowo sprawdza fakty, na przykład sygnatariusza kodeksu IFCN albo EFCSN.",
+    "media": "Publikacja redakcji z katalogu źródeł.",
+    "transcript": "Zapis wypowiedzi, na przykład stenogram z posiedzenia."
+  },
+  "source_tier_hint": {
+    "$comment": "One sentence behind each source_tier label (design-system#148).",
+    "primary": "Dokument od samego autora informacji: urzędu, ustawodawcy albo instytucji.",
+    "secondary": "Omówienie albo ustalenie kogoś innego niż autor informacji, na przykład fact-checkera."
+  },
+  "strength_hint": {
+    "$comment": "One sentence behind each strength level, following the rule in the contract (EvidenceStrength, design-system#148).",
+    "strong": "Co najmniej dwóch niezależnych wydawców zgodnych z werdyktem, w tym co najmniej jeden urzędowy lub pierwotny, i aktualne dowody.",
+    "moderate": "Co najmniej dwóch wydawców zgodnych z werdyktem albo jedno źródło urzędowe lub pierwotne.",
+    "weak": "Jeden wydawca spoza źródeł urzędowych i pierwotnych albo dowód nieaktualny."
   },
   "match_basis": {
     "$comment": "IncidentMatch.match_basis: the words joined into {fields} of result.match_basis. A content match needs title, topic and date (jury scenario I).",
@@ -626,6 +695,19 @@
   "method": {
     "$comment": "Page „Jak działa Meritum” (US-ZRD-12, F-29, meritum-frontend#20). Page title: result.how_it_works. The data controller block comes from privacy.json (controller). Source kinds and tiers: source_kind, source_tier. Facts only from the product document; numbers only from a measured evaluation run.",
     "lead": "Tu opisujemy, jak Meritum sprawdza informacje, skąd bierze źródła i jak mierzymy jakość odpowiedzi. Metodę opisujemy według zasad IFCN i EFCSN, międzynarodowej i europejskiej sieci fact-checkerów.",
+    "path": {
+      "$comment": "First section of the page (meritum-monorepo#39): the steps of analysis.steps in order.",
+      "title": "Co dzieje się z twoim pytaniem",
+      "lead": "Każde sprawdzenie przechodzi przez te same kroki. Trzy wyszukiwania działają równolegle, a kroki linku i nagrania tylko wtedy, gdy są potrzebne."
+    },
+    "verdicts": {
+      "$comment": "Heading above the five verdicts with their verdict_hint texts (meritum-monorepo#39).",
+      "title": "Pięć możliwych odpowiedzi"
+    },
+    "details": {
+      "$comment": "Heading above the sources, verdict, corrections, report_error, pilot and team sections shown as rows that open (meritum-monorepo#39).",
+      "title": "Zasady w szczegółach"
+    },
     "sources": {
       "title": "Jak wybieramy i sprawdzamy źródła",
       "text": [

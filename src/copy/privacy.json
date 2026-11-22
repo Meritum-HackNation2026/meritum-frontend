@@ -234,8 +234,8 @@
       },
       {
         "id": "euvsdisinfo_mcp",
-        "name": "Serwer MCP EUvsDisinfo (Vercel)",
-        "region": "USA",
+        "name": "Serwer MCP EUvsDisinfo (operator do potwierdzenia)",
+        "region": "Hosting Hetzner Online GmbH (Niemcy, UE)",
         "data": "Token i nasze zapytania o kolejne strony bazy, bez danych użytkowników",
         "purpose": "Pobieranie lokalnej kopii bazy EUvsDisinfo"
       },

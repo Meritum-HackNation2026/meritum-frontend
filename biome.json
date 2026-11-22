@@ -15,6 +15,7 @@
       "!src/api/openapi.json",
       "!src/components/ui",
       "!src/styles/meritum.css",
+      "!src/styles/display.css",
       "!src/components/meritum",
       "!src/contracts",
       "!src/copy"
