@@ -1,5 +1,5 @@
 /**
- * The list of this tab's checks under the form (scenario „powrót do wyniku”) and
+ * This tab's checks as the conversation thread (scenario „powrót do wyniku”) and
  * „Usuń moje sprawdzenia” (scenario „usunięcie sprawdzeń”), behind a fake `fetch`.
  *
  * @feature US-SPR-09, US-BEZ-05, F-01, F-20
@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { saveCheck, savedChecks } from '@/checks'
+import { rememberQuestion, saveCheck, savedChecks } from '@/checks'
 import examples from '@/contracts/examples.json'
 import type { CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
@@ -16,7 +16,6 @@ import { routeTree } from '@/routeTree.gen'
 import { requestPath } from '../fetch-request'
 
 const done = examples['CheckResult.done'] as CheckResult
-const abstain = examples['CheckResult.abstain'] as CheckResult
 // no session id: the adapter drops notifications addressed to another session
 const notification = { ...examples.Notification, session_id: undefined }
 
@@ -50,56 +49,38 @@ function renderAt(path: string) {
   return router
 }
 
-test('powrót do wyniku: the first entry opens its card without asking the API', async (t) => {
+test('powrót do wyniku: a kept check shows its card in the thread without asking the API', async (t) => {
   const fetch = fakeApi(t)
   saveCheck(done)
-  saveCheck(abstain)
   const router = renderAt('/')
-  const list = await screen.findByRole('list', { name: pl.history.title })
-  const [first] = within(list).getAllByRole('button')
-  fireEvent.click(first as HTMLElement)
-  await waitFor(() => assert.equal(router.state.location.pathname, '/sprawdzenie/c_02'))
-  assert.ok(await screen.findByText(abstain.claims?.[0]?.claim ?? ''))
+  const thread = await screen.findByRole('list', { name: pl.conversation.label })
+  assert.ok(within(thread).getByText(done.claims?.[0]?.claim ?? ''))
+  assert.ok(within(thread).getByText(pl.verdict.false))
   assert.ok(!calls(fetch).some((call) => call.includes('/api/v1/checks')))
-  await waitFor(() => assert.equal(router.state.status, 'idle'))
-})
-
-test('the list names each check by its main claim and shows its verdict as a word', async (t) => {
-  fakeApi(t)
-  saveCheck(done)
-  const router = renderAt('/')
-  const list = await screen.findByRole('list', { name: pl.history.title })
-  const claim = done.claims?.[0]?.claim ?? ''
-  assert.ok(within(list).getByRole('button', { name: new RegExp(claim.slice(0, 20)) }))
-  assert.ok(within(list).getByText(pl.verdict.false))
-  await waitFor(() => assert.equal(router.state.status, 'idle'))
-})
-
-test('an empty tab shows the empty line instead of a list', async (t) => {
-  fakeApi(t)
-  const router = renderAt('/')
-  assert.ok(await screen.findByText(pl.history.empty))
-  assert.equal(screen.queryByRole('list', { name: pl.history.title }), null)
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
 
 async function confirmDelete(answer: string) {
   fireEvent.click(await screen.findByRole('button', { name: pl.form.delete_session }))
-  const dialog = await screen.findByRole('alertdialog', { name: pl.form.delete_session })
+  const dialog = await screen.findByRole('alertdialog', { name: pl.form.delete_session_title })
+  assert.ok(within(dialog).getByText(pl.form.delete_session_text))
   fireEvent.click(within(dialog).getByRole('button', { name: answer }))
 }
 
 test('usunięcie sprawdzeń: the API, sessionStorage and the inbox are emptied', async (t) => {
   const fetch = fakeApi(t)
+  rememberQuestion(done.check_id, 'Czy prezydent może rządzić trzy kadencje?')
   saveCheck(done)
   const router = renderAt('/')
-  await confirmDelete(pl.extension.popup_delete_yes)
+  await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.channel_privacy.deleted))
+  // the citizen's own questions go too, or they would come back as turns on reload
+  assert.equal(sessionStorage.getItem('meritum.questions'), null)
   const session = sessionStorage.getItem('meritum.session')
   assert.ok(calls(fetch).includes(`DELETE /api/v1/sessions/${session}/checks`))
   assert.ok(calls(fetch).includes('DELETE /api/v1/notifications'))
   assert.deepEqual(savedChecks(), [])
-  assert.ok(screen.getByText(pl.history.empty))
+  assert.ok(screen.getByText(pl.brand.taglines[0] ?? ''))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
 
@@ -107,7 +88,7 @@ test('„Anuluj” closes the dialog and deletes nothing', async (t) => {
   const fetch = fakeApi(t)
   saveCheck(done)
   const router = renderAt('/')
-  await confirmDelete(pl.extension.popup_delete_cancel)
+  await confirmDelete(pl.form.delete_session_cancel)
   await waitFor(() => assert.equal(screen.queryByRole('alertdialog'), null))
   assert.ok(!calls(fetch).some((call) => call.startsWith('DELETE')))
   assert.equal(savedChecks().length, 1)
@@ -118,10 +99,21 @@ test('a refused deletion says so and keeps the history to try again', async (t) 
   const fetch = fakeApi(t, 503)
   saveCheck(done)
   const router = renderAt('/')
-  await confirmDelete(pl.extension.popup_delete_yes)
+  await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.extension.popup_delete_failed))
   assert.ok(!calls(fetch).includes('DELETE /api/v1/notifications'))
   assert.equal(savedChecks().length, 1)
-  assert.ok(screen.getByRole('list', { name: pl.history.title }))
+  assert.ok(screen.getByRole('list', { name: pl.conversation.label }))
+  await waitFor(() => assert.equal(router.state.status, 'idle'))
+})
+
+test('deleting on a result address empties the thread there and says so', async (t) => {
+  fakeApi(t)
+  saveCheck(done)
+  const router = renderAt('/sprawdzenie/c_01')
+  await confirmDelete(pl.form.delete_session_yes)
+  assert.ok(await screen.findByText(pl.channel_privacy.deleted))
+  assert.equal(router.state.location.pathname, '/sprawdzenie/c_01')
+  assert.equal(screen.queryByRole('list', { name: pl.conversation.label }), null)
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })

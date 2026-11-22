@@ -19,7 +19,6 @@
   "ignoreDependencies": [
     // Used by the shadcn components in src/components/ui (ignored above).
     "class-variance-authority",
-    "lucide-react",
     "radix-ui",
     // dependency-cruiser's TypeScript parser (parser: "swc" in .dependency-cruiser.cjs).
     "@swc/core"

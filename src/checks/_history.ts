@@ -1,5 +1,5 @@
 import type { CheckResult } from '@/contracts/meritum'
-import { HISTORY_STORAGE_KEY, RESULT_STATUSES } from './constants'
+import { HISTORY_STORAGE_KEY, QUESTIONS_STORAGE_KEY, RESULT_STATUSES } from './constants'
 
 /**
  * One result kept in this tab's history, with the time it arrived (ISO 8601).
@@ -29,9 +29,9 @@ function isSavedCheck(value: unknown): value is SavedCheck {
   return isObject(value) && typeof value['at'] === 'string' && isResult(value['result'])
 }
 
-function read(): unknown {
+function read(key = HISTORY_STORAGE_KEY): unknown {
   try {
-    return JSON.parse(sessionStorage.getItem(HISTORY_STORAGE_KEY) ?? '[]')
+    return JSON.parse(sessionStorage.getItem(key) ?? '[]')
   } catch {
     return []
   }
@@ -85,7 +85,55 @@ export function findSavedCheck(checkId: string): CheckResult | undefined {
 export function forgetChecks(): void {
   try {
     sessionStorage.removeItem(HISTORY_STORAGE_KEY)
+    sessionStorage.removeItem(QUESTIONS_STORAGE_KEY)
   } catch {
     // blocked storage holds no history
+  }
+}
+
+/**
+ * A check this tab sent: its id, when it was sent (ISO 8601) and the question as the citizen
+ * typed it, or the recording's line.
+ *
+ * @feature US-SPR-01, US-SPR-09, F-01
+ */
+export type AskedCheck = { checkId: string; at: string; question: string }
+
+function isAskedCheck(value: unknown): value is AskedCheck {
+  return (
+    isObject(value) &&
+    typeof value['checkId'] === 'string' &&
+    typeof value['at'] === 'string' &&
+    typeof value['question'] === 'string'
+  )
+}
+
+/**
+ * The checks this tab sent, oldest first; empty when sessionStorage is blocked or holds
+ * something else.
+ *
+ * @returns The sent checks with their questions.
+ * @feature US-SPR-01, US-SPR-09, F-01
+ */
+export function askedChecks(): AskedCheck[] {
+  const value = read(QUESTIONS_STORAGE_KEY)
+  return Array.isArray(value) && value.every(isAskedCheck) ? value : []
+}
+
+/**
+ * Keeps the question of an accepted check, so the conversation shows it above the answer.
+ * Where sessionStorage is blocked or full the answer still shows, without the question.
+ *
+ * @param checkId - The id the API gave the check.
+ * @param question - The text, link or recording line the citizen sent.
+ * @feature US-SPR-01, US-SPR-09, F-01
+ */
+export function rememberQuestion(checkId: string, question: string): void {
+  const others = askedChecks().filter((asked) => asked.checkId !== checkId)
+  const next = [...others, { checkId, at: new Date().toISOString(), question }]
+  try {
+    sessionStorage.setItem(QUESTIONS_STORAGE_KEY, JSON.stringify(next))
+  } catch {
+    // blocked or full storage: the answer still shows, only its question is missing
   }
 }

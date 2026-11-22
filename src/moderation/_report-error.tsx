@@ -125,11 +125,10 @@ export function ReportError({
       <Button
         ref={toggle}
         type="button"
-        variant="ghost"
-        size="sm"
+        variant="outline"
         aria-expanded={open}
         aria-controls={open ? formId : undefined}
-        className="-ml-2.5"
+        className="h-10 rounded-pill px-4 text-small font-semibold"
         onClick={toggleForm}
       >
         {t.result.report_error}

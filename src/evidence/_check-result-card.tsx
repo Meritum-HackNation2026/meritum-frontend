@@ -26,7 +26,7 @@ export function CheckResultCard({ result, handoff }: { result: CheckResult; hand
       aria-label={t.result.label}
       className="min-w-0 rounded-lg border border-border bg-card text-card-foreground motion-safe:animate-rise"
     >
-      <header className="flex items-center px-3.5 pt-3">
+      <header className="flex items-center px-3.5 pt-3 in-data-reply:hidden">
         <MeritumLabel />
       </header>
       <h2 className="sr-only">{t.result.claims_title}</h2>

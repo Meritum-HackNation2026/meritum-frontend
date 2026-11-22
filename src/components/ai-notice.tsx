@@ -13,7 +13,7 @@ export function AiNotice() {
   return (
     <p className="text-small text-muted-foreground">
       {pl.ai_notice.first_contact}{' '}
-      <Link to="/prywatnosc" className="underline underline-offset-3">
+      <Link to="/prywatnosc" className="py-3 underline underline-offset-3">
         {privacy.policies.web.title}
       </Link>
     </p>

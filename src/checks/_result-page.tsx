@@ -148,6 +148,7 @@ type ResultPageProps = {
   handoff: Handoff
   pollMs?: number
   maxReads?: number
+  focusOnAnswer?: boolean
 }
 
 function LiveResult({
@@ -157,6 +158,7 @@ function LiveResult({
   handoff,
   pollMs = POLL_INTERVAL_MS,
   maxReads = MAX_READS,
+  focusOnAnswer = false,
 }: ResultPageProps) {
   const { streamed, closed } = useStreamedStatus(checkId, progress)
   const streamedResult = streamed && shownResult(streamed)
@@ -173,6 +175,15 @@ function LiveResult({
       saveCheck(result)
     }
   }, [result])
+  const answerRef = useRef<HTMLDivElement>(null)
+  const hasResult = result !== null
+  useEffect(() => {
+    // a new answer is read next, unless the user is already in a field or on a button
+    const isFocusFree = document.activeElement === null || document.activeElement === document.body
+    if (focusOnAnswer && hasResult && isFocusFree) {
+      answerRef.current?.focus()
+    }
+  }, [focusOnAnswer, hasResult])
   return (
     <div className="grid min-w-0 gap-4">
       {isRunning && (
@@ -187,7 +198,12 @@ function LiveResult({
         </p>
       )}
       {result?.transcript && <Transcript text={result.transcript} />}
-      <div aria-live="polite" className="min-w-0">
+      <div
+        ref={answerRef}
+        tabIndex={-1}
+        aria-live="polite"
+        className="min-w-0 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
         {result && <Card result={result} handoff={handoff} />}
       </div>
     </div>
@@ -197,7 +213,8 @@ function LiveResult({
 /**
  * The result page of one check: live steps streamed over SSE while it runs (the API read
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
- * so a screen reader announces the result. A checked recording shows its transcript above it
+ * so a screen reader announces the result; with `focusOnAnswer`, the answer takes the focus
+ * when nothing else has it. A checked recording shows its transcript above it
  * (`Transcript`), outside that region, so a long transcript does not hold back the verdicts.
  * Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
@@ -213,6 +230,7 @@ function LiveResult({
  * @param props.handoff - Hands claims of the result to the moderators (the `src/api` adapter).
  * @param props.pollMs - Pause between reads; tests pass a short one.
  * @param props.maxReads - Reads before giving up; tests pass a small one.
+ * @param props.focusOnAnswer - Moves the focus to a result that arrives while nothing has it.
  * @returns The result page.
  * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-09, US-SPR-11, US-BEZ-07, F-01, F-08, F-09, F-17, F-21
  */

@@ -1,6 +1,6 @@
-import { type ChangeEvent, type FormEvent, useCallback, useId, useState } from 'react'
-import { fill, t } from '@/components/meritum'
-import { Button } from '@/components/ui/button'
+import { Mic } from 'lucide-react'
+import { type ChangeEvent, useCallback, useRef, useState } from 'react'
+import { Attachment, fill, t } from '@/components/meritum'
 import privacy from '@/copy/privacy.json'
 import type { ErrorKey } from './_request'
 import { ResultState } from './_result-state'
@@ -10,25 +10,23 @@ import {
   MAX_AUDIO_BYTES,
   MAX_AUDIO_MB,
   MAX_AUDIO_MINUTES,
-  RETENTION_SENTENCE_MARKER,
+  RETENTION_DAYS,
   TRANSCRIBER_ID,
 } from './constants'
 import type { AudioUploader, CheckSender, UploadOutcome } from './ports'
 
-/** A refusal shown next to the audio field: an `errors` key or the out-of-scope format. */
+/** A refusal shown with the recording: an `errors` key or the out-of-scope format. */
 type Refusal = ErrorKey | 'unsupported_format'
 
 const limits = { max_mb: MAX_AUDIO_MB, max_minutes: MAX_AUDIO_MINUTES }
 const limitsLine = fill(t.form.audio_limits, { ...limits, formats: AUDIO_FORMATS.join(', ') })
-// shortcut: provider and retention come from copy/privacy.json until copy/pl.json has
-// form.audio_provider and form.audio_retention (meritum-design-system#69, meritum-frontend#65)
 const transcriber = privacy.processors.items.find((p) => p.id === TRANSCRIBER_ID)
-const retention = privacy.policies.web.retention.split(/(?<=\.)\s+/)
 const aboutLines = [
   t.form.audio_note,
   limitsLine,
-  transcriber ? `${transcriber.name}, ${transcriber.region}` : '',
-  retention.find((sentence) => sentence.includes(RETENTION_SENTENCE_MARKER)) ?? '',
+  transcriber ? fill(t.form.audio_provider, transcriber) : '',
+  t.form.audio_cost,
+  fill(t.form.audio_retention, { days: RETENTION_DAYS }),
   t.form.audio_transcription_warning,
 ].filter(Boolean)
 
@@ -49,103 +47,121 @@ async function checkRecording(
 }
 
 /**
- * „Albo nagranie” under the check form (ADR-30): a file field with who transcribes the
- * recording, where, and the limits of a file, all from copy. The check button shows once a file
- * is chosen. A file over `MAX_AUDIO_MB` is refused before it is sent; the API's size, length and
- * rate-limit refusals show under the field, and a file that is not a supported recording ends as
- * an out-of-scope card saying what can be sent, never as a verdict.
+ * A recording attached to the message field (ADR-30): the chosen file, sending it (upload, then
+ * a check of its `audio_id`) and the first refusal. A file over `MAX_AUDIO_MB` is refused before
+ * it is sent. An accepted check is handed on with its id and the thread's line for the file.
  *
- * @param props.uploader - Uploads the recording (the `src/api` adapter in the app).
- * @param props.sender - Starts the check of the uploaded recording.
- * @param props.onAccepted - Called with the id of an accepted check.
- * @returns The audio form.
+ * @param uploader - Uploads the recording (the `src/api` adapter in the app).
+ * @param sender - Starts the check of the uploaded recording.
+ * @param onAccepted - Called with the id of an accepted check and its question line.
+ * @returns The file, its state and the actions on it.
  * @feature US-SPR-11, F-08
  */
-export function AudioCheck({
-  uploader,
-  sender,
-  onAccepted,
-}: {
-  uploader: AudioUploader
-  sender: CheckSender
-  onAccepted: (checkId: string) => void
-}) {
-  const id = useId()
+export function useRecording(
+  uploader: AudioUploader,
+  sender: CheckSender,
+  onAccepted: (checkId: string, question: string) => void,
+) {
   const [file, setFile] = useState<File | null>(null)
   const [pending, setPending] = useState(false)
   const [refusal, setRefusal] = useState<Refusal | null>(null)
-
-  const submit = useCallback(
-    async (event: FormEvent) => {
-      event.preventDefault()
-      if (!file || pending) {
-        return
+  // a second click before React re-renders must not send the file twice
+  const sendingRef = useRef(false)
+  const send = useCallback(async () => {
+    if (!file || sendingRef.current) {
+      return
+    }
+    sendingRef.current = true
+    setPending(true)
+    setRefusal(null)
+    try {
+      const outcome = await checkRecording(file, uploader, sender)
+      if (typeof outcome === 'string') {
+        setRefusal(outcome)
+      } else {
+        onAccepted(outcome.checkId, fill(t.conversation.audio_question, { name: file.name }))
       }
-      setPending(true)
-      setRefusal(null)
-      try {
-        const outcome = await checkRecording(file, uploader, sender)
-        if (typeof outcome === 'string') {
-          setRefusal(outcome)
-        } else {
-          onAccepted(outcome.checkId)
-        }
-      } finally {
-        setPending(false)
-      }
-    },
-    [file, pending, uploader, sender, onAccepted],
-  )
-  const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    } finally {
+      sendingRef.current = false
+      setPending(false)
+    }
+  }, [file, uploader, sender, onAccepted])
+  const pick = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setFile(event.target.files?.[0] ?? null)
     setRefusal(null)
   }, [])
+  const remove = useCallback(() => {
+    setFile(null)
+    setRefusal(null)
+  }, [])
+  return { file, pending, refusal, send, pick, remove }
+}
 
+type Recording = ReturnType<typeof useRecording>
+
+/**
+ * The microphone button of the message field: a file field named „Dodaj nagranie” behind the
+ * icon, disabled while a recording is sent.
+ *
+ * @param props.recording - The recording state from `useRecording`.
+ * @returns The button.
+ * @feature US-SPR-11, F-08
+ */
+export function RecordingButton({ recording }: { recording: Recording }) {
+  return (
+    <label className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-pill text-muted-foreground transition-colors ease-out-meritum hover:bg-secondary hover:text-foreground has-disabled:cursor-not-allowed has-disabled:opacity-50 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring">
+      <input
+        type="file"
+        accept={AUDIO_ACCEPT}
+        aria-label={t.conversation.attach_audio}
+        disabled={recording.pending}
+        onChange={recording.pick}
+        className="sr-only"
+      />
+      <Mic aria-hidden="true" className="size-5" />
+    </label>
+  )
+}
+
+/**
+ * The chosen recording in place of the text field: its name, „Usuń nagranie”, who transcribes
+ * it and where, the cost, how long it is kept, the limits and the AI warning, all from copy and
+ * shown before it is sent; a size, length or rate-limit refusal shows under them.
+ *
+ * @param props.recording - The recording state from `useRecording`.
+ * @returns The attachment, or nothing without a file.
+ * @feature US-SPR-11, F-08
+ */
+export function RecordingAttachment({ recording }: { recording: Recording }) {
+  const { file, refusal, pending, remove } = recording
+  if (!file) {
+    return null
+  }
   const fieldError = refusal === 'unsupported_format' ? null : refusal
   return (
-    <div className="grid min-w-0 gap-4">
-      <form
-        aria-label={t.form.audio_label}
-        onSubmit={submit}
-        noValidate
-        className="grid gap-2 border-t border-border pt-4 font-sans"
-      >
-        <label htmlFor={id} className="text-small font-semibold">
-          {t.form.audio_label}
-        </label>
-        <input
-          id={id}
-          type="file"
-          accept={AUDIO_ACCEPT}
-          aria-invalid={fieldError !== null}
-          disabled={pending}
-          aria-describedby={fieldError ? `${id}-error ${id}-about` : `${id}-about`}
-          onChange={onFileChange}
-          className="min-w-0 text-small text-muted-foreground file:mr-3 file:h-10 file:cursor-pointer file:rounded-pill file:border file:border-border file:bg-card file:px-4 file:font-semibold file:text-foreground"
-        />
-        {fieldError && (
-          <p id={`${id}-error`} role="alert" className="text-meta text-scam-foreground">
-            {fill(t.errors[fieldError], limits)}
-          </p>
-        )}
-        <div id={`${id}-about`} className="grid gap-1 text-small text-muted-foreground text-pretty">
-          {aboutLines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </div>
-        {file && (
-          <div>
-            <Button type="submit" disabled={pending} className="h-10 rounded-pill px-6">
-              {pending ? t.form.checking : t.form.submit}
-            </Button>
-          </div>
-        )}
-      </form>
-      <div aria-live="polite" className="min-w-0">
-        {refusal === 'unsupported_format' && (
-          <ResultState status="out_of_scope" hint={`${t.out_of_scope_code.audio} ${limitsLine}`} />
-        )}
-      </div>
-    </div>
+    <Attachment name={file.name} onRemove={remove} disabled={pending}>
+      {aboutLines.map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+      {fieldError && (
+        <p role="alert" className="text-meta text-scam-foreground">
+          {fill(t.errors[fieldError], limits)}
+        </p>
+      )}
+    </Attachment>
   )
+}
+
+/**
+ * A file that is not a supported recording, as an out-of-scope card saying what can be sent,
+ * never as a verdict.
+ *
+ * @param props.recording - The recording state from `useRecording`.
+ * @returns The card, or nothing.
+ * @feature US-SPR-11, F-08
+ */
+export function RecordingRefusal({ recording }: { recording: Recording }) {
+  return recording.refusal === 'unsupported_format' ? (
+    <ResultState status="out_of_scope" hint={`${t.out_of_scope_code.audio} ${limitsLine}`} />
+  ) : null
 }
