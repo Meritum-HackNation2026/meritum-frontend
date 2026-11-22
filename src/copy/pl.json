@@ -16,7 +16,7 @@
     "input_placeholder": "Np. „Od stycznia nie zapłacisz w sklepie gotówką”",
     "submit": "Sprawdź",
     "checking": "Sprawdzamy…",
-    "privacy": "Konto nie jest potrzebne. Oczywiste dane osobowe (telefon, e-mail, PESEL) ukrywamy przed analizą. Zapis sprawdzenia usuwamy po {days} dniach.",
+    "privacy": "Konto nie jest potrzebne. Ukrywamy przed analizą oczywiste identyfikatory (telefon, e-mail, PESEL, dowód osobisty, paszport, numer konta, karta płatnicza). Nazwisk osób publicznych, nazw instytucji, dat i kwot nie ruszamy. Zapis sprawdzenia usuwamy po {days} dniach.",
     "delete_session": "Usuń moje sprawdzenia",
     "delete_session_title": "Usunąć twoje sprawdzenia?",
     "delete_session_text": "Usuniemy sprawdzenia z tej karty przeglądarki i ich zapisy na naszym serwerze. Tego nie da się cofnąć.",
@@ -38,7 +38,7 @@
     "delete": "Usuń moją historię"
   },
   "conversation": {
-    "$comment": "Conversation view of the web page (DESIGN_SYSTEM.md 6.8, design-system#79, meritum-frontend#67). label names the thread for screen readers; you is the hidden speaker name of the citizen's question; examples are claims to check, not facts, shown on the empty page and sent on click; audio_question stands in the thread for a sent recording.",
+    "$comment": "Conversation view of the web page (DESIGN_SYSTEM.md 6.8, design-system#79, meritum-frontend#67). label names the thread for screen readers; you is the hidden speaker name of the citizen's question; examples are claims to check, not facts, shown on the empty page and sent on click; audio_question stands in the thread for a sent recording; next_placeholder replaces form.input_placeholder in the Composer after the first check (design-system#103).",
     "label": "Rozmowa z Meritum",
     "you": "Ty",
     "examples_lead": "Albo sprawdź jedno z tych twierdzeń:",
@@ -47,6 +47,7 @@
       "Prezydent w Polsce może rządzić przez trzy kadencje.",
       "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł."
     ],
+    "next_placeholder": "Wklej kolejne twierdzenie albo link",
     "attach_audio": "Dodaj nagranie",
     "remove_audio": "Usuń nagranie",
     "audio_question": "Nagranie: {name}"
@@ -83,6 +84,7 @@
     "checked": "Sprawdzono",
     "popup_title": "Sprawdź tekst albo link",
     "page_hint": "Wysyłamy treść posta dopiero po kliknięciu „Sprawdź”.",
+    "post_too_short": "W tym poście jest za mało tekstu do sprawdzenia. Wklej treść w okienku wtyczki albo wybierz inny post.",
     "popup_connecting": "Łączymy z serwerem Meritum…",
     "popup_api_ok": "Połączono z serwerem Meritum ({api}).",
     "popup_api_down": "Serwer Meritum nie odpowiada. Spróbuj za kilka minut.",
@@ -223,7 +225,7 @@
     "no_publications": "Nie znaleźliśmy publikacji na ten temat ani w naszej bazie, ani w wyszukiwarce."
   },
   "escalation": {
-    "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown on HTTP 503 when „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case (no case_id, no case number). Backend will send it instead of escalation.recommended once meritum-backend picks up this key. updated has the same text as created and the frontend shows created in both states, so the citizen never learns that someone else asked the same (meritum-frontend#23).",
+    "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown whenever „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case: any 5xx (not only 503), an unreadable response, or a response without a case number (no case_id). Backend will send it instead of escalation.recommended once meritum-backend picks up this key. updated has the same text as created and the frontend shows created in both states, so the citizen never learns that someone else asked the same (meritum-frontend#23).",
     "recommended": "Ta sprawa nadaje się do sprawdzenia przez moderatora. Nie została jeszcze przekazana.",
     "created": "Przekazaliśmy sprawę moderatorom (sprawa {case}).",
     "updated": "Przekazaliśmy sprawę moderatorom (sprawa {case}).",
@@ -420,7 +422,7 @@
     "mcp": "Wynik przygotował system AI Meritum. Sprawdza informacje w opisanych źródłach i podaje cytaty, ale może się mylić."
   },
   "discord": {
-    "$comment": "Message content max 2000 characters (API limit for bots). First message: summary with a link; then one message per claim. Never split inside a citation.",
+    "$comment": "Message content max 2000 characters (API limit for bots). One embed: title, a field per claim (verdict, claim, quote, strength), link button card_button. Quotes are shortened to fit 6000 characters, claims never.",
     "summary": "Wynik sprawdzenia: {claims}. Pełna karta: {link}",
     "claims": {
       "$comment": "{claims} in summary: pick the form with Intl.PluralRules('pl').select(count).",
@@ -429,7 +431,10 @@
       "many": "{count} twierdzeń",
       "other": "{count} twierdzenia"
     },
-    "user_author": "Ty",
+    "result_title": "Wynik sprawdzenia: {claims}",
+ "card_button": "Pełna karta",
+ "public_option": "Pokaż wynik wszystkim na kanale",
+ "user_author": "Ty",
     "summary_line": "{verdict}: {claim}",
     "claim": "{verdict}: {claim}\n„{fragment}” ({publisher}, {date})\nSiła podstawy: {strength}",
     "claim_undated": "{verdict}: {claim}\n„{fragment}” ({publisher}, data publikacji nieznana)\nSiła podstawy: {strength}",
@@ -470,6 +475,18 @@
     "upload": "Dodaj zestaw (JSON albo CSV)",
     "compare": "Porównaj przebiegi",
     "changed_cases": "Przypadki, które zmieniły wynik",
+    "upload_rejected": "Nie przyjęliśmy pliku. Zestaw musi mieć wymagany format i co najmniej 30 przypadków.",
+    "start_failed": "Nie udało się uruchomić przebiegu. Spróbuj jeszcze raz za chwilę.",
+    "cases": "Wyniki przypadków",
+    "case_id": "Przypadek",
+    "expected": "Oczekiwany werdykt",
+    "actual": "Werdykt przebiegu",
+    "show_cases": "Pokaż wyniki przypadków",
+    "hide_cases": "Ukryj wyniki przypadków",
+    "compare_hint": "Zaznacz dwa zakończone przebiegi, żeby je porównać.",
+    "no_runs": "Nie ma jeszcze żadnego przebiegu. Uruchom pierwszy na golden secie.",
+    "no_changed_cases": "Żaden przypadek nie zmienił wyniku.",
+    "delta": "z {a} na {b}",
     "status": {
       "queued": "w kolejce",
       "running": "trwa",

@@ -14,7 +14,8 @@ import {
   apiResultReader,
   apiSessionEraser,
 } from '@/api'
-import { CheckPage } from '@/checks'
+import { CheckPage, type ProgressSource } from '@/checks'
+import { rememberQuestion } from '@/checks/_history'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
 
@@ -29,7 +30,7 @@ function fakeApi(t: TestContext, status = 202) {
 }
 
 /** Renders the form and records the check ids it hands on after the API accepted them. */
-function renderPage(): string[] {
+function renderPage(progress: ProgressSource = apiProgressSource): string[] {
   const opened: string[] = []
   const onAccepted = opened.push.bind(opened)
   render(
@@ -38,7 +39,7 @@ function renderPage(): string[] {
       uploader={apiAudioUploader}
       eraser={apiSessionEraser}
       reader={apiResultReader}
-      progress={apiProgressSource}
+      progress={progress}
       handoff={apiHandoff}
       onAccepted={onAccepted}
     />,
@@ -151,4 +152,19 @@ test('the note under the history says it also shows in tabs opened from this one
   const note = screen.getByText(pl.history.session_note).textContent ?? ''
   assert.match(note, copiedTabs)
   assert.doesNotMatch(note, singleTabPromise)
+})
+
+const placeholder = () => screen.getByLabelText(pl.form.input_label).getAttribute('placeholder')
+
+test('an empty tab keeps the example placeholder', (t) => {
+  fakeApi(t)
+  renderPage()
+  assert.equal(placeholder(), pl.form.input_placeholder)
+})
+
+test('once a check is in the thread the field asks for the next claim', (t) => {
+  fakeApi(t)
+  rememberQuestion('c_01', 'Pytanie')
+  renderPage({ watch: () => () => undefined })
+  assert.equal(placeholder(), pl.conversation.next_placeholder)
 })

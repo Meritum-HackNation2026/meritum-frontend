@@ -185,6 +185,7 @@ export function CheckPage({
           tools={<RecordingButton recording={recording} />}
           attachment={recording.file ? <RecordingAttachment recording={recording} /> : undefined}
           onSendAttachment={recording.send}
+          placeholder={turns.length > 0 ? t.conversation.next_placeholder : undefined}
         />
       </div>
       <DeleteChecksDialog open={confirming} onOpenChange={setConfirming} onConfirm={erase} />

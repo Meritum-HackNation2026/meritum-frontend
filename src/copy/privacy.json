@@ -8,10 +8,15 @@
     "deployment": "Jeśli Meritum zostanie wdrożone pilotażowo albo produkcyjnie, administratorem będzie podmiot wdrażający.",
     "contact": "Pytania o dane i wnioski wyślij na adres cyprian@gburek.dev."
   },
+  "masking": {
+    "$comment": "Single list of masked identifiers (meritum-core INFO_TYPE_MARKERS after core#102; no street address) and what stays visible. docs/gen_product_doc.py reads it; tests/test_masking_copy.py keeps every text in line.",
+    "masked": ["telefon", "e-mail", "PESEL", "dowód osobisty", "paszport", "numer konta", "karta płatnicza"],
+    "kept": "Nie ukrywamy imion i nazwisk osób publicznych, nazw instytucji, dat ani kwot, bo bez nich nie da się sprawdzić twierdzenia."
+  },
   "policies": {
     "web": {
       "title": "Polityka prywatności strony Meritum",
-      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Oczywiste dane osobowe (telefon, e-mail, PESEL, adres, numery dokumentów, konta i karty) ukrywamy przed analizą. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy imię i nazwisko, adres e-mail i identyfikator konta. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
+      "data": "Przetwarzamy tekst albo link, który wklejasz, i nagranie, jeśli je prześlesz. Ukrywamy przed analizą oczywiste identyfikatory osoby (telefon, e-mail, PESEL, dowód osobisty, paszport, numer konta, karta płatnicza). Nie ukrywamy imion i nazwisk osób publicznych, nazw instytucji, dat ani kwot, bo bez nich nie da się sprawdzić twierdzenia. Konto nie jest potrzebne: sesję rozpoznajemy po losowym identyfikatorze z przeglądarki. Historia rozmowy zostaje w tej karcie przeglądarki. Jeśli zalogujesz się kontem Google albo Microsoft, zapisujemy imię i nazwisko, adres e-mail i identyfikator konta. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
       "purpose": "Dane służą tylko do sprawdzenia informacji, odpowiedzi, policzenia powtórzeń pytań i pokazania twojej historii sprawdzeń.",
       "retention": "Historię sprawdzeń i powiadomienia usuwamy automatycznie po 30 dniach, a wcześniej, jeśli usuniesz historię albo konto. Plik nagrania przechowujemy najwyżej tak długo jak zapis sprawdzenia. Logowanie jest opcjonalne. Dane konta przechowujemy do kliknięcia „Usuń konto”.",
       "deletion": "Przycisk „Usuń moje sprawdzenia” usuwa zapisy twojej sesji. Po zalogowaniu „Usuń moją historię” usuwa historię, a „Usuń konto” także konto.",

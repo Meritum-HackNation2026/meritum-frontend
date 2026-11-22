@@ -3,10 +3,24 @@ import { cn } from "@/lib/utils"
 
 import { fill, formatDate, t } from "./copy"
 
-/** One source row: linked title, publisher and date, kind and tier, then the verbatim fragment on the raised surface. */
-export function CitationItem({ citation, className }: { citation: Citation; className?: string }) {
+/**
+ * One source row: linked title, publisher and date, kind and tier, then the verbatim fragment on the raised surface.
+ * `showDate={false}` is for the evidence timeline, which shows the date itself: the publisher line then names the
+ * publisher only (no "data publikacji nieznana" either).
+ */
+export function CitationItem({
+  citation,
+  showDate = true,
+  className,
+}: {
+  citation: Citation
+  showDate?: boolean
+  className?: string
+}) {
   const { source: s, fragment } = citation
-  const meta = s.published_at
+  const meta = !showDate
+    ? s.publisher
+    : s.published_at
     ? fill(t.result.source_meta, { publisher: s.publisher, date: formatDate(s.published_at) })
     : fill(t.result.source_undated, { publisher: s.publisher })
   return (

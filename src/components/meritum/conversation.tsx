@@ -156,7 +156,7 @@ export function Attachment({ name, onRemove, children, disabled = false }: { nam
  * Errors show under the field from copy `errors`; the typed text is never cleared on an error. With an attachment
  * the caller shows the recording's refusals inside it, so the field's errors stay hidden.
  *
- * @param props - The controlled `value`, `onSubmit(CheckRequest)`, `pending`, `serverError`, `tools`, `attachment`.
+ * @param props - The controlled `value`, `onSubmit(CheckRequest)`, `pending`, `serverError`, `tools`, `attachment`, `placeholder` (default: the example claim).
  * @returns The message field.
  * @feature US-SPR-01, US-SPR-11, F-01, F-08
  */
@@ -169,6 +169,7 @@ export function Composer({
   tools,
   attachment,
   onSendAttachment,
+  placeholder = t.form.input_placeholder,
   className,
 }: {
   value: string
@@ -179,6 +180,7 @@ export function Composer({
   tools?: ReactNode
   attachment?: ReactNode
   onSendAttachment?: () => void
+  placeholder?: string
   className?: string
 }) {
   const id = useId()
@@ -218,12 +220,12 @@ export function Composer({
                 if (error) setError(null)
               }}
               onKeyDown={sendOnEnter}
-              placeholder={t.form.input_placeholder}
+              placeholder={placeholder}
               rows={1}
               enterKeyHint="send"
               aria-invalid={shown !== null}
               aria-describedby={shown ? `${id}-error` : counted}
-              className="max-h-48 min-h-11 resize-none border-0 bg-transparent px-2 text-base shadow-none focus-visible:ring-0 sm:text-body dark:bg-transparent"
+              className="max-h-28 min-h-11 sm:max-h-48 resize-none border-0 bg-transparent px-2 text-base shadow-none focus-visible:ring-0 sm:text-body dark:bg-transparent"
             />
           </>
         )}
