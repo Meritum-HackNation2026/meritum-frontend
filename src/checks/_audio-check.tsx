@@ -135,7 +135,7 @@ export function RecordingButton({ recording }: { recording: Recording }) {
       <PopoverContent
         side="top"
         align="start"
-        className="w-80 max-w-[calc(100vw-2rem)] gap-2 p-3 text-small font-sans"
+        className="w-80 max-w-popover gap-2 p-3 text-small font-sans"
       >
         {aboutLines.map((line) => (
           <p key={line} className="text-pretty">

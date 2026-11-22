@@ -12,6 +12,8 @@
   /* Fontsource names the variable family "Archivo Variable". */
   --font-sans: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-sans);
+  /* popovers keep a 1rem gutter on each side of a narrow screen: max-w-popover */
+  --container-popover: calc(100vw - 2rem);
 }
 
 @layer base {
