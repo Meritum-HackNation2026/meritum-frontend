@@ -50,15 +50,19 @@ export function savedChecks(): SavedCheck[] {
 }
 
 /**
- * Keeps a result at the top of this tab's history, replacing an older entry of the same check.
- * Where sessionStorage is blocked or full the history stays as it was.
+ * Keeps a result at the top of this tab's history, replacing an older entry of the same check
+ * but keeping its time (when the answer first arrived). Where sessionStorage is blocked or full
+ * the history stays as it was.
  *
  * @param result - The result the page has shown.
  * @feature US-SPR-09, F-01
  */
 export function saveCheck(result: CheckResult): void {
-  const others = savedChecks().filter((saved) => saved.result.check_id !== result.check_id)
-  const next = [{ at: new Date().toISOString(), result }, ...others]
+  const saved = savedChecks()
+  // the first save is when the answer arrived; a later one only refreshes the result
+  const at = saved.find((kept) => kept.result.check_id === result.check_id)?.at
+  const others = saved.filter((kept) => kept.result.check_id !== result.check_id)
+  const next = [{ at: at ?? new Date().toISOString(), result }, ...others]
   try {
     sessionStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(next))
   } catch {
