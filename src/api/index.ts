@@ -1,6 +1,7 @@
 export { type ApiSchemas, meritumQueries } from './_client.ts'
 export { apiAdmin } from './admin.ts'
 export { apiAnswers } from './answers.ts'
+export { apiAskerAnswer } from './asker-answer.ts'
 export { apiAudioUploader } from './audio.ts'
 export { apiCheckSender } from './checks.ts'
 export { apiEval } from './eval-runs.ts'

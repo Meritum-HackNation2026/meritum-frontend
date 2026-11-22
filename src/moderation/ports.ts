@@ -210,3 +210,37 @@ export interface AnswerApi {
    */
   send(caseId: string, draft: AnswerDraft): Promise<AnswerOutcome>
 }
+
+/**
+ * The answer as the asker reads it: the text and each cited fragment with its source's name.
+ * No asker, no channel, no other asker (the API leaves them out).
+ *
+ * @feature US-MOD-07, US-POW-02, F-39
+ */
+type AskerAnswerView = {
+  text: string
+  citations: { fragment: string; source: string }[]
+}
+
+/**
+ * What the API said about an answer: the answer, `not_found` (no answer for this session, or no
+ * such case) or `failed` (the API could not be read).
+ *
+ * @feature US-MOD-07, US-POW-02, F-39
+ */
+export type AskerAnswerOutcome = { answer: AskerAnswerView } | 'not_found' | 'failed'
+
+/**
+ * Reads the moderator's answer to a case the asker was notified about.
+ *
+ * @feature US-MOD-07, US-POW-02, F-39
+ */
+export interface AskerAnswerReader {
+  /**
+   * Reads one answer; never throws, a failure is an outcome.
+   *
+   * @param caseId - The case number from the notification link.
+   * @returns The answer or why there is none.
+   */
+  read(caseId: string): Promise<AskerAnswerOutcome>
+}
