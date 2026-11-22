@@ -15,7 +15,7 @@ type Turn = { checkId: string; at: string; question?: string; answeredAt?: strin
  * This tab's checks as turns, oldest first: the sent ones with their questions and the time
  * their answer arrived, results kept without a question (opened by link) sorted by the time
  * they were kept but shown without a time, since that is when the page showed them, not when
- * the check was made (meritum-frontend#127), and the check of the address last when the tab
+ * the check was made (issue 127), and the check of the address last when the tab
  * has neither.
  *
  * @param activeCheckId - The check of the result address, if any.
