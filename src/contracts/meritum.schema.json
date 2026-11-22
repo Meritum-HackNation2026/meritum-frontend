@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Meritum contracts",
-  "x-contract-version": 17,
+  "x-contract-version": 18,
   "$defs": {
     "CheckRequest": {
       "additionalProperties": false,
@@ -771,7 +771,8 @@
             "dane_publiczne",
             "instytucja",
             "fact_check",
-            "media"
+            "media",
+            "transcript"
           ],
           "title": "Kind",
           "type": "string"
@@ -1767,10 +1768,27 @@
             "dane_publiczne",
             "instytucja",
             "fact_check",
-            "media"
+            "media",
+            "transcript"
           ],
           "title": "Kind",
           "type": "string"
+        },
+        "kind_by_path": {
+          "additionalProperties": {
+            "enum": [
+              "akt_prawny",
+              "dane_publiczne",
+              "instytucja",
+              "fact_check",
+              "media",
+              "transcript"
+            ],
+            "type": "string"
+          },
+          "default": {},
+          "title": "Kind By Path",
+          "type": "object"
         },
         "tier": {
           "enum": [
