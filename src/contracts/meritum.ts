@@ -38,6 +38,10 @@ export type PublishedAt = string | null;
 export type FetchedAt = string;
 export type Language = string;
 export type Via = "corpus" | "rss" | "web_search" | "mcp";
+/**
+ * Age threshold from the source's catalogue entry (since v14); absent means 365 days.
+ */
+export type MaxAgeHours = number | null;
 export type Fragment = string;
 export type Stance = "supports" | "refutes" | "context";
 /**
@@ -72,7 +76,7 @@ export type NewestSourceAgeHours = number | null;
 /**
  * Threshold from the catalogue entry of the newest source.
  */
-export type MaxAgeHours = number;
+export type MaxAgeHours1 = number;
 export type Validity1 = "expires" | "in_force" | "updated_in_place" | "past_event" | "superseded";
 export type Agreement = "consistent" | "conflicting";
 export type Citations = Citation[];
@@ -246,6 +250,10 @@ export type CheckId1 = string;
  * @minItems 1
  */
 export type Steps = [AnalysisStep, ...AnalysisStep[]];
+/**
+ * Streamed draft of the answer, personal data masked; a preview, never a verdict.
+ */
+export type Draft = string | null;
 export type Location = "input" | "source";
 export type Action = "instruction_removed" | "source_dropped";
 export type SourceUrl = string | null;
@@ -348,7 +356,7 @@ export type Validity2 = "expires" | "in_force" | "updated_in_place" | "past_even
 /**
  * Shorter threshold for short-lived sources (warnings, roads, weather: hours or days).
  */
-export type MaxAgeHours1 = number | null;
+export type MaxAgeHours2 = number | null;
 export type QualifiedBecause = string;
 /**
  * Machine-readable text and data mining opt-out (robots.txt incl. Content-Signal, meta tags, tdmrep), checked per domain.
@@ -503,6 +511,7 @@ export interface Source {
   fetched_at: FetchedAt;
   language?: Language;
   via?: Via;
+  max_age_hours?: MaxAgeHours;
 }
 /**
  * One checked claim. Citations (source material) are kept apart from `explanation` (model interpretation).
@@ -547,7 +556,7 @@ export interface Premises {
   primary_sources: PrimarySources;
   newest_source_published_at?: NewestSourcePublishedAt;
   newest_source_age_hours?: NewestSourceAgeHours;
-  max_age_hours?: MaxAgeHours;
+  max_age_hours?: MaxAgeHours1;
   validity?: Validity1;
   agreement: Agreement;
 }
@@ -709,6 +718,7 @@ export interface AnalysisStatus {
   check_id: CheckId1;
   steps: Steps;
   result?: CheckResult | null;
+  draft?: Draft;
 }
 /**
  * Instructions found in the input or a source. Logged and never executed.
@@ -812,7 +822,7 @@ export interface CatalogEntry {
   ingest: Ingest;
   refresh_minutes?: RefreshMinutes;
   validity?: Validity2;
-  max_age_hours?: MaxAgeHours1;
+  max_age_hours?: MaxAgeHours2;
   qualified_because: QualifiedBecause;
   tdm_reservation?: TdmReservation;
   signatory_of?: SignatoryOf1;

@@ -155,7 +155,8 @@
       { "code": "search_corpus", "status": "active" },
       { "code": "search_web", "status": "active" },
       { "code": "search_fact_checks", "status": "active" }
-    ]
+    ],
+    "draft": "Wstępnie: nie znaleziono komunikatu, który to potwierdza."
   },
   "CheckRecord": {
     "check_id": "c_02", "session_id": "s_7f3a9c21", "channel": "extension",
