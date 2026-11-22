@@ -21,6 +21,8 @@
     "class-variance-authority",
     "radix-ui",
     // dependency-cruiser's TypeScript parser (parser: "swc" in .dependency-cruiser.cjs).
-    "@swc/core"
+    "@swc/core",
+    // Run by scripts/openapi.sh and by path in tests/api/openapi.test.ts.
+    "openapi-typescript"
   ]
 }

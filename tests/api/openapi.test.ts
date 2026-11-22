@@ -16,13 +16,12 @@ test('the generated API types match the saved OpenAPI schema', (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'openapi-'))
   t.after(() => rmSync(dir, { recursive: true, force: true }))
   const output = join(dir, 'openapi.gen.ts')
-  const run = spawnSync(
-    'pnpm',
-    ['exec', 'openapi-typescript', 'src/api/openapi.json', '-o', output],
-    {
-      encoding: 'utf8',
-    },
-  )
+  // The CLI through node, not `pnpm exec`: on Windows pnpm is a .cmd that spawnSync cannot
+  // start without a shell (meritum-frontend#88).
+  const cli = 'node_modules/openapi-typescript/bin/cli.js'
+  const run = spawnSync(process.execPath, [cli, 'src/api/openapi.json', '-o', output], {
+    encoding: 'utf8',
+  })
   assert.equal(run.status, 0, run.stderr)
   const message = 'src/api/_openapi.gen.ts is stale: run pnpm openapi --types-only'
   assert.equal(
