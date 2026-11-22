@@ -36,6 +36,8 @@ UI issues to a Claude session.
    every text from `src/copy/pl.json`. The block keeps its structure unless it breaks accessibility or a Meritum component; its colours, fonts, images
    and sample copy go.
 
+Kolejność źródeł komponentów (rejestry w `components.json`): najpierw komponenty Meritum z `src/components/meritum/`, potem darmowe bloki shadcnblocks (`@shadcnblocks/<nazwa>`, nigdy Pro ani klucz licencyjny), ReUI (`@reui/<nazwa>`), Origin UI (`@originui/<nazwa>`), na końcu zwykły shadcn/ui. Wygląd i teksty zawsze z design systemu Meritum.
+
 The registry needs `"@shadcnblocks": "https://www.shadcnblocks.com/r/{style}/{name}"` under
 `registries` in `components.json`; add it in the PR that installs the first block. Free blocks
 need no key. Pro blocks need the object form with the header
