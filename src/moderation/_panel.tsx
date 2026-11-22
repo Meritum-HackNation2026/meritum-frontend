@@ -8,10 +8,11 @@ import { type PanelData, type PanelSection, sectionsFor } from './_session'
 import { SignIn } from './_sign-in'
 import type { AnswerApi, StaffApi, StaffSession } from './ports'
 
-// Sections whose page exists today; export (frontend/022) joins here with its page.
+// Sections whose page exists today.
 const pages: Partial<Record<PanelSection, { to: NonNullable<LinkProps['to']>; label: string }>> = {
   cases: { to: '/panel', label: t.moderation.queue_title },
   evaluation: { to: '/panel/eval', label: t.evaluation.title },
+  export: { to: '/panel/eksport', label: t.export.title },
   admin: { to: '/panel/administracja', label: t.staff.admin.title },
 }
 

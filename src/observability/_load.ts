@@ -32,3 +32,21 @@ export async function loadEval(staff: StaffApi, api: EvalApi): Promise<EvalData>
   }
   return { session, allowed, runs }
 }
+
+/**
+ * Reads the session for the export page; the export itself is a download the person starts, so
+ * nothing else is read. `allowed` is false for a role that may not export.
+ *
+ * @param staff - The staff API.
+ * @returns The session and whether its role may export.
+ * @feature US-OBS-03, F-36
+ */
+export async function loadExport(
+  staff: StaffApi,
+): Promise<{ session: StaffSession; allowed: boolean }> {
+  const session = await staff.session()
+  return {
+    session,
+    allowed: session.kind === 'member' && sectionsFor(session.role).includes('export'),
+  }
+}

@@ -14,6 +14,7 @@ import { Route as JakDzialaRouteImport } from './routes/jak-dziala'
 import { Route as OdpowiedziCaseIdRouteImport } from './routes/odpowiedzi/$caseId'
 import { Route as PanelIndexRouteImport } from './routes/panel/index'
 import { Route as PanelAdministracjaRouteImport } from './routes/panel/administracja'
+import { Route as PanelEksportRouteImport } from './routes/panel/eksport'
 import { Route as PanelEvalRouteImport } from './routes/panel/eval'
 import { Route as PrywatnoscIndexRouteImport } from './routes/prywatnosc/index'
 import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/discord'
@@ -44,6 +45,11 @@ const PanelIndexRoute = PanelIndexRouteImport.update({
 const PanelAdministracjaRoute = PanelAdministracjaRouteImport.update({
   id: '/panel/administracja',
   path: '/panel/administracja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelEksportRoute = PanelEksportRouteImport.update({
+  id: '/panel/eksport',
+  path: '/panel/eksport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PanelEvalRoute = PanelEvalRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/jak-dziala': typeof JakDzialaRoute
   '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
+  '/panel/eksport': typeof PanelEksportRoute
   '/panel/eval': typeof PanelEvalRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/jak-dziala': typeof JakDzialaRoute
   '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
+  '/panel/eksport': typeof PanelEksportRoute
   '/panel/eval': typeof PanelEvalRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/jak-dziala': typeof JakDzialaRoute
   '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
+  '/panel/eksport': typeof PanelEksportRoute
   '/panel/eval': typeof PanelEvalRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
   '/prywatnosc/sms': typeof PrywatnoscSmsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/jak-dziala'
     | '/odpowiedzi/$caseId'
     | '/panel/administracja'
+    | '/panel/eksport'
     | '/panel/eval'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/jak-dziala'
     | '/odpowiedzi/$caseId'
     | '/panel/administracja'
+    | '/panel/eksport'
     | '/panel/eval'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/jak-dziala'
     | '/odpowiedzi/$caseId'
     | '/panel/administracja'
+    | '/panel/eksport'
     | '/panel/eval'
     | '/prywatnosc/discord'
     | '/prywatnosc/sms'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   JakDzialaRoute: typeof JakDzialaRoute
   OdpowiedziCaseIdRoute: typeof OdpowiedziCaseIdRoute
   PanelAdministracjaRoute: typeof PanelAdministracjaRoute
+  PanelEksportRoute: typeof PanelEksportRoute
   PanelEvalRoute: typeof PanelEvalRoute
   PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
   PrywatnoscSmsRoute: typeof PrywatnoscSmsRoute
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/panel/administracja'
       fullPath: '/panel/administracja'
       preLoaderRoute: typeof PanelAdministracjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/eksport': {
+      id: '/panel/eksport'
+      path: '/panel/eksport'
+      fullPath: '/panel/eksport'
+      preLoaderRoute: typeof PanelEksportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/panel/eval': {
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   JakDzialaRoute: JakDzialaRoute,
   OdpowiedziCaseIdRoute: OdpowiedziCaseIdRoute,
   PanelAdministracjaRoute: PanelAdministracjaRoute,
+  PanelEksportRoute: PanelEksportRoute,
   PanelEvalRoute: PanelEvalRoute,
   PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,
   PrywatnoscSmsRoute: PrywatnoscSmsRoute,
