@@ -1,5 +1,5 @@
 import { useLocation } from '@tanstack/react-router'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useCallback, useState } from 'react'
 import { t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,7 +52,7 @@ export function SignIn({ api, notice }: { api: StaffApi; notice: string | null }
  */
 function JuryForm() {
   const [error, setError] = useState('')
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  const submit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
     const response = await fetch('/api/v1/auth/password', {
@@ -62,7 +62,7 @@ function JuryForm() {
     })
     if (response.ok) window.location.reload()
     else setError('Nieprawidłowy login lub hasło.')
-  }
+  }, [])
   return (
     <form onSubmit={submit} className="grid gap-2 border-t pt-4" aria-labelledby="jury-sign-in">
       <h2 id="jury-sign-in" className="text-body font-bold">
