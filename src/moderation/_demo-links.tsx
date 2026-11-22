@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FocusEvent, useCallback, useId, useState } from 'react'
+import { type ChangeEvent, type FocusEvent, useCallback, useEffect, useId, useState } from 'react'
 import { fill, formatDate, t } from '@/components/meritum'
 import {
   AlertDialog,
@@ -15,10 +15,10 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { AdminSection, Field, type Notice, refusalText, tableClass } from './_admin-parts'
 import { DEMO_ACCOUNTS, DEMO_VALIDITIES, MS_PER_HOUR } from './constants'
-import type { AdminApi, DemoAccount, DemoLink } from './ports-admin'
+import type { ActiveDemoLink, AdminApi, DemoAccount } from './ports-admin'
 
 const copy = t.staff.admin.demo_links
-type Issued = DemoLink & { account: DemoAccount }
+type ManagedLink = ActiveDemoLink & { url?: string }
 const accountName = (account: DemoAccount) => copy[`account_${account}`]
 const isAccount = (value: string): value is DemoAccount =>
   (DEMO_ACCOUNTS as readonly string[]).includes(value)
@@ -26,13 +26,15 @@ const isAccount = (value: string): value is DemoAccount =>
 const selectAll = (e: FocusEvent<HTMLInputElement>) => e.currentTarget.select()
 
 function LinkRow(props: {
-  link: Issued
+  link: ManagedLink
   onCopy: (url: string) => void
-  onRevoke: (link: Issued) => void
+  onRevoke: (link: ManagedLink) => void
 }) {
   const { link } = props
   const nameId = useId()
-  const copyUrl = useCallback(() => props.onCopy(link.url), [props, link.url])
+  const copyUrl = useCallback(() => {
+    if (link.url) props.onCopy(link.url)
+  }, [props, link.url])
   const revoke = useCallback(() => props.onRevoke(link), [props, link])
   return (
     <li className="grid gap-2 border-t border-border/70 py-3">
@@ -46,22 +48,26 @@ function LinkRow(props: {
         </span>
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <Input
-          readOnly
-          aria-label={copy.url}
-          value={link.url}
-          onFocus={selectAll}
-          className="h-11 min-w-0 flex-1 basis-64 rounded-md font-mono text-small"
-        />
-        <Button
-          type="button"
-          size="sm"
-          className="rounded-pill"
-          aria-describedby={nameId}
-          onClick={copyUrl}
-        >
-          {copy.copy}
-        </Button>
+        {link.url && (
+          <>
+            <Input
+              readOnly
+              aria-label={copy.url}
+              value={link.url}
+              onFocus={selectAll}
+              className="h-11 min-w-0 flex-1 basis-64 rounded-md font-mono text-small"
+            />
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-pill"
+              aria-describedby={nameId}
+              onClick={copyUrl}
+            >
+              {copy.copy}
+            </Button>
+          </>
+        )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
@@ -144,16 +150,30 @@ function IssueForm({ onIssue }: { onIssue: (account: DemoAccount, hours: number)
 
 /**
  * „Linki demo”: issues a reusable link into the citizen's or the administrator's technical
- * account, copies it to the clipboard, lists the links issued since the page opened (the API
- * has no list, and shows an address once) and revokes one after a confirmation.
+ * account, copies it to the clipboard, lists active links from the API and revokes one after a confirmation.
  *
  * @param props.api - The administration API.
  * @returns The section.
  * @feature US-OBS-06, US-MOD-05, F-28, F-25
  */
 export function DemoLinksSection({ api }: { api: AdminApi }) {
-  const [links, setLinks] = useState<Issued[]>([])
+  const [links, setLinks] = useState<ManagedLink[] | null>(null)
   const [notice, setNotice] = useState<Notice>(null)
+  useEffect(() => {
+    let current = true
+    api.demoLinks().then((outcome) => {
+      if (!current) return
+      if (typeof outcome === 'string') {
+        const text = outcome === 'unavailable' ? copy.unavailable : t.errors.offline
+        setNotice({ kind: 'error', text })
+        return
+      }
+      setLinks(outcome)
+    })
+    return () => {
+      current = false
+    }
+  }, [api])
   const issue = useCallback(
     async (account: DemoAccount, hours: number) => {
       const expiresAt = new Date(Date.now() + hours * MS_PER_HOUR).toISOString()
@@ -163,7 +183,7 @@ export function DemoLinksSection({ api }: { api: AdminApi }) {
           outcome === 'unavailable' ? copy.unavailable : refusalText(outcome, t.errors.offline)
         return setNotice({ kind: 'error', text })
       }
-      setLinks((list) => [{ ...outcome.link, account }, ...list])
+      setLinks((list) => [{ ...outcome.link, account }, ...(list ?? [])])
       setNotice({ kind: 'done', text: fill(copy.issued, { account: accountName(account) }) })
     },
     [api],
@@ -177,12 +197,12 @@ export function DemoLinksSection({ api }: { api: AdminApi }) {
     }
   }, [])
   const revoke = useCallback(
-    async (link: Issued) => {
-      const outcome = await api.revokeDemoLink(link.account, link.url)
+    async (link: ManagedLink) => {
+      const outcome = await api.revokeDemoLink(link.id)
       if (outcome !== 'saved' && outcome !== 'not_found') {
         return setNotice({ kind: 'error', text: refusalText(outcome, t.errors.offline) })
       }
-      setLinks((list) => list.filter((l) => l.url !== link.url))
+      setLinks((list) => list?.filter((item) => item.id !== link.id) ?? null)
       const text =
         outcome === 'saved'
           ? fill(copy.revoked, { account: accountName(link.account) })
@@ -192,17 +212,19 @@ export function DemoLinksSection({ api }: { api: AdminApi }) {
     [api],
   )
   return (
-    <AdminSection title={copy.title} lead={copy.lead} notice={notice}>
-      {links.length === 0 ? (
+    <AdminSection title={copy.title} notice={notice}>
+      {links?.length === 0 ? (
         <p className={tableClass.empty}>{copy.empty}</p>
       ) : (
-        <ul>
-          {links.map((link) => (
-            <LinkRow key={link.url} link={link} onCopy={copyUrl} onRevoke={revoke} />
-          ))}
-        </ul>
+        links && (
+          <ul>
+            {links.map((link) => (
+              <LinkRow key={link.id} link={link} onCopy={copyUrl} onRevoke={revoke} />
+            ))}
+          </ul>
+        )
       )}
-      <IssueForm onIssue={issue} />
+      {links && <IssueForm onIssue={issue} />}
     </AdminSection>
   )
 }

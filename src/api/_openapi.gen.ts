@@ -773,7 +773,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Demo Links
+         * @description List the demo links that can still be opened.
+         *
+         *     Args:
+         *         response: outgoing response with caching disabled.
+         *         _admin: the signed-in administrator.
+         *         store: link store.
+         *         settings: environment.
+         *
+         *     Returns:
+         *         Demo link metadata, newest first.
+         *
+         *     Raises:
+         *         HTTPException: 404 outside dev or 503 on storage failure.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        get: operations["list_demo_links_api_v1_staff_demo_links_get"];
         put?: never;
         /**
          * Issue Demo Link
@@ -817,10 +836,11 @@ export interface paths {
          * @description Revoke a demo link so it stops working at once.
          *
          *     Args:
-         *         body: the account and token of the link.
+         *         body: the link identifier, or the original account and token.
          *         _admin: the signed-in administrator (not a demo session).
          *         _csrf: the account, CSRF checked.
          *         store: link store.
+         *         settings: environment.
          *
          *     Raises:
          *         HTTPException: 404 when no such link exists, 503 on storage failure.
@@ -2567,6 +2587,48 @@ export interface components {
         /** @enum {string} */
         DemoAccount: "obywatel" | "admin";
         /**
+         * DemoLink
+         * @description Metadata of a demo link, suitable for listing without its URL.
+         *
+         *     Attributes:
+         *         id: hex digest used only to identify a link for management.
+         *         account: technical account opened by the link.
+         *         issued_at: when the administrator issued it.
+         *         expires_at: link deadline.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        DemoLink: {
+            /** Id */
+            id: string;
+            account: components["schemas"]["DemoAccount"];
+            /**
+             * Issued At
+             * Format: date-time
+             */
+            issued_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
+         * DemoLinkId
+         * @description Identify a demo link without its URL.
+         *
+         *     Attributes:
+         *         id: the identifier returned by the staff API.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        DemoLinkId: {
+            /** Id */
+            id: string;
+        };
+        /**
          * DemoLinkRequest
          * @description Which technical account the new link opens.
          *
@@ -2849,6 +2911,7 @@ export interface components {
          * @description The administrator's only copy of the link.
          *
          *     Attributes:
+         *         id: identifier for managing the link.
          *         url: backend address that signs the visitor in.
          *         expires_at: last moment the link works.
          *
@@ -2856,6 +2919,8 @@ export interface components {
          *         US-OBS-06, US-MOD-05, F-28, F-25
          */
         IssuedDemoLink: {
+            /** Id */
+            id: string;
             /** Url */
             url: string;
             /**
@@ -4325,6 +4390,26 @@ export interface operations {
             };
         };
     };
+    list_demo_links_api_v1_staff_demo_links_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoLink"][];
+                };
+            };
+        };
+    };
     issue_demo_link_api_v1_staff_demo_links_post: {
         parameters: {
             query?: never;
@@ -4367,7 +4452,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DemoLinkRevocation"];
+                "application/json": components["schemas"]["DemoLinkRevocation"] | components["schemas"]["DemoLinkId"];
             };
         };
         responses: {
