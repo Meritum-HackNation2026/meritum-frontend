@@ -116,9 +116,9 @@
       {
         "id": "openrouter",
         "name": "OpenRouter (pośrednik do modelu językowego)",
-        "region": "USA (OpenRouter, Inc., Nowy Jork), poza EOG. Przekazanie na podstawie standardowych klauzul umownych (moduł 2) z umowy powierzenia OpenRouter",
+        "region": "USA (OpenRouter, Inc., Nowy Jork), poza EOG. Przekazanie na podstawie standardowych klauzul umownych (moduł 2) z umowy powierzenia OpenRouter. Reranker Cohere działa w Amazon Bedrock (eu-central-1 albo us-east-1, według listy ZDR OpenRouter)",
         "data": "Zamaskowane twierdzenia, fragmenty źródeł i odpowiedzi modelu. Ustawienie ZDR (zero przechowywania danych): OpenRouter nie przechowuje rutynowo zapytań ani odpowiedzi. Wyjątki to kontrola pod kątem materiałów CSAM i obowiązki prawne",
-        "purpose": "Dostęp do głównego modelu językowego: wyodrębnianie twierdzeń, ocena wymowy, odpowiedź"
+        "purpose": "Dostęp do głównego modelu językowego: wyodrębnianie twierdzeń, ocena wymowy, odpowiedź. Opcjonalnie porządkowanie fragmentów źródeł rerankerem Cohere"
       },
       {
         "id": "anthropic",
@@ -261,20 +261,20 @@
         "purpose": "Ocena zrozumiałości tekstu"
       }
     ],
-    "planned_lead": "Integracje planowane albo opcjonalne. Dostawcę i region uzupełnimy, zanim włączymy daną funkcję.",
+    "planned_lead": "Integracje planowane albo opcjonalne. Domyślnie reranker jest wyłączony: dopóki go nie włączymy, żadne fragmenty źródeł nie wychodzą do jego dostawcy. Dostawcę i region uzupełnimy, zanim włączymy daną funkcję.",
     "planned_items": [
       {
         "id": "cloudflare_workers_ai",
         "name": "Cloudflare Workers AI (kandydat)",
-        "region": "Cloudflare, poza UE; region do sprawdzenia",
-        "data": "Wejście użytkownika, pobrane strony i fragmenty źródeł",
+        "region": "Sieć Cloudflare, bez gwarancji regionu UE",
+        "data": "Wejście użytkownika, pobrane strony oraz twierdzenie po zamaskowaniu danych osobowych i fragmenty źródeł z korpusu (reranker)",
         "purpose": "Klasyfikator wstrzyknięć i reranker, jeśli wygrają w ewaluacji"
       },
       {
         "id": "vertex_ai_ranking",
-        "name": "Vertex AI ranking API (kandydat)",
-        "region": "GCP, region do sprawdzenia",
-        "data": "Zamaskowane twierdzenia i fragmenty źródeł",
+        "name": "Vertex AI ranking API (opcjonalny)",
+        "region": "GCP, global (poza UE)",
+        "data": "Twierdzenie po zamaskowaniu danych osobowych i fragmenty źródeł z korpusu",
         "purpose": "Kolejność fragmentów przed modelem (reranking)"
       }
     ]
