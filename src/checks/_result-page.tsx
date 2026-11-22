@@ -6,43 +6,10 @@ import type { Handoff } from '@/moderation'
 import { findSavedCheck, saveCheck } from './_history'
 import { ReadFromFile } from './_image-text'
 import { MissingCheck } from './_missing-check'
-import { isDraft, shownResult } from './_progress'
+import { nextAfter, shownResult } from './_progress'
 import { ResultState } from './_result-state'
-import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
+import { MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
 import type { ProgressSource, ReadOutcome, ResultReader } from './ports'
-
-type Next = 'again' | 'stop' | 'give_up'
-
-/**
- * Whether the API reports a run that failed: a step `failed` and none waiting or running. A
- * check still in the queue reports only `receive` as done, so it does not count as failed.
- */
-function hasFailed(status: AnalysisStatus): boolean {
-  const isRunning = status.steps.some((s) => s.status === 'pending' || s.status === 'active')
-  return !isRunning && status.steps.some((s) => s.status === 'failed')
-}
-
-/**
- * What follows a read: stop at a result, an unknown id or too many failed reads in a row; ask
- * again after a failed read; give up when the stream ended and the steps show a failed run
- * without a result, or after the last allowed read; otherwise ask again.
- */
-function nextAfter(
-  outcome: ReadOutcome,
-  failures: number,
-  readsLeft: number,
-  streamEnded: boolean,
-): Next {
-  const hasResult = typeof outcome === 'object' && Boolean(outcome.status.result)
-  if (hasResult || outcome === 'not_found' || failures >= MAX_FAILED_READS) {
-    return 'stop'
-  }
-  if (typeof outcome === 'string') {
-    return 'again'
-  }
-  const isFailed = streamEnded && hasFailed(outcome.status)
-  return isFailed || readsLeft <= 0 ? 'give_up' : 'again'
-}
 
 /** How the page reads the API: the pause between reads and how many reads it may make. */
 type Polling = { pollMs: number; maxReads: number }
@@ -150,6 +117,7 @@ type ResultPageProps = {
   pollMs?: number
   maxReads?: number
   focusOnAnswer?: boolean
+  onEnded?: () => void
 }
 
 function LiveResult({
@@ -160,6 +128,7 @@ function LiveResult({
   pollMs = POLL_INTERVAL_MS,
   maxReads = MAX_READS,
   focusOnAnswer = false,
+  onEnded,
 }: ResultPageProps) {
   const { streamed, closed } = useStreamedStatus(checkId, progress)
   const streamedResult = streamed && shownResult(streamed)
@@ -172,6 +141,11 @@ function LiveResult({
   const error = errorText(outcome, gaveUp)
   const isRunning = !(result || ended)
   useEffect(() => {
+    if (!isRunning) {
+      onEnded?.()
+    }
+  }, [isRunning, onEnded])
+  useEffect(() => {
     if (result) {
       saveCheck(result)
     }
@@ -182,16 +156,14 @@ function LiveResult({
     // a new answer is read next, unless the user is already in a field or on a button
     const isFocusFree = document.activeElement === null || document.activeElement === document.body
     if (focusOnAnswer && hasResult && isFocusFree) {
-      answerRef.current?.focus()
+      // the heading stays in view: focus moves for screen readers without scrolling the page
+      answerRef.current?.focus({ preventScroll: true })
     }
   }, [focusOnAnswer, hasResult])
   return (
     <div className="grid min-w-0 gap-4">
       {isRunning && (
-        <AnalysisSteps
-          steps={live?.steps ?? [...RECEIVED_STEPS]}
-          draft={live !== null && isDraft(live)}
-        />
+        <AnalysisSteps steps={live?.steps ?? [...RECEIVED_STEPS]} draft={live?.draft ?? null} />
       )}
       {outcome === 'not_found' && !result && <MissingCheck />}
       {error && !result && (
@@ -204,7 +176,8 @@ function LiveResult({
         ref={answerRef}
         tabIndex={-1}
         aria-live="polite"
-        className="min-w-0 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        // only the script focuses it; a ring here would frame the whole result
+        className="min-w-0 focus:outline-none"
       >
         {result && <Card result={result} handoff={handoff} />}
       </div>
@@ -232,12 +205,19 @@ function LiveResult({
  * @param props.pollMs - Pause between reads; tests pass a short one.
  * @param props.maxReads - Reads before giving up; tests pass a small one.
  * @param props.focusOnAnswer - Moves the focus to a result that arrives while nothing has it.
+ * @param props.onEnded - Called once the check stopped running: a result, a 404 or a failure.
  * @returns The result page.
  * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-09, US-SPR-11, US-BEZ-07, F-01, F-08, F-09, F-17, F-21
  */
 export function ResultPage(props: ResultPageProps) {
   // read once: the page of a check this tab already has opens without the API
   const [saved] = useState(() => findSavedCheck(props.checkId))
+  const { onEnded } = props
+  useEffect(() => {
+    if (saved) {
+      onEnded?.()
+    }
+  }, [saved, onEnded])
   if (!saved) {
     return <LiveResult {...props} />
   }

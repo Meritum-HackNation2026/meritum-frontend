@@ -23,6 +23,7 @@ import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
 import { fakeHandoff } from '../moderation/fake-handoff'
+import { finishedCheck } from './finished-check'
 
 type Answer = { status: number; body: unknown }
 
@@ -60,6 +61,7 @@ function renderPage(): string[] {
       progress={apiProgressSource}
       handoff={apiHandoff}
       onAccepted={onAccepted}
+      {...finishedCheck()}
     />,
   )
   return opened
@@ -166,14 +168,14 @@ test('a checked image shows the text read from it, apart from the verdicts, with
   assert.ok(text.includes(image_text))
   assert.ok(text.includes(pl.result.image_text_hint))
   assert.ok(text.includes(pl.result.image_date_hint))
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.equal(document.querySelector('[aria-live="polite"]')?.contains(section), false)
 })
 
 test('a result of text has no image section', async (t) => {
   fakeResult(t, done)
   renderResult()
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.equal(screen.queryAllByRole('region', { name: pl.result.image_text }).length, 0)
 })
 

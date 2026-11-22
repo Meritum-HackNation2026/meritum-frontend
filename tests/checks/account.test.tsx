@@ -17,6 +17,7 @@ import {
 } from '@/api'
 import { CheckPage, type CitizenAccount, type ProgressSource, type SessionEraser } from '@/checks'
 import pl from '@/copy/pl.json'
+import { finishedCheck } from './finished-check'
 
 // the page reads the history's results over SSE; this fake stream never speaks
 const quietProgress: ProgressSource = { watch: () => () => undefined }
@@ -62,6 +63,7 @@ function renderPage(account: CitizenAccount) {
       handoff={apiHandoff}
       account={account}
       onAccepted={noop}
+      {...finishedCheck()}
     />,
   )
 }
@@ -133,6 +135,7 @@ test('without an account port the page works as before, with no sign-in', () => 
       progress={quietProgress}
       handoff={apiHandoff}
       onAccepted={noop}
+      {...finishedCheck()}
     />,
   )
   assert.equal(screen.queryByRole('link', { name: pl.account.sign_in_google }), null)

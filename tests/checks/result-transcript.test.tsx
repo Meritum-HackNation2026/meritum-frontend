@@ -39,7 +39,7 @@ test('a checked recording shows its transcript with the note that it was made au
   const text = section.textContent ?? ''
   assert.ok(text.includes(transcript))
   assert.ok(text.includes(pl.result.transcript_hint))
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   // a long transcript stays out of the live region, so a screen reader announces the verdicts
   const live = document.querySelector('[aria-live="polite"]')
   assert.equal(live?.contains(section), false)
@@ -48,7 +48,7 @@ test('a checked recording shows its transcript with the note that it was made au
 test('a result of text has no transcript section', async (t) => {
   fakeApi(t, done)
   renderPage()
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.equal(screen.queryAllByRole('region', { name: pl.result.transcript }).length, 0)
 })
 

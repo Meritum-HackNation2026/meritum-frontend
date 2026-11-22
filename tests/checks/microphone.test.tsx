@@ -18,6 +18,7 @@ import {
 } from '@/api'
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
+import { finishedCheck } from './finished-check'
 
 class FakeRecorder {
   static native = true
@@ -73,6 +74,7 @@ function renderPage() {
       progress={apiProgressSource}
       handoff={apiHandoff}
       onAccepted={noop}
+      {...finishedCheck()}
     />,
   )
 }
