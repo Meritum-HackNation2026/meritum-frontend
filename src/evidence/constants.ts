@@ -54,3 +54,10 @@ export const AGE_EXEMPT_VALIDITY: ReadonlySet<Validity> = new Set<Validity>([
   'updated_in_place',
   'past_event',
 ])
+
+/**
+ * Anchor of the source catalogue on „Jak działa Meritum”; the footer links to it.
+ *
+ * @feature US-ZRD-12, F-29
+ */
+export const CATALOG_SECTION_ID = 'katalog'

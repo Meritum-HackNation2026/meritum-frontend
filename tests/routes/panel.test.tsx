@@ -133,7 +133,7 @@ test('an analyst sees evaluation in the navigation and never asks for cases', as
     '/api/v1/staff/me': [200, { email: 'analityk@example.org', role: 'analyst' }],
   })
   await openPanel()
-  const nav = await screen.findByRole('navigation')
+  const nav = await within(await screen.findByRole('main')).findByRole('navigation')
   assert.deepEqual(
     within(nav)
       .getAllByRole('link')
@@ -150,7 +150,7 @@ test('an administrator sees the cases, evaluation and administration', async (t)
     '/api/v1/moderation/cases': [200, [quietCase]],
   })
   await openPanel()
-  const nav = await screen.findByRole('navigation')
+  const nav = await within(await screen.findByRole('main')).findByRole('navigation')
   assert.deepEqual(
     within(nav)
       .getAllByRole('link')

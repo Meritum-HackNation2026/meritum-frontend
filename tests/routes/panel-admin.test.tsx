@@ -69,7 +69,7 @@ const topicsRegion = () => screen.findByRole('region', { name: pl.staff.admin.to
 test('an administrator sees the administration link, the accounts and the topics', async (t) => {
   fakeApi(t)
   await open('/panel')
-  const nav = await screen.findByRole('navigation')
+  const nav = await within(await screen.findByRole('main')).findByRole('navigation')
   fireEvent.click(within(nav).getByRole('link', { name: pl.staff.admin.title }))
   assert.ok(within(await accounts()).getByText(analyst.email))
   const topics = await topicsRegion()
@@ -177,7 +177,7 @@ test('removing a topic deletes it on the API and empties the list', async (t) =>
 test('a moderator sees no administration link and never gets the accounts', async (t) => {
   const { reads } = fakeApi(t, { email: 'moderator@example.org', role: 'moderator' })
   const router = await open('/panel/administracja')
-  const nav = await screen.findByRole('navigation')
+  const nav = await within(await screen.findByRole('main')).findByRole('navigation')
   assert.equal(within(nav).queryByRole('link', { name: pl.staff.admin.title }), null)
   assert.equal(router.state.location.pathname, '/panel')
   assert.equal(reads().includes('/api/v1/staff'), false)

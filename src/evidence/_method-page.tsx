@@ -3,6 +3,7 @@ import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
 import { CatalogTables } from './_catalog-tables'
 import { RunMetrics } from './_run-metrics'
+import { CATALOG_SECTION_ID } from './constants'
 import type { CatalogRow, EvalRunSummary } from './types'
 
 const { method } = pl
@@ -47,7 +48,7 @@ export function MethodPage({
       </header>
       <TextSection section={method.sources} />
       <TextSection section={method.verdict} />
-      <section className="space-y-3">
+      <section id={CATALOG_SECTION_ID} className="space-y-3">
         <h2 id={catalogId} className="font-semibold">
           {method.catalog.title}
         </h2>
