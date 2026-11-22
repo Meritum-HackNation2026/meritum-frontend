@@ -20,6 +20,9 @@ import pl from '@/copy/pl.json'
 // the page reads the history's results over SSE; this fake stream never speaks
 const quietProgress: ProgressSource = { watch: () => () => undefined }
 
+const noop = () => undefined
+const googleLogin = /^\/login\/google/
+
 const delay = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 function fakeAccount(signedIn: boolean, deleted: string[] = []): CitizenAccount {
@@ -55,7 +58,7 @@ function renderPage(account: CitizenAccount) {
       progress={quietProgress}
       handoff={apiHandoff}
       account={account}
-      onAccepted={() => undefined}
+      onAccepted={noop}
     />,
   )
 }
@@ -64,7 +67,7 @@ test('signed out: both sign-in links lead to the provider, no history from the s
   t.mock.method(globalThis, 'fetch', () => Promise.resolve(new Response('{}', { status: 404 })))
   renderPage(fakeAccount(false))
   const google = await screen.findByRole('link', { name: pl.account.sign_in_google })
-  assert.match(google.getAttribute('href') ?? '', /^\/login\/google/)
+  assert.match(google.getAttribute('href') ?? '', googleLogin)
   assert.ok(screen.getByRole('link', { name: pl.account.sign_in_microsoft }))
   assert.equal(screen.queryByText('Pytanie z telefonu'), null)
   assert.ok(screen.getByText(pl.history.session_note))
@@ -123,7 +126,7 @@ test('without an account port the page works as before, with no sign-in', () => 
       reader={apiResultReader}
       progress={quietProgress}
       handoff={apiHandoff}
-      onAccepted={() => undefined}
+      onAccepted={noop}
     />,
   )
   assert.equal(screen.queryByRole('link', { name: pl.account.sign_in_google }), null)
