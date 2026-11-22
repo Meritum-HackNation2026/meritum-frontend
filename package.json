@@ -9,7 +9,7 @@
     "check": "biome check .",
     "openapi": "scripts/openapi.sh",
     "sync": "scripts/sync.sh",
-    "test": "TSX_TSCONFIG_PATH=tsconfig.test.json node --import tsx --import ./tests/setup-dom.ts --test 'tests/**/*.test.{ts,tsx}'",
+    "test": "tsx --tsconfig tsconfig.test.json --import ./tests/setup-dom.ts --test \"tests/**/*.test.{ts,tsx}\"",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
     "knip": "knip",
     "preview": "vite preview",
