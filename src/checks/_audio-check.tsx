@@ -1,6 +1,7 @@
 import { Mic } from 'lucide-react'
 import { type ChangeEvent, useCallback, useRef, useState } from 'react'
 import { Attachment, fill, t } from '@/components/meritum'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import privacy from '@/copy/privacy.json'
 import type { ErrorKey } from './_request'
 import { ResultState } from './_result-state'
@@ -100,26 +101,49 @@ export function useRecording(
 type Recording = ReturnType<typeof useRecording>
 
 /**
- * The microphone button of the message field: a file field named „Dodaj nagranie” behind the
- * icon, disabled while a recording is sent.
+ * The microphone button of the message field. It opens a note first, so what happens to a
+ * recording (who transcribes it and where, the cost, how long it is kept, the limits, the AI
+ * warning) is read before the file dialog; the file field named „Dodaj nagranie” sits in that
+ * note and the note closes once a file is chosen. The button is disabled while a recording is sent.
  *
  * @param props.recording - The recording state from `useRecording`.
- * @returns The button.
+ * @returns The button with its note.
  * @feature US-SPR-11, F-08
  */
 export function RecordingButton({ recording }: { recording: Recording }) {
+  const [open, setOpen] = useState(false)
+  const pick = (event: ChangeEvent<HTMLInputElement>) => {
+    recording.pick(event)
+    setOpen(false)
+  }
   return (
-    <label className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-pill text-muted-foreground transition-colors ease-out-meritum hover:bg-secondary hover:text-foreground has-disabled:cursor-not-allowed has-disabled:opacity-50 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring">
-      <input
-        type="file"
-        accept={AUDIO_ACCEPT}
-        aria-label={t.conversation.attach_audio}
-        disabled={recording.pending}
-        onChange={recording.pick}
-        className="sr-only"
-      />
-      <Mic aria-hidden="true" className="size-5" />
-    </label>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={t.conversation.attach_audio}
+          disabled={recording.pending}
+          className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-pill text-muted-foreground transition-colors ease-out-meritum hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          <Mic aria-hidden="true" className="size-5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="start"
+        className="w-80 max-w-[calc(100vw-2rem)] gap-2 p-3 text-small font-sans"
+      >
+        {aboutLines.map((line) => (
+          <p key={line} className="text-pretty">
+            {line}
+          </p>
+        ))}
+        <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-pill border border-border px-4 font-semibold hover:bg-secondary has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring">
+          {t.conversation.attach_audio}
+          <input type="file" accept={AUDIO_ACCEPT} onChange={pick} className="sr-only" />
+        </label>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -140,9 +164,11 @@ export function RecordingAttachment({ recording }: { recording: Recording }) {
   const fieldError = refusal === 'unsupported_format' ? null : refusal
   return (
     <Attachment name={file.name} onRemove={remove} disabled={pending}>
-      {aboutLines.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
+      <div className="grid max-h-28 gap-1 overflow-y-auto sm:max-h-none">
+        {aboutLines.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </div>
       {fieldError && (
         <p role="alert" className="text-meta text-scam-foreground">
           {fill(t.errors[fieldError], limits)}

@@ -1,3 +1,4 @@
+import { LoaderCircle } from 'lucide-react'
 import { fill, t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
 import type { CheckResult } from '@/contracts/meritum'
@@ -8,8 +9,14 @@ import type { Handoff } from './ports'
 // enough evidence is the one a recommendation comes from, else the first claim. Upgrade when the
 // contract says which claim an Escalation belongs to.
 function recommendedClaim(result: CheckResult): number {
-  const index = result.claims?.findIndex((claim) => claim.verdict === 'insufficient_evidence')
+  const index = result.claims?.findIndex(isUnsettled)
   return index === undefined || index < 0 ? 0 : index
+}
+
+// A verdict that settles nothing is the case a moderator can answer; the button shows for it even
+// when the API sent no escalation (meritum-frontend#76).
+function isUnsettled(claim: { verdict: string }): boolean {
+  return claim.verdict === 'insufficient_evidence' || claim.verdict === 'not_verifiable'
 }
 
 // created and updated read the same, so the message never tells whether someone else asked
@@ -43,7 +50,9 @@ export function EscalationLine({
   const { caseId, error, pending, send } = useHandoff(() =>
     handoff.escalate(result.check_id, recommendedClaim(result)),
   )
-  const escalation = result.escalation
+  const escalation =
+    result.escalation ??
+    (result.claims?.some(isUnsettled) ? { state: 'recommended' as const } : undefined)
   // the endpoint needs a claim; without one the hint stays and nothing can be pressed
   const hasClaims = (result.claims?.length ?? 0) > 0
   if (!escalation) {
@@ -77,6 +86,12 @@ export function EscalationLine({
           className="aria-disabled:opacity-50"
           onClick={send}
         >
+          {pending && (
+            <LoaderCircle
+              aria-hidden="true"
+              className="size-4 animate-spin motion-reduce:animate-none"
+            />
+          )}
           {t.result.escalate}
         </Button>
       )}

@@ -24,5 +24,5 @@ test('the AI notice stands above the field and no button asks for a sign-in', as
     .queryAllByRole('button')
     .map((button) => button.textContent)
   const examples = pl.conversation.examples.map((claim) => `„${claim}”`)
-  assert.deepEqual(buttons, [...examples, pl.form.delete_session, pl.form.submit])
+  assert.deepEqual(buttons, [...examples, pl.form.delete_session, '', pl.form.submit])
 })

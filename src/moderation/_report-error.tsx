@@ -1,8 +1,10 @@
+import { LoaderCircle } from 'lucide-react'
 import {
   type ChangeEvent,
   type FormEvent,
   type KeyboardEvent,
   useCallback,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -27,6 +29,9 @@ type FormProps = {
 // The open form: the optional justification, the send button and the error of the last try.
 function ReportForm({ id, pending, error, onSend, onClose, text, onText }: FormProps) {
   const fieldId = useId()
+  const formRef = useRef<HTMLFormElement>(null)
+  // the docked message field covers the bottom of the page: bring the whole form clear of it
+  useEffect(() => formRef.current?.scrollIntoView?.({ block: 'nearest' }), [])
   const submit = useCallback(
     (event: FormEvent) => {
       event.preventDefault()
@@ -47,7 +52,13 @@ function ReportForm({ id, pending, error, onSend, onClose, text, onText }: FormP
     [onText],
   )
   return (
-    <form id={id} onSubmit={submit} onKeyDown={closeOnEscape} className="grid w-full gap-2">
+    <form
+      ref={formRef}
+      id={id}
+      onSubmit={submit}
+      onKeyDown={closeOnEscape}
+      className="grid w-full scroll-mb-48 gap-2"
+    >
       <label htmlFor={fieldId} className="text-small">
         {t.result.report_error_reason}
       </label>
@@ -65,6 +76,12 @@ function ReportForm({ id, pending, error, onSend, onClose, text, onText }: FormP
         aria-busy={pending}
         className="justify-self-start aria-disabled:opacity-50"
       >
+        {pending && (
+          <LoaderCircle
+            aria-hidden="true"
+            className="size-4 animate-spin motion-reduce:animate-none"
+          />
+        )}
         {t.result.report_error_send}
       </Button>
       {error && (
