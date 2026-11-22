@@ -48,7 +48,7 @@ function Layout() {
             </div>
           </div>
         </header>
-        <main ref={main} className="mx-auto max-w-3xl px-4 py-8 has-[[data-wide]]:max-w-6xl lg:has-[[data-wide]]:py-16">
+        <main ref={main} className="mx-auto max-w-3xl px-4 py-8 has-wide:max-w-6xl lg:has-wide:py-16">
           <InboxContext value={inbox}>
             <Outlet />
           </InboxContext>

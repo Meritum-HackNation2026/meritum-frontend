@@ -8,6 +8,9 @@
 @import "@fontsource/azeret-mono/600.css";
 @import "./styles/meritum.css";
 
+/* a page that holds [data-wide] (the empty conversation, DESIGN_SYSTEM.md 6.8) widens the layout */
+@custom-variant has-wide (&:has([data-wide]));
+
 @theme inline {
   /* Fontsource names the variable family "Archivo Variable". */
   --font-sans: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, sans-serif;

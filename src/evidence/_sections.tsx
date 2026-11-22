@@ -34,7 +34,7 @@ export function VerdictSection({ claim, verdict }: { claim: Claim; verdict: Verd
 
 /**
  * The explanation in its own block, apart from the quotes. The AI line stands once, in the card's
- * footer or above the composer, never per claim (design-system#108).
+ * footer or above the composer, never per claim (design-system, issue 108).
  *
  * @param props.explanation - The claim's explanation.
  * @returns The explanation section.

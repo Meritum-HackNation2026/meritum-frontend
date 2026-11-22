@@ -45,7 +45,7 @@ export function CheckResultCard({ result, handoff }: { result: CheckResult; hand
       <footer className="mt-1 grid gap-1.5 px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
         <EscalationLine result={result} handoff={handoff} savedCase={savedCase} />
         <Limitations items={limitationTexts(result)} />
-        {/* in the conversation the AI line stands once, above the composer (design-system#108) */}
+        {/* in the conversation the AI line stands once, above the composer (design-system, issue 108) */}
         <p className="in-data-reply:hidden">{t.result.ai_disclosure}</p>
       </footer>
     </section>
