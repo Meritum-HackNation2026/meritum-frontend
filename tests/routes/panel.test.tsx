@@ -110,7 +110,8 @@ test('a case with a paraphrase counts 2 questions and shows both claims (scenari
   // the queue's "Pytania" column; its "podobnych pytań" label is meritum-design-system#65
   const headers = [...screen.getAllByRole('columnheader')].map((th) => th.textContent)
   const cell = open.closest('tr')?.querySelectorAll('td')[headers.indexOf('Pytania')]
-  assert.equal(cell?.firstChild?.textContent, '2')
+  // on a phone the count carries its own „Pytania:” label (design-system#134)
+  assert.equal(cell?.childNodes[1]?.textContent, '2')
   fireEvent.click(open)
   const detail = screen.getByRole('article', { name: dieselCase.summary })
   const text = detail.textContent ?? ''

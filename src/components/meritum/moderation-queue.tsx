@@ -21,7 +21,7 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
   const open = cases.filter((c) => c.state === "open").length
   return (
     <section aria-labelledby="meritum-queue" className={cn("font-sans", className)}>
-      <div className="flex items-baseline gap-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h1 id="meritum-queue" className="text-title font-bold">
           {t.moderation.queue_title}
         </h1>
@@ -33,9 +33,9 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
       {cases.length === 0 ? (
         <p className="mt-3 rounded-md border border-dashed border-border px-3 py-2.5 text-small text-muted-foreground">Brak spraw. Nowe pojawią się tu same.</p>
       ) : (
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-small">
-            <thead>
+        <div className="mt-3 sm:overflow-x-auto">
+          <table className="w-full border-collapse text-small sm:min-w-[640px]">
+            <thead className="max-sm:sr-only">
               <tr className="text-left text-meta text-muted-foreground">
                 <th scope="col" className="py-2 pr-4 font-normal">
                   Sprawa
@@ -54,12 +54,12 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="max-sm:block">
               {cases.map((c) => {
                 const asked = c.claims.reduce((n, cl) => n + cl.check_ids.length, 0)
                 return (
-                  <tr key={c.id} className={cn("border-t border-border/70 align-top hover:bg-secondary/50", c.id === selectedId && "bg-secondary")}>
-                    <td className="relative w-1/2 py-2.5 pr-4">
+                  <tr key={c.id} className={cn("border-t border-border/70 align-top hover:bg-secondary/50 max-sm:relative max-sm:flex max-sm:flex-wrap max-sm:items-baseline max-sm:gap-x-4 max-sm:py-1", c.id === selectedId && "bg-secondary")}>
+                    <td className="relative w-1/2 py-2.5 pr-4 max-sm:static max-sm:w-full max-sm:basis-full max-sm:pr-0 max-sm:pb-1">
                       <button type="button" onClick={() => onOpen(c.id)} aria-current={c.id === selectedId || undefined} className="text-left after:absolute after:inset-0">
                         <span className="font-mono">{c.id}</span> <span className="font-semibold">{c.summary}</span>
                       </button>
@@ -67,7 +67,7 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
                         {claimsLabel(c.claims.length)}: {c.claims[0].claim}
                       </span>
                     </td>
-                    <td className="min-w-44 py-2.5 pr-4">
+                    <td className="min-w-44 py-2.5 pr-4 max-sm:basis-full max-sm:py-1">
                       {c.reasons.map((r) => (
                         <span key={r} className="block">
                           {capitalize(t.moderation.reason[r])}
@@ -80,11 +80,12 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
                         </span>
                       )}
                     </td>
-                    <td className="py-2.5 pr-4 text-right whitespace-nowrap tabular-nums">
+                    <td className="py-2.5 pr-4 text-right whitespace-nowrap tabular-nums max-sm:py-1 max-sm:pr-0 max-sm:text-left">
+                      <span className="sm:hidden">Pytania: </span>
                       {asked}
                       {asked > 1 && <span className="block text-meta text-muted-foreground">{plural(t.moderation.similar, asked)}</span>}
                     </td>
-                    <td className="py-2.5 pr-4 text-right font-mono text-meta whitespace-nowrap">
+                    <td className="py-2.5 pr-4 text-right text-meta tabular-nums whitespace-nowrap max-sm:py-1 max-sm:pr-0 max-sm:text-left">
                       <time dateTime={c.last_seen} className="block">
                         {DAY.format(new Date(c.last_seen))}
                       </time>
@@ -94,7 +95,7 @@ export function ModerationQueue({ cases, selectedId, onOpen, className }: { case
                         </time>
                       )}
                     </td>
-                    <td className="py-2.5 text-right whitespace-nowrap">
+                    <td className="py-2.5 text-right whitespace-nowrap max-sm:ml-auto max-sm:py-1">
                       <span className={cn("inline-flex rounded-pill px-2 py-0.5 text-meta font-semibold", STATE_TONE[c.state])}>{t.moderation.state[c.state]}</span>
                       {c.assignee_role && <span className="mt-0.5 block text-meta text-muted-foreground">{t.moderation.role[c.assignee_role]}</span>}
                     </td>
