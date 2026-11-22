@@ -1,6 +1,7 @@
 import type { CitizenAccount, SessionEraser } from '@/checks'
 import { fetchClient } from './_client'
 import { csrfHeaders } from './_csrf'
+import { DEMO_PROVIDER } from './constants'
 
 /** Deletes through a state-changing call that needs the session's CSRF token; false on any failure. */
 function eraser(
@@ -31,7 +32,9 @@ export const apiAccount: CitizenAccount = {
   async session() {
     try {
       const { data, response } = await fetchClient.GET('/api/v1/auth/me')
-      return response.ok && data ? { email: data.email } : null
+      return response.ok && data
+        ? { email: data.email, isDemo: data.provider === DEMO_PROVIDER }
+        : null
     } catch {
       return null
     }

@@ -187,3 +187,30 @@ test('Escape closes the report form and returns focus to its button', () => {
   assert.equal(first.queryAllByLabelText(pl.result.report_error_reason).length, 0)
   assert.equal(document.activeElement === toggle, true)
 })
+
+test('the report form leaves nothing for React to call as a cleanup when it closes', async () => {
+  // a browser may return a value from scrollIntoView; an effect returning it crashes on unmount
+  const proto = HTMLElement.prototype as { scrollIntoView?: () => unknown }
+  const original = proto.scrollIntoView
+  const errors: unknown[][] = []
+  const consoleError = console.error
+  proto.scrollIntoView = () => true
+  console.error = (...args: unknown[]) => errors.push(args)
+  try {
+    render(
+      <CheckResultCard result={recommended} handoff={fakeHandoff({ caseId: '#S-12' }).handoff} />,
+    )
+    const claim = within(screen.getByRole('article'))
+    fireEvent.click(claim.getByRole('button', { name: pl.result.report_error }))
+    fireEvent.click(claim.getByRole('button', { name: pl.result.report_error_send }))
+    assert.ok(await screen.findByText(reported))
+    assert.equal(errors.length, 0)
+  } finally {
+    if (original) {
+      proto.scrollIntoView = original
+    } else {
+      delete proto.scrollIntoView
+    }
+    console.error = consoleError
+  }
+})

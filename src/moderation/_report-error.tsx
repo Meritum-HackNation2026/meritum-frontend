@@ -31,7 +31,9 @@ function ReportForm({ id, pending, error, onSend, onClose, text, onText }: FormP
   const fieldId = useId()
   const formRef = useRef<HTMLFormElement>(null)
   // the docked message field covers the bottom of the page: bring the whole form clear of it
-  useEffect(() => formRef.current?.scrollIntoView?.({ block: 'nearest' }), [])
+  useEffect(() => {
+    formRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [])
   const submit = useCallback(
     (event: FormEvent) => {
       event.preventDefault()

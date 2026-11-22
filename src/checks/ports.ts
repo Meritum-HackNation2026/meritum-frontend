@@ -128,11 +128,11 @@ export interface AudioUploader {
 
 /**
  * The signed-in citizen as the page shows them: the address of the account, when the provider
- * gave one.
+ * gave one, and whether it is a technical demo account (a demo link, no Google or Microsoft).
  *
  * @feature US-SPR-10, F-31
  */
-export type AccountSession = { email: string | null }
+export type AccountSession = { email: string | null; isDemo?: boolean }
 
 /**
  * One check of the account's server history: its id, when it was sent (ISO 8601) and the
