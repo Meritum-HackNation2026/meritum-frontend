@@ -11,6 +11,7 @@ import {
   apiAudioUploader,
   apiCheckSender,
   apiHandoff,
+  apiImageUploader,
   apiResultReader,
   apiSessionEraser,
 } from '@/api'
@@ -53,6 +54,7 @@ function renderPage(account: CitizenAccount) {
     <CheckPage
       sender={apiCheckSender}
       uploader={apiAudioUploader}
+      imageUploader={apiImageUploader}
       eraser={apiSessionEraser}
       reader={apiResultReader}
       progress={quietProgress}
@@ -122,6 +124,7 @@ test('without an account port the page works as before, with no sign-in', () => 
     <CheckPage
       sender={apiCheckSender}
       uploader={apiAudioUploader}
+      imageUploader={apiImageUploader}
       eraser={apiSessionEraser}
       reader={apiResultReader}
       progress={quietProgress}

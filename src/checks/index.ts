@@ -8,6 +8,8 @@ export type {
   AudioUploader,
   CheckSender,
   CitizenAccount,
+  ImageOutcome,
+  ImageUploader,
   ProgressSource,
   ReadOutcome,
   ResultReader,

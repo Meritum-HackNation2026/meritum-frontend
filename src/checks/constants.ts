@@ -214,3 +214,34 @@ export const RECORDER_BUTTON =
  * @feature US-SPR-10, F-31
  */
 export const LOGIN_PROVIDERS = ['google', 'microsoft'] as const
+
+/**
+ * Largest image the API takes, in MB (MiB, as `IMAGE_MAX_MB` in meritum-backend: 413 above it);
+ * shown in `form.image_limits`.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export const MAX_IMAGE_MB = 10
+
+/**
+ * `MAX_IMAGE_MB` in bytes: a bigger file is refused before it is sent.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export const MAX_IMAGE_BYTES = MAX_IMAGE_MB * 1024 * 1024
+
+/**
+ * Image formats the API reads from the bytes (any other file is 415), as named in
+ * `form.image_limits` and `errors.image_format_unsupported`.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export const IMAGE_FORMATS = ['PNG', 'JPEG', 'WebP'] as const
+
+/**
+ * `accept` of the image field: the system picker offers the three formats first; the API still
+ * decides the format from the bytes.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp'

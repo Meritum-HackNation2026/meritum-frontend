@@ -180,3 +180,39 @@ export interface CitizenAccount {
   /** „Usuń konto”: deletes the account's history, notifications and session. */
   accountEraser: SessionEraser
 }
+
+/**
+ * Why an image was not taken: an `errors` key of copy/pl.json to show under the image field.
+ *
+ * @feature US-SPR-08, F-33
+ */
+type ImageRefusal =
+  | 'image_too_large'
+  | 'image_format_unsupported'
+  | 'rate_limited'
+  | 'rate_limited_daily'
+  | 'busy'
+  | 'offline'
+
+/**
+ * What the API said about an uploaded image: stored with its id, or a refusal to show.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export type ImageOutcome = { imageId: string } | ImageRefusal
+
+/**
+ * Uploads a screenshot or photo to the verification API, which stores it and returns the
+ * `image_id` to send in a `CheckRequest`.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export interface ImageUploader {
+  /**
+   * Uploads one image; never throws, a failure is an outcome.
+   *
+   * @param file - The image the person chose.
+   * @returns The stored image's id or why it was refused.
+   */
+  upload(file: Blob): Promise<ImageOutcome>
+}

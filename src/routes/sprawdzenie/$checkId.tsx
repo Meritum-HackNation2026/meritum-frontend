@@ -5,6 +5,7 @@ import {
   apiAudioUploader,
   apiCheckSender,
   apiHandoff,
+  apiImageUploader,
   apiProgressSource,
   apiResultReader,
   apiSessionEraser,
@@ -37,6 +38,7 @@ function Result() {
       key={checkId}
       sender={apiCheckSender}
       uploader={apiAudioUploader}
+      imageUploader={apiImageUploader}
       eraser={apiSessionEraser}
       reader={apiResultReader}
       progress={apiProgressSource}

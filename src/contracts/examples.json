@@ -83,7 +83,7 @@
         "claim": "Prezydent w Polsce może sprawować urząd przez trzy kadencje.",
         "claim_date": "2026-11-21", "claim_date_source": "today",
         "verdict": "false",
-        "strength": { "level": "weak", "premises": { "independent_sources": 1, "primary_sources": 0, "newest_source_published_at": "2026-11-01T00:00:00+01:00", "newest_source_age_hours": 480, "agreement": "consistent" } },
+        "strength": { "level": "moderate", "premises": { "independent_sources": 1, "primary_sources": 0, "signatory_reviews": 1, "newest_source_published_at": "2026-11-01T00:00:00+01:00", "newest_source_age_hours": 480, "agreement": "consistent" } },
         "claim_review_premises": [
           {
             "publisher": "Demagog", "publisher_id": "demagog", "signatory_of": ["ifcn", "efcsn"],
