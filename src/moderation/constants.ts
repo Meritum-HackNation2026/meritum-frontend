@@ -1,4 +1,5 @@
 import type { LoginProvider, StaffRole } from './ports'
+import type { DemoAccount } from './ports-admin'
 
 /**
  * Longest justification of „Zgłoś błąd” the API reads (`JUSTIFICATION_INPUT_MAX_CHARS` in
@@ -64,3 +65,29 @@ export const MAX_TOPIC_CHARS = 80
  * @feature US-MOD-05, F-25
  */
 export const GRANTABLE_ROLES: readonly StaffRole[] = ['moderator', 'analyst', 'admin']
+
+/**
+ * Technical accounts a demo link can open, in the order of the account picker.
+ *
+ * @feature US-OBS-06, US-MOD-05, F-28
+ */
+export const DEMO_ACCOUNTS: readonly DemoAccount[] = ['obywatel', 'admin']
+
+/**
+ * How long a new demo link works, in the order of the picker (the first is the default). The API
+ * allows 7 days at most, so the longest is 6 and clock skew cannot push it over.
+ *
+ * @feature US-OBS-06, US-MOD-05, F-28
+ */
+export const DEMO_VALIDITIES = [
+  { key: 'validity_day', hours: 24 },
+  { key: 'validity_three_days', hours: 72 },
+  { key: 'validity_six_days', hours: 144 },
+] as const
+
+/**
+ * Milliseconds in one hour.
+ *
+ * @feature US-OBS-06, F-28
+ */
+export const MS_PER_HOUR = 3_600_000

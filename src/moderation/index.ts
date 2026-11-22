@@ -7,8 +7,6 @@ export { PanelLink } from './_panel-link'
 export { ReportError } from './_report-error'
 export { loadAdmin, loadPanel, sectionsFor } from './_session'
 export type {
-  AdminApi,
-  AdminOutcome,
   AnswerApi,
   AnswerDraft,
   AnswerOutcome,
@@ -19,3 +17,4 @@ export type {
   StaffApi,
   StaffSession,
 } from './ports'
+export type { AdminApi, AdminOutcome, DemoRevokeOutcome } from './ports-admin'

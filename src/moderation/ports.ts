@@ -101,61 +101,6 @@ export interface StaffApi {
 }
 
 /**
- * A panel role an administrator granted to an e-mail address (backend#22).
- *
- * @feature US-MOD-05, F-25
- */
-export type StaffAccount = { email: string; role: StaffRole }
-
-/**
- * One topic of the administrator's high-risk list with its fallback keywords (ADR-35).
- *
- * @feature US-MOD-05, F-20, F-25
- */
-export type RiskTopic = { name: string; keywords: string[] }
-
-/**
- * What a write to the administration API gave: saved, refused as invalid, an ended session, a
- * role taken away, or an API that did not answer.
- *
- * @feature US-MOD-05, F-25
- */
-export type AdminOutcome = 'saved' | 'invalid' | 'expired' | 'no_access' | 'failed'
-
-/**
- * The administration API of meritum-backend: staff accounts and high-risk topics. Adapters
- * never throw; a list the API did not give is null.
- *
- * @feature US-MOD-05, F-20, F-25
- */
-export interface AdminApi {
-  /** @returns The granted accounts, sorted by address, or null. */
-  accounts(): Promise<StaffAccount[] | null>
-  /**
-   * @param account - The address and the role it gets (replacing an earlier one).
-   * @returns What the API did.
-   */
-  grant(account: StaffAccount): Promise<AdminOutcome>
-  /**
-   * @param email - The address whose role is taken away.
-   * @returns What the API did.
-   */
-  revoke(email: string): Promise<AdminOutcome>
-  /** @returns The high-risk topics, sorted by name, or null. */
-  topics(): Promise<RiskTopic[] | null>
-  /**
-   * @param topic - The topic to add (or replace, by name).
-   * @returns What the API did.
-   */
-  saveTopic(topic: RiskTopic): Promise<AdminOutcome>
-  /**
-   * @param name - The topic to delete.
-   * @returns What the API did.
-   */
-  deleteTopic(name: string): Promise<AdminOutcome>
-}
-
-/**
  * A source of the catalogue a moderator can cite: what the picker shows. The API checks the
  * fragment against the text of this source, never the browser.
  *

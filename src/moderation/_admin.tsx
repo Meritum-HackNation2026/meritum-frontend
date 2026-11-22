@@ -1,20 +1,22 @@
 import { t } from '@/components/meritum'
 import { AccountsSection } from './_accounts'
+import { DemoLinksSection } from './_demo-links'
 import { Panel } from './_panel'
 import type { AdminData } from './_session'
 import { TopicsSection } from './_topics'
-import type { AdminApi, StaffApi } from './ports'
+import type { StaffApi } from './ports'
+import type { AdminApi } from './ports-admin'
 
 /**
  * „Administracja” in the panel: the panel header and navigation, then the staff accounts and
- * the high-risk topics. Anyone signed out sees the sign-in page; the route sends other roles
+ * the high-risk topics and the demo links. Anyone signed out sees the sign-in page; the route sends other roles
  * back to /panel before this renders.
  *
  * @param props.data - The session, accounts and topics from `loadAdmin`.
  * @param props.staff - The staff API (sign-in, sign-out).
  * @param props.admin - The administration API.
  * @returns The page.
- * @feature US-MOD-05, F-20, F-25
+ * @feature US-MOD-05, US-OBS-06, F-20, F-25, F-28
  */
 export function AdminPage(props: { data: AdminData; staff: StaffApi; admin: AdminApi }) {
   return (
@@ -23,6 +25,7 @@ export function AdminPage(props: { data: AdminData; staff: StaffApi; admin: Admi
       <div className="grid gap-10">
         <AccountsSection api={props.admin} initial={props.data.accounts} />
         <TopicsSection api={props.admin} initial={props.data.topics} />
+        <DemoLinksSection api={props.admin} />
       </div>
     </Panel>
   )

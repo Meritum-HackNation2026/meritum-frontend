@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AdminSection, Field, type Notice, refusalText, tableClass } from './_admin-parts'
 import { MAX_TOPIC_CHARS } from './constants'
-import type { AdminApi, RiskTopic } from './ports'
+import type { AdminApi, RiskTopic } from './ports-admin'
 
 const copy = t.staff.admin.topics
 const byName = (a: RiskTopic, b: RiskTopic) => a.name.localeCompare(b.name)
