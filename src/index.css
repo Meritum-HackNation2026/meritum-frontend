@@ -23,6 +23,13 @@
   --font-heading: var(--font-sans);
 }
 
+/* page frame (DESIGN_SYSTEM.md 5, 6.9): the sticky bar's height, the column and its rail */
+@theme {
+  --spacing-bar: 4rem;
+  --container-column: 45rem;
+  --container-rail: 20rem;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -31,8 +38,37 @@
     /* the docked message field (DESIGN_SYSTEM.md 6.8) never covers the focused element: 12rem is
        the docked bar with a two-line field on a phone, plus a margin */
     @apply scroll-pb-48 font-sans;
+    /* the sticky bar never covers the focused element (WCAG 2.4.11), with a margin for the ring */
+    scroll-padding-top: calc(var(--spacing-bar) + --spacing(4));
   }
   body {
     @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Everything clickable says so (DESIGN_SYSTEM.md 9): a pointer and a 0.15 s colour fade; an icon in
+   a control dips to 0.82 while pressed. Reduced motion drops the movement and the fade. */
+@layer base {
+  :is(a[href], button, [role="button"], [role="menuitem"], summary) {
+    cursor: pointer;
+    transition-property: color, background-color, border-color, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out-meritum);
+  }
+  :is(button, [role="button"]):disabled {
+    cursor: default;
+  }
+  :is(a[href], button) svg {
+    transition: transform 150ms var(--ease-out-meritum);
+  }
+  :is(a[href], button):active svg {
+    transform: scale(0.82);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :is(a[href], button, [role="button"], [role="menuitem"], summary),
+    :is(a[href], button) svg {
+      transition: none;
+      transform: none;
+    }
   }
 }

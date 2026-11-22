@@ -1,8 +1,18 @@
+import { Link } from '@tanstack/react-router'
 import { useId } from 'react'
+import pl from '@/copy/pl.json'
 import privacy from '@/copy/privacy.json'
 
 type Channel = keyof typeof privacy.policies
 type Processor = (typeof privacy.processors.items)[number]
+
+// The channel policies, linked from every policy page since the footer has only „Prywatność”.
+const policyPages = [
+  ['/prywatnosc', privacy.policies.web.title],
+  ['/prywatnosc/discord', privacy.policies.discord.title],
+  ['/prywatnosc/wtyczka', privacy.policies.extension.title],
+  ['/prywatnosc/sms', privacy.policies.sms.title],
+] as const
 
 const { columns } = privacy.processors
 const registry: Processor[] = [...privacy.processors.items, ...privacy.processors.planned_items]
@@ -74,6 +84,21 @@ export function PrivacyPolicy({ channel }: { channel: Channel }) {
   return (
     <article className="space-y-8 text-body">
       <h1 className="text-title font-semibold">{policy.title}</h1>
+      <nav aria-label={pl.nav.privacy}>
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-small">
+          {policyPages.map(([to, title]) => (
+            <li key={to}>
+              <Link
+                to={to}
+                activeOptions={{ exact: true }}
+                className="inline-flex min-h-11 items-center rounded-md text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground aria-[current=page]:font-semibold focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
+              >
+                {title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <section className="space-y-2">
         <h2 className="font-semibold">{controller.title}</h2>
         <p>{controller.name}</p>

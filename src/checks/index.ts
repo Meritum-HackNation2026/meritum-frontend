@@ -1,3 +1,4 @@
+export { AccountMenu } from './_account-menu'
 export { CheckPage } from './_check-page'
 export { findSavedCheck, forgetChecks, rememberQuestion, saveCheck, savedChecks } from './_history'
 export { PageArchive } from './_page-archive'
