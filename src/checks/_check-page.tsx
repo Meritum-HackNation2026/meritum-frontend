@@ -3,16 +3,9 @@ import { Composer, fill, t, Welcome } from '@/components/meritum'
 import type { CheckRequest } from '@/contracts/meritum'
 import type { Handoff } from '@/moderation'
 import { AccountSection, useAccount } from './_account'
-import {
-  RecordingAttachment,
-  RecordingButton,
-  RecordingRefusal,
-  useRecording,
-} from './_audio-check'
+import { useAttachments } from './_attachments'
 import { DeleteChecksDialog } from './_delete-checks'
 import { forgetChecks, rememberQuestion } from './_history'
-import { useMicrophone } from './_microphone'
-import { MicrophoneMessage } from './_recorder'
 import { type ErrorKey, validateCheck } from './_request'
 import { conversationTurns, Thread, withAccountTurns } from './_thread'
 import { RETENTION_DAYS } from './constants'
@@ -20,6 +13,7 @@ import type {
   AudioUploader,
   CheckSender,
   CitizenAccount,
+  ImageUploader,
   ProgressSource,
   ResultReader,
   SendOutcome,
@@ -80,6 +74,7 @@ function useSend(sender: CheckSender, onAccepted: (checkId: string, question: st
 type CheckPageProps = {
   sender: CheckSender
   uploader: AudioUploader
+  imageUploader: ImageUploader
   eraser: SessionEraser
   reader: ResultReader
   progress: ProgressSource
@@ -99,11 +94,12 @@ type CheckPageProps = {
  * `onErased`, its notifications); at the bottom the docked message field. A typed text or link
  * is checked with zod (`validateCheck`) before it is sent; a clicked example is sent the same
  * way. API errors, rate limit included, show under the field, never as a verdict. A recording
- * attaches through the microphone button. An accepted check keeps its question for the thread
+ * attaches through the microphone button, a screenshot or photo through the image button. An accepted check keeps its question for the thread
  * and is handed on by its id, to open its result address.
  *
  * @param props.sender - Sends the request to the API (the `src/api` adapter in the app).
  * @param props.uploader - Uploads a recording to the API (the `src/api` adapter in the app).
+ * @param props.imageUploader - Uploads a screenshot or photo to the API (the `src/api` adapter in the app).
  * @param props.eraser - Deletes the session's records (the `src/api` adapter in the app).
  * @param props.reader - Reads a check from the API (the `src/api` adapter in the app).
  * @param props.progress - Streams a check's steps (the `src/api` SSE adapter in the app).
@@ -116,11 +112,12 @@ type CheckPageProps = {
  * @param props.activeCheckId - The check of the result address, shown as the current turn.
  * @param props.notice - The AI notice, once on the screen, above the field.
  * @returns The conversation page.
- * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, US-SPR-10, F-01, F-08, F-20, F-21, F-31
+ * @feature US-SPR-01, US-SPR-08, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, US-SPR-10, F-01, F-08, F-20, F-21, F-31, F-33
  */
 export function CheckPage({
   sender,
   uploader,
+  imageUploader,
   eraser,
   reader,
   progress,
@@ -159,10 +156,9 @@ export function CheckPage({
     [onAccepted],
   )
   const { sending, refusal, send } = useSend(sender, accept)
-  const recording = useRecording(uploader, sender, accept)
-  const mic = useMicrophone(recording.attach)
+  const attachments = useAttachments({ audio: uploader, image: imageUploader }, sender, accept)
   const pick = useCallback((claim: string) => send({ channel: 'web', text: claim }), [send])
-  const busy = sending || recording.pending
+  const busy = sending || attachments.busy
 
   return (
     // the empty page widens to two columns from 1024 px (data-wide, read by the layout)
@@ -214,8 +210,7 @@ export function CheckPage({
       </div>
       <div className="sticky bottom-0 z-10 -mx-4 grid bg-background px-4 pt-2 pb-3 sm:pb-4">
         <div aria-live="polite" className="min-w-0 *:mb-3">
-          <RecordingRefusal recording={recording} />
-          <MicrophoneMessage mic={mic} />
+          {attachments.messages}
         </div>
         <Composer
           value={value}
@@ -223,9 +218,9 @@ export function CheckPage({
           onSubmit={send}
           pending={busy}
           serverError={refusal}
-          tools={<RecordingButton recording={recording} mic={mic} />}
-          attachment={recording.file ? <RecordingAttachment recording={recording} /> : undefined}
-          onSendAttachment={recording.send}
+          tools={attachments.tools}
+          attachment={attachments.attachment}
+          onSendAttachment={attachments.onSend}
           placeholder={
             shownTurns.length > 0 ? t.conversation.next_placeholder : t.form.input_placeholder
           }

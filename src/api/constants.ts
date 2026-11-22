@@ -1,4 +1,4 @@
-import type { UploadOutcome } from '@/checks'
+import type { ImageOutcome, UploadOutcome } from '@/checks'
 import type { AnalysisStep } from '@/contracts/meritum'
 import type { HandoffOutcome } from '@/moderation'
 
@@ -230,3 +230,14 @@ export const EVAL_DATASETS_ENDPOINT = '/api/v1/eval/datasets'
  * @feature US-OBS-03, F-36
  */
 export const EXPORT_ENDPOINT = '/api/v1/export'
+
+/**
+ * Refusals of POST /api/v1/images by HTTP status (meritum-backend#37): both carry the same
+ * `message_key`, so the status tells 413 (too large) from 415 (not PNG, JPEG or WebP) apart.
+ *
+ * @feature US-SPR-08, F-33
+ */
+export const IMAGE_REFUSALS = {
+  413: 'image_too_large',
+  415: 'image_format_unsupported',
+} as const satisfies Record<number, ImageOutcome>

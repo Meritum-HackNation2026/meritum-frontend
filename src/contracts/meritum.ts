@@ -70,6 +70,10 @@ export type IndependentSources = number;
  */
 export type PrimarySources = number;
 /**
+ * Distinct IFCN/EFCSN fact-checkers (publisher_id) whose ClaimReview rating agrees with the verdict; one is enough for at least moderate strength.
+ */
+export type SignatoryReviews = number;
+/**
  * Publication date of the newest agreeing source, shown as a date.
  */
 export type NewestSourcePublishedAt = string | null;
@@ -203,6 +207,10 @@ export type LimitationCodes = (
  */
 export type Transcript = string | null;
 /**
+ * Image input only: the text read from the image, with personal data masked.
+ */
+export type ImageText = string | null;
+/**
  * Id of the scheduled corpus snapshot.
  */
 export type CorpusVersion = string;
@@ -232,6 +240,10 @@ export type LimitationCodes1 = (
  * Audio input only: the automatic transcript, with personal data masked.
  */
 export type Transcript1 = string | null;
+/**
+ * Image input only: the text read from the image, with personal data masked.
+ */
+export type ImageText1 = string | null;
 export type CorpusVersion1 = string;
 /**
  * Ids of the sources cited in the claims.
@@ -563,6 +575,7 @@ export interface EvidenceStrength {
 export interface Premises {
   independent_sources: IndependentSources;
   primary_sources: PrimarySources;
+  signatory_reviews?: SignatoryReviews;
   newest_source_published_at?: NewestSourcePublishedAt;
   newest_source_age_hours?: NewestSourceAgeHours;
   max_age_hours?: MaxAgeHours1;
@@ -670,6 +683,7 @@ export interface CheckResult {
   limitations?: Limitations;
   limitation_codes?: LimitationCodes;
   transcript?: Transcript;
+  image_text?: ImageText;
   source_warning?: SourceStatusWarning | null;
   escalation?: Escalation | null;
   corpus_version: CorpusVersion;
@@ -697,6 +711,7 @@ export interface CachedResult {
   limitations?: Limitations1;
   limitation_codes?: LimitationCodes1;
   transcript?: Transcript1;
+  image_text?: ImageText1;
   source_warning?: SourceStatusWarning | null;
   /**
    * Machine-readable marker that an AI system wrote the answer (AI Act art. 50(2)); required on a finished check.

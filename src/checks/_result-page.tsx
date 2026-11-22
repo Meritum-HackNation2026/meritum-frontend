@@ -4,9 +4,9 @@ import type { AnalysisStatus, CheckResult } from '@/contracts/meritum'
 import { CheckResultCard } from '@/evidence'
 import type { Handoff } from '@/moderation'
 import { findSavedCheck, saveCheck } from './_history'
+import { ReadFromFile } from './_image-text'
 import { isDraft, shownResult } from './_progress'
 import { ResultState } from './_result-state'
-import { Transcript } from './_transcript'
 import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
 import type { ProgressSource, ReadOutcome, ResultReader } from './ports'
 
@@ -197,7 +197,7 @@ function LiveResult({
           {error}
         </p>
       )}
-      {result?.transcript && <Transcript text={result.transcript} />}
+      {result && <ReadFromFile result={result} />}
       <div
         ref={answerRef}
         tabIndex={-1}
@@ -214,8 +214,8 @@ function LiveResult({
  * The result page of one check: live steps streamed over SSE while it runs (the API read
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
  * so a screen reader announces the result; with `focusOnAnswer`, the answer takes the focus
- * when nothing else has it. A checked recording shows its transcript above it
- * (`Transcript`), outside that region, so a long transcript does not hold back the verdicts.
+ * when nothing else has it. A checked recording or image shows what was read from it
+ * above it (`ReadFromFile`), outside that region, so a long transcript does not hold back the verdicts.
  * Verdicts wait for verified citations. A failed
  * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
  * times in a row; an unknown id stops it. After the stream ended without a result, a read
@@ -242,7 +242,7 @@ export function ResultPage(props: ResultPageProps) {
   }
   return (
     <div className="grid min-w-0 gap-4">
-      {saved.transcript && <Transcript text={saved.transcript} />}
+      <ReadFromFile result={saved} />
       <Card result={saved} handoff={props.handoff} />
     </div>
   )
