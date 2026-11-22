@@ -5,6 +5,7 @@ import { CheckResultCard } from '@/evidence'
 import type { Handoff } from '@/moderation'
 import { findSavedCheck, saveCheck } from './_history'
 import { ReadFromFile } from './_image-text'
+import { MissingCheck } from './_missing-check'
 import { isDraft, shownResult } from './_progress'
 import { ResultState } from './_result-state'
 import { MAX_FAILED_READS, MAX_READS, POLL_INTERVAL_MS, RECEIVED_STEPS } from './constants'
@@ -123,10 +124,10 @@ function useStreamedStatus(checkId: string, progress: ProgressSource) {
 }
 
 function errorText(outcome: ReadOutcome | null, gaveUp: boolean): string | null {
-  if (outcome === 'not_found' || gaveUp) {
+  if (gaveUp) {
     return t.status_hint.technical_failure
   }
-  return typeof outcome === 'string' ? t.errors[outcome] : null
+  return typeof outcome === 'string' && outcome !== 'not_found' ? t.errors[outcome] : null
 }
 
 function Card({ result, handoff }: { result: CheckResult; handoff: Handoff }) {
@@ -192,6 +193,7 @@ function LiveResult({
           draft={live !== null && isDraft(live)}
         />
       )}
+      {outcome === 'not_found' && !result && <MissingCheck />}
       {error && !result && (
         <p role="alert" className="text-small text-pretty">
           {error}
@@ -214,15 +216,14 @@ function LiveResult({
  * The result page of one check: live steps streamed over SSE while it runs (the API read
  * fills in when the stream is silent), then the result card in a polite `aria-live` region,
  * so a screen reader announces the result; with `focusOnAnswer`, the answer takes the focus
- * when nothing else has it. A checked recording or image shows what was read from it
- * above it (`ReadFromFile`), outside that region, so a long transcript does not hold back the verdicts.
- * Verdicts wait for verified citations. A failed
- * read shows a message, never a verdict, and the page keeps asking up to `MAX_FAILED_READS`
- * times in a row; an unknown id stops it. After the stream ended without a result, a read
+ * when nothing else has it. A checked recording or image shows what was read from it above it
+ * (`ReadFromFile`), outside that region, so a long transcript does not hold back the verdicts.
+ * Verdicts wait for verified citations. A failed read shows a message, never a verdict, up to
+ * `MAX_FAILED_READS` in a row; a 404 stops it with `MissingCheck`. After the stream ended, a read
  * showing a failed step with nothing left running ends with the technical failure line; a run
  * that crashed with a step still `active`, or a check still queued, keeps the page reading
- * until the result or `MAX_READS` reads, which also end with that line. A shown result is kept
- * in this tab's history; a check already in it opens from there, with no call to the API.
+ * until the result or `MAX_READS` reads, which also end with that line. A shown result is kept in
+ * this tab's history; a check already in it opens from there, with no call to the API.
  *
  * @param props.checkId - The id the API gave the accepted check.
  * @param props.reader - Reads GET /api/v1/checks/{id} (the `src/api` adapter in the app).
