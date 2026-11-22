@@ -40,7 +40,7 @@ export function VerdictLegend() {
       {verdicts.map((verdict) => (
         <li key={verdict} className="grid gap-1 sm:flex sm:items-baseline sm:gap-4">
           <span className="flex sm:w-64 sm:shrink-0">
-            <VerdictBadge verdict={verdict} size="sm" />
+            <VerdictBadge verdict={verdict} size="sm" className="max-w-full whitespace-normal" />
           </span>
           <span className="text-pretty">{pl.verdict_hint[verdict]}</span>
         </li>

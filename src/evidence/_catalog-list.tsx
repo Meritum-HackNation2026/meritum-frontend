@@ -45,10 +45,16 @@ export function CatalogList({ entries }: { entries: readonly CatalogRow[] }) {
             <div className="grid content-start justify-items-start gap-2 sm:w-60 sm:shrink-0">
               <Source entry={e} />
               <span className="flex flex-wrap gap-1">
-                <Badge variant="secondary" className="font-normal">
+                <Badge
+                  variant="secondary"
+                  className="h-auto max-w-full font-normal whitespace-normal"
+                >
                   {pl.source_kind[e.kind]}
                 </Badge>
-                <Badge variant="secondary" className="font-normal">
+                <Badge
+                  variant="secondary"
+                  className="h-auto max-w-full font-normal whitespace-normal"
+                >
                   {pl.source_tier[e.tier]}
                 </Badge>
               </span>

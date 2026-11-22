@@ -6,11 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Meritum</title>
     <script>
-      // Design tokens switch on `.dark`; follow the system setting, also when it changes.
-      const dark = matchMedia('(prefers-color-scheme: dark)')
-      const apply = () => document.documentElement.classList.toggle('dark', dark.matches)
-      apply()
-      dark.addEventListener('change', apply)
+      {
+        // Display settings of the „Wygląd” menu, before the first paint. A data-contrast on <html>
+        // marks a stored choice; without one the theme follows the system, also when it changes.
+        const root = document.documentElement
+        const stored = (key) => {
+          try {
+            return localStorage.getItem(key)
+          } catch {
+            return null
+          }
+        }
+        const theme = stored('meritum-theme')
+        const text = stored('meritum-text')
+        if (theme) {
+          root.classList.toggle('dark', theme !== 'light')
+          root.dataset.contrast = theme === 'contrast' ? 'more' : 'normal'
+        }
+        if (text && text !== 'm') root.dataset.text = text
+        const dark = matchMedia('(prefers-color-scheme: dark)')
+        const follow = () => root.dataset.contrast || root.classList.toggle('dark', dark.matches)
+        follow()
+        dark.addEventListener('change', follow)
+      }
     </script>
   </head>
   <body>

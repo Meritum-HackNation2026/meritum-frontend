@@ -11,7 +11,7 @@ const { method } = pl
 const done = examples['CheckResult.done'] as CheckResult
 const [firstClaim, ...nextClaims] = done.claims ?? []
 const verdicts = Object.keys(pl.verdict) as Verdict[]
-const pill = 'h-11 gap-2 rounded-pill px-5 text-body'
+const pill = 'h-auto min-h-11 max-w-full gap-2 rounded-pill px-5 py-2 text-body whitespace-normal'
 // ResultCard's frame, background and entry motion go: the example stands still on the page
 const bare = 'animate-none! border-0 bg-transparent'
 
@@ -44,7 +44,10 @@ function Sample() {
           }}
           className={bare}
         />
-        <div data-faded="" className="max-h-28 overflow-hidden mask-b-from-0% mask-b-to-90%">
+        <div
+          data-faded=""
+          className="max-h-28 min-w-0 overflow-hidden mask-b-from-0% mask-b-to-90%"
+        >
           <ResultCard result={{ ...done, claims: nextClaims }} className={bare} />
         </div>
       </div>
@@ -65,7 +68,7 @@ function Sample() {
 export function HomePage() {
   return (
     <div data-wide="" className="grid min-w-0 gap-20 pb-8">
-      <section className="grid items-start gap-x-16 gap-y-12 lg:grid-cols-2">
+      <section className="grid items-start gap-x-16 gap-y-12 *:min-w-0 lg:grid-cols-2">
         <div className="grid gap-6 lg:pt-10">
           <h1 className="text-headline font-bold tracking-tight text-balance">
             {pl.brand.taglines[0]}
@@ -109,7 +112,11 @@ export function HomePage() {
           {verdicts.map((verdict) => (
             <li key={verdict} className="grid gap-1 sm:flex sm:items-baseline sm:gap-4">
               <span className="flex sm:w-64 sm:shrink-0">
-                <VerdictBadge verdict={verdict} size="sm" />
+                <VerdictBadge
+                  verdict={verdict}
+                  size="sm"
+                  className="max-w-full whitespace-normal"
+                />
               </span>
               <span className="text-body text-muted-foreground text-pretty">
                 {pl.verdict_hint[verdict]}
