@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react'
 import { Question, Reply, t } from '@/components/meritum'
 import type { Handoff } from '@/moderation'
 import { askedChecks, savedChecks } from './_history'
+import { PageArchive } from './_page-archive'
 import { ResultPage } from './_result-page'
+import { LINK_QUESTION } from './archive/constants'
+import type { PageArchives } from './archive/ports'
 import type { AccountCheck, ProgressSource, ResultReader } from './ports'
 
 /** One turn of the conversation: a check, when it was asked and, if this tab sent it, its question. */
@@ -61,6 +64,7 @@ export function withAccountTurns(turns: Turn[], remote: AccountCheck[]): Turn[] 
  * @param props.reader - Reads a check from the API (the `src/api` adapter in the app).
  * @param props.progress - Streams a check's steps (the `src/api` SSE adapter in the app).
  * @param props.handoff - Hands claims to the moderators (the `src/api` adapter in the app).
+ * @param props.archives - Archives a checked link; no action without it.
  * @returns The thread.
  * @feature US-SPR-01, US-SPR-04, US-SPR-09, F-01, F-17
  */
@@ -70,12 +74,14 @@ export function Thread({
   reader,
   progress,
   handoff,
+  archives,
 }: {
   turns: Turn[]
   activeCheckId?: string | undefined
   reader: ResultReader
   progress: ProgressSource
   handoff: Handoff
+  archives?: PageArchives | undefined
 }) {
   const activeRef = useRef<HTMLLIElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
@@ -100,6 +106,9 @@ export function Thread({
               <Question at={at} isNew={checkId === activeCheckId}>
                 {question}
               </Question>
+            )}
+            {archives && question && LINK_QUESTION.test(question.trim()) && (
+              <PageArchive url={question.trim()} archives={archives} />
             )}
             <Reply at={answeredAt}>
               <ResultPage
