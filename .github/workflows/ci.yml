@@ -1,7 +1,8 @@
 name: CI/CD
 
 # One run per commit (push only; a PR shows the run of its head commit).
-#   verify   Biome, types and Vite build on the GCP runners (self-hosted, meritum);
+#   verify   Biome, types, architecture tests, import boundaries, dead code and the
+#            Vite build on the GCP runners (self-hosted, meritum);
 #            a newer push to the same branch cancels it, never on main/develop.
 #   deploy   develop -> https://meritum-dev.gburek.app, main -> https://meritum.gburek.app,
 #            on dellpromaxgb10 after verify; never cancelled mid-way, one at a time.
@@ -22,14 +23,17 @@ jobs:
       cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 26
       # pnpm from npm (version from packageManager); the store stays on the runner.
       - run: npm install --global "$(node -p "require('./package.json').packageManager")"
       - run: pnpm install --frozen-lockfile --prefer-offline
       - run: pnpm biome ci --reporter=github --error-on-warnings .
-      - run: pnpm build
+      - run: pnpm test # tests/architecture (JSDoc @feature, constants, 250 lines), sums of the pnpm sync copies
+      - run: pnpm depcruise # import boundaries (.dependency-cruiser.cjs)
+      - run: pnpm knip # dead code and unused dependencies
+      - run: pnpm build # tsc -b (strict) + vite build
 
   deploy:
     needs: verify

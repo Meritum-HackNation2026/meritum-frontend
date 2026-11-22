@@ -10,33 +10,180 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JakDzialaRouteImport } from './routes/jak-dziala'
+import { Route as OdpowiedziCaseIdRouteImport } from './routes/odpowiedzi/$caseId'
+import { Route as PanelIndexRouteImport } from './routes/panel/index'
+import { Route as PanelAdministracjaRouteImport } from './routes/panel/administracja'
+import { Route as PanelEksportRouteImport } from './routes/panel/eksport'
+import { Route as PanelEvalRouteImport } from './routes/panel/eval'
+import { Route as PrywatnoscIndexRouteImport } from './routes/prywatnosc/index'
+import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/discord'
+import { Route as PrywatnoscSmsRouteImport } from './routes/prywatnosc/sms'
+import { Route as PrywatnoscWtyczkaRouteImport } from './routes/prywatnosc/wtyczka'
+import { Route as SprawdzenieCheckIdRouteImport } from './routes/sprawdzenie/$checkId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JakDzialaRoute = JakDzialaRouteImport.update({
+  id: '/jak-dziala',
+  path: '/jak-dziala',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OdpowiedziCaseIdRoute = OdpowiedziCaseIdRouteImport.update({
+  id: '/odpowiedzi/$caseId',
+  path: '/odpowiedzi/$caseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelIndexRoute = PanelIndexRouteImport.update({
+  id: '/panel/',
+  path: '/panel/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelAdministracjaRoute = PanelAdministracjaRouteImport.update({
+  id: '/panel/administracja',
+  path: '/panel/administracja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelEksportRoute = PanelEksportRouteImport.update({
+  id: '/panel/eksport',
+  path: '/panel/eksport',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelEvalRoute = PanelEvalRouteImport.update({
+  id: '/panel/eval',
+  path: '/panel/eval',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscIndexRoute = PrywatnoscIndexRouteImport.update({
+  id: '/prywatnosc/',
+  path: '/prywatnosc/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscDiscordRoute = PrywatnoscDiscordRouteImport.update({
+  id: '/prywatnosc/discord',
+  path: '/prywatnosc/discord',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscSmsRoute = PrywatnoscSmsRouteImport.update({
+  id: '/prywatnosc/sms',
+  path: '/prywatnosc/sms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrywatnoscWtyczkaRoute = PrywatnoscWtyczkaRouteImport.update({
+  id: '/prywatnosc/wtyczka',
+  path: '/prywatnosc/wtyczka',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SprawdzenieCheckIdRoute = SprawdzenieCheckIdRouteImport.update({
+  id: '/sprawdzenie/$checkId',
+  path: '/sprawdzenie/$checkId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/jak-dziala': typeof JakDzialaRoute
+  '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
+  '/panel/administracja': typeof PanelAdministracjaRoute
+  '/panel/eksport': typeof PanelEksportRoute
+  '/panel/eval': typeof PanelEvalRoute
+  '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
+  '/prywatnosc/sms': typeof PrywatnoscSmsRoute
+  '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
+  '/panel/': typeof PanelIndexRoute
+  '/prywatnosc/': typeof PrywatnoscIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/jak-dziala': typeof JakDzialaRoute
+  '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
+  '/panel/administracja': typeof PanelAdministracjaRoute
+  '/panel/eksport': typeof PanelEksportRoute
+  '/panel/eval': typeof PanelEvalRoute
+  '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
+  '/prywatnosc/sms': typeof PrywatnoscSmsRoute
+  '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
+  '/panel': typeof PanelIndexRoute
+  '/prywatnosc': typeof PrywatnoscIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/jak-dziala': typeof JakDzialaRoute
+  '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
+  '/panel/administracja': typeof PanelAdministracjaRoute
+  '/panel/eksport': typeof PanelEksportRoute
+  '/panel/eval': typeof PanelEvalRoute
+  '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
+  '/prywatnosc/sms': typeof PrywatnoscSmsRoute
+  '/prywatnosc/wtyczka': typeof PrywatnoscWtyczkaRoute
+  '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
+  '/panel/': typeof PanelIndexRoute
+  '/prywatnosc/': typeof PrywatnoscIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/jak-dziala'
+    | '/odpowiedzi/$caseId'
+    | '/panel/administracja'
+    | '/panel/eksport'
+    | '/panel/eval'
+    | '/prywatnosc/discord'
+    | '/prywatnosc/sms'
+    | '/prywatnosc/wtyczka'
+    | '/sprawdzenie/$checkId'
+    | '/panel/'
+    | '/prywatnosc/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/jak-dziala'
+    | '/odpowiedzi/$caseId'
+    | '/panel/administracja'
+    | '/panel/eksport'
+    | '/panel/eval'
+    | '/prywatnosc/discord'
+    | '/prywatnosc/sms'
+    | '/prywatnosc/wtyczka'
+    | '/sprawdzenie/$checkId'
+    | '/panel'
+    | '/prywatnosc'
+  id:
+    | '__root__'
+    | '/'
+    | '/jak-dziala'
+    | '/odpowiedzi/$caseId'
+    | '/panel/administracja'
+    | '/panel/eksport'
+    | '/panel/eval'
+    | '/prywatnosc/discord'
+    | '/prywatnosc/sms'
+    | '/prywatnosc/wtyczka'
+    | '/sprawdzenie/$checkId'
+    | '/panel/'
+    | '/prywatnosc/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  JakDzialaRoute: typeof JakDzialaRoute
+  OdpowiedziCaseIdRoute: typeof OdpowiedziCaseIdRoute
+  PanelAdministracjaRoute: typeof PanelAdministracjaRoute
+  PanelEksportRoute: typeof PanelEksportRoute
+  PanelEvalRoute: typeof PanelEvalRoute
+  PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
+  PrywatnoscSmsRoute: typeof PrywatnoscSmsRoute
+  PrywatnoscWtyczkaRoute: typeof PrywatnoscWtyczkaRoute
+  SprawdzenieCheckIdRoute: typeof SprawdzenieCheckIdRoute
+  PanelIndexRoute: typeof PanelIndexRoute
+  PrywatnoscIndexRoute: typeof PrywatnoscIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +195,99 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jak-dziala': {
+      id: '/jak-dziala'
+      path: '/jak-dziala'
+      fullPath: '/jak-dziala'
+      preLoaderRoute: typeof JakDzialaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/odpowiedzi/$caseId': {
+      id: '/odpowiedzi/$caseId'
+      path: '/odpowiedzi/$caseId'
+      fullPath: '/odpowiedzi/$caseId'
+      preLoaderRoute: typeof OdpowiedziCaseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/': {
+      id: '/panel/'
+      path: '/panel'
+      fullPath: '/panel/'
+      preLoaderRoute: typeof PanelIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/administracja': {
+      id: '/panel/administracja'
+      path: '/panel/administracja'
+      fullPath: '/panel/administracja'
+      preLoaderRoute: typeof PanelAdministracjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/eksport': {
+      id: '/panel/eksport'
+      path: '/panel/eksport'
+      fullPath: '/panel/eksport'
+      preLoaderRoute: typeof PanelEksportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/eval': {
+      id: '/panel/eval'
+      path: '/panel/eval'
+      fullPath: '/panel/eval'
+      preLoaderRoute: typeof PanelEvalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/': {
+      id: '/prywatnosc/'
+      path: '/prywatnosc'
+      fullPath: '/prywatnosc/'
+      preLoaderRoute: typeof PrywatnoscIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/discord': {
+      id: '/prywatnosc/discord'
+      path: '/prywatnosc/discord'
+      fullPath: '/prywatnosc/discord'
+      preLoaderRoute: typeof PrywatnoscDiscordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/sms': {
+      id: '/prywatnosc/sms'
+      path: '/prywatnosc/sms'
+      fullPath: '/prywatnosc/sms'
+      preLoaderRoute: typeof PrywatnoscSmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prywatnosc/wtyczka': {
+      id: '/prywatnosc/wtyczka'
+      path: '/prywatnosc/wtyczka'
+      fullPath: '/prywatnosc/wtyczka'
+      preLoaderRoute: typeof PrywatnoscWtyczkaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sprawdzenie/$checkId': {
+      id: '/sprawdzenie/$checkId'
+      path: '/sprawdzenie/$checkId'
+      fullPath: '/sprawdzenie/$checkId'
+      preLoaderRoute: typeof SprawdzenieCheckIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  JakDzialaRoute: JakDzialaRoute,
+  OdpowiedziCaseIdRoute: OdpowiedziCaseIdRoute,
+  PanelAdministracjaRoute: PanelAdministracjaRoute,
+  PanelEksportRoute: PanelEksportRoute,
+  PanelEvalRoute: PanelEvalRoute,
+  PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,
+  PrywatnoscSmsRoute: PrywatnoscSmsRoute,
+  PrywatnoscWtyczkaRoute: PrywatnoscWtyczkaRoute,
+  SprawdzenieCheckIdRoute: SprawdzenieCheckIdRoute,
+  PanelIndexRoute: PanelIndexRoute,
+  PrywatnoscIndexRoute: PrywatnoscIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

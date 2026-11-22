@@ -1,0 +1,3 @@
+# LF everywhere: SHA256SUMS, the generated OpenAPI types and Biome expect it, also on
+# Windows checkouts with core.autocrlf=true (meritum-frontend#88).
+* text=auto eol=lf

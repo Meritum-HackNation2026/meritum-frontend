@@ -1,0 +1,10 @@
+{
+  // TSX component tests: tsx reads this file (TSX_TSCONFIG_PATH in the test script) for jsx
+  // and paths; tsc -b type-checks them with the app's settings plus Node types.
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src", "tests/**/*.tsx"]
+}

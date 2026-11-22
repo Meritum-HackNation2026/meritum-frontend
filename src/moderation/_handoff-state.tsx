@@ -1,0 +1,59 @@
+import { useState } from 'react'
+import { t } from '@/components/meritum'
+import type { HandoffOutcome } from './ports'
+
+// A server failure reads `escalation.not_saved`, never the overload line of `errors.busy`.
+function outcomeText(outcome: HandoffOutcome | null): string | null {
+  if (typeof outcome !== 'string') {
+    return null
+  }
+  return outcome === 'not_saved' ? t.escalation.not_saved : t.errors[outcome]
+}
+
+/**
+ * One hand-off as the card tracks it: the saved case number, the error to show, and whether
+ * the request is still out. A new request clears the previous error; one already out blocks it.
+ *
+ * @param run - Sends the hand-off through the port.
+ * @param onSaved - Told the case number once the API saved the case, so the card can show it.
+ * @returns The case number, the error text, the pending flag and the sender.
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
+ */
+export function useHandoff(
+  run: () => Promise<HandoffOutcome>,
+  onSaved: (caseId: string) => void = () => undefined,
+) {
+  const [outcome, setOutcome] = useState<HandoffOutcome | null>(null)
+  const [pending, setPending] = useState(false)
+  // a second click while one request is out does nothing; the button stays focusable
+  const send = async () => {
+    if (pending) {
+      return
+    }
+    setPending(true)
+    setOutcome(null)
+    try {
+      const answer = await run()
+      setOutcome(answer)
+      if (typeof answer === 'object') {
+        onSaved(answer.caseId)
+      }
+    } finally {
+      setPending(false)
+    }
+  }
+  const caseId = typeof outcome === 'object' && outcome !== null ? outcome.caseId : null
+  const error = outcomeText(outcome)
+  return { caseId, error, pending, send }
+}
+
+/**
+ * Focuses a message the moment it appears, so a keyboard user whose button just went away
+ * lands on what replaced it.
+ *
+ * @param node - The mounted message, or null when it unmounts.
+ * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
+ */
+export function focusOnMount(node: HTMLElement | null): void {
+  node?.focus()
+}

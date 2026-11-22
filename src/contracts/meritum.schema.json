@@ -1,0 +1,2454 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Meritum contracts",
+  "x-contract-version": 18,
+  "$defs": {
+    "CheckRequest": {
+      "additionalProperties": false,
+      "description": "What a channel adapter sends to the verification core. The core is channel-agnostic.",
+      "properties": {
+        "channel": {
+          "enum": [
+            "web",
+            "extension",
+            "discord",
+            "sms",
+            "mcp"
+          ],
+          "title": "Channel",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "page_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Extension only: the post the text came from.",
+          "title": "Page Url"
+        },
+        "audio_id": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Uploaded audio file or Discord voice message; transcribed in an EU region, then checked like text.",
+          "title": "Audio Id"
+        },
+        "image_id": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Uploaded screenshot or photo with text; read by OCR in an EU region, then checked like text. Excludes text, url and audio_id.",
+          "title": "Image Id"
+        },
+        "channel_user_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.",
+          "title": "Channel User Id"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Web and extension only: random id kept in the browser session; the API copies it to CheckRecord.session_id.",
+          "title": "Request Session Id"
+        }
+      },
+      "required": [
+        "channel"
+      ],
+      "title": "CheckRequest",
+      "type": "object"
+    },
+    "AiMarker": {
+      "additionalProperties": false,
+      "description": "Machine-readable marker that an AI system wrote the verdicts and justifications.\n\nEvery channel gets the same marker from the result; how a channel shows it is up to\nthe channel.",
+      "properties": {
+        "ai_generated": {
+          "const": true,
+          "default": true,
+          "title": "Ai Generated",
+          "type": "boolean"
+        },
+        "provider": {
+          "maxLength": 60,
+          "title": "Marker Provider",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 80,
+          "title": "Marker Model",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "generated_at"
+      ],
+      "title": "AiMarker",
+      "type": "object"
+    },
+    "Citation": {
+      "additionalProperties": false,
+      "description": "A fragment of a source and how it bears on the claim. The pipeline drops fragments it cannot find verbatim.",
+      "properties": {
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "fragment": {
+          "maxLength": 600,
+          "minLength": 10,
+          "title": "Fragment",
+          "type": "string"
+        },
+        "stance": {
+          "enum": [
+            "supports",
+            "refutes",
+            "context"
+          ],
+          "title": "Stance",
+          "type": "string"
+        },
+        "validity": {
+          "default": "expires",
+          "description": "Age rule for this piece of evidence: the catalogue entry's validity, or past_event / superseded set per evidence.",
+          "enum": [
+            "expires",
+            "in_force",
+            "updated_in_place",
+            "past_event",
+            "superseded"
+          ],
+          "title": "Validity",
+          "type": "string"
+        },
+        "fragment_found_verbatim": {
+          "const": true,
+          "default": true,
+          "title": "Fragment Found Verbatim",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source",
+        "fragment",
+        "stance"
+      ],
+      "title": "Citation",
+      "type": "object"
+    },
+    "ClaimResult": {
+      "additionalProperties": false,
+      "description": "One checked claim. Citations (source material) are kept apart from `explanation` (model interpretation).",
+      "properties": {
+        "claim": {
+          "maxLength": 500,
+          "minLength": 5,
+          "title": "Claim",
+          "type": "string"
+        },
+        "claim_date": {
+          "description": "The date the claim refers to; evidence age is measured against it.",
+          "format": "date",
+          "title": "Claim Date",
+          "type": "string"
+        },
+        "claim_date_source": {
+          "enum": [
+            "text",
+            "input_published_at",
+            "today"
+          ],
+          "title": "Claim Date Source",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "confirmed",
+            "false",
+            "misleading",
+            "insufficient_evidence",
+            "not_verifiable"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        },
+        "strength": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceStrength"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "citations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Citation"
+          },
+          "title": "Citations",
+          "type": "array"
+        },
+        "claim_review_premises": {
+          "default": [],
+          "description": "IFCN or EFCSN fact-checkers' ratings that back the verdict without a page fragment (ADR-34).",
+          "items": {
+            "$ref": "#/$defs/ClaimReviewPremise"
+          },
+          "title": "Claim Review Premises",
+          "type": "array"
+        },
+        "explanation": {
+          "maxLength": 800,
+          "minLength": 10,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "unresolved": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What could not be established.",
+          "title": "Unresolved"
+        },
+        "would_change_verdict": {
+          "default": [],
+          "description": "What would change the verdict, computed by a rule from the premises; the channel words it from copy/pl.json.",
+          "items": {
+            "enum": [
+              "needs_primary_source",
+              "needs_second_publisher",
+              "needs_fresh_evidence",
+              "needs_resolving_source",
+              "needs_named_source"
+            ],
+            "type": "string"
+          },
+          "title": "Would Change Verdict",
+          "type": "array"
+        },
+        "archival": {
+          "default": false,
+          "description": "Newest evidence is older than the claim's context needs.",
+          "title": "Archival",
+          "type": "boolean"
+        },
+        "technique": {
+          "anyOf": [
+            {
+              "enum": [
+                "false_authority",
+                "conspiracy_theory",
+                "out_of_context",
+                "outdated",
+                "fabricated_quote",
+                "manipulated_media",
+                "impersonation",
+                "cherry_picking"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technique"
+        },
+        "incident": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IncidentMatch"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "claim_reviews": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClaimReviewContext"
+          },
+          "title": "Claim Reviews",
+          "type": "array"
+        }
+      },
+      "required": [
+        "claim",
+        "claim_date",
+        "claim_date_source",
+        "verdict",
+        "explanation"
+      ],
+      "title": "ClaimResult",
+      "type": "object"
+    },
+    "ClaimReviewContext": {
+      "additionalProperties": false,
+      "description": "A fact-checker's ClaimReview rating found through Google Fact Check Tools API, shown as context with a link.\n\nNever a citation, never counted towards strength, kept no longer than the API's cache headers allow.",
+      "properties": {
+        "publisher": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "rating": {
+          "description": "textualRating as published.",
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Rating",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed At"
+        }
+      },
+      "required": [
+        "publisher",
+        "rating",
+        "url"
+      ],
+      "title": "ClaimReviewContext",
+      "type": "object"
+    },
+    "ClaimReviewPremise": {
+      "additionalProperties": false,
+      "description": "A fact-checker's ClaimReview rating used as a premise of the verdict, next to the citations (ADR-34).\n\nFound through Google Fact Check Tools API. It has no page fragment: the rating, title,\ndate and link are the evidence. Only publishers the catalogue lists as IFCN or EFCSN\nsignatories qualify; the pipeline copies `signatory_of` from their catalogue entry.\nCounted per publisher like a secondary-tier citation.",
+      "properties": {
+        "publisher": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "publisher_id": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+          "title": "Publisher Id",
+          "type": "string"
+        },
+        "signatory_of": {
+          "description": "IFCN or EFCSN membership from the publisher's catalogue entry; required for a premise.",
+          "items": {
+            "enum": [
+              "ifcn",
+              "efcsn"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Signatory Of",
+          "type": "array"
+        },
+        "rating": {
+          "description": "textualRating, verbatim.",
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Rating",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 3,
+          "title": "Title",
+          "type": "string"
+        },
+        "reviewed_at": {
+          "format": "date-time",
+          "title": "Reviewed At",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "fetched_at": {
+          "description": "When Google Fact Check Tools API returned it.",
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "stance": {
+          "enum": [
+            "supports",
+            "refutes",
+            "context"
+          ],
+          "title": "Stance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "publisher_id",
+        "signatory_of",
+        "rating",
+        "title",
+        "reviewed_at",
+        "url",
+        "fetched_at",
+        "stance"
+      ],
+      "title": "ClaimReviewPremise",
+      "type": "object"
+    },
+    "Escalation": {
+      "additionalProperties": false,
+      "description": "Hand-off to the moderator queue. 'recommended' means nobody was notified yet.\n\nComputed on every request, cache hits included: the result cache never stores it.",
+      "properties": {
+        "state": {
+          "enum": [
+            "recommended",
+            "created",
+            "updated"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "case_id": {
+          "anyOf": [
+            {
+              "pattern": "^#S-\\d+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Case Id"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "Escalation",
+      "type": "object"
+    },
+    "EvidenceStrength": {
+      "additionalProperties": false,
+      "description": "Strength level together with the premises it follows from.",
+      "properties": {
+        "level": {
+          "enum": [
+            "strong",
+            "moderate",
+            "weak"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "premises": {
+          "$ref": "#/$defs/Premises"
+        }
+      },
+      "required": [
+        "level",
+        "premises"
+      ],
+      "title": "EvidenceStrength",
+      "type": "object"
+    },
+    "IncidentMatch": {
+      "additionalProperties": false,
+      "description": "Similarity to a known incident (organiser's database, the local EUvsDisinfo copy or a checked fact-check). Context only.\n\nNever a basis for the verdict by itself, and never changes it. An EUvsDisinfo `fact` text is cited as a Citation,\nnot carried here.\n\n`domain` is the one explicitly defined warning case: the checked URL is on a domain the incident database lists\n(for EUvsDisinfo: linksToDisinformation), and the incident's topic matches the claim. A content match needs a\nmatching title, topic and date; the domain alone never makes one. `match_basis` lists what matched and is shown.",
+      "properties": {
+        "database": {
+          "default": "organiser",
+          "description": "fact_check: the entry matched an already checked publication.",
+          "enum": [
+            "organiser",
+            "euvsdisinfo",
+            "fact_check"
+          ],
+          "title": "Database",
+          "type": "string"
+        },
+        "incident_id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "matched_on": {
+          "default": "content",
+          "enum": [
+            "content",
+            "domain"
+          ],
+          "title": "Matched On",
+          "type": "string"
+        },
+        "match_basis": {
+          "description": "What agreed; shown with the match.",
+          "items": {
+            "enum": [
+              "title",
+              "topic",
+              "date",
+              "domain"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Match Basis",
+          "type": "array"
+        },
+        "title": {
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        },
+        "date": {
+          "format": "date-time",
+          "title": "Date",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "similarity": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Similarity",
+          "type": "number"
+        }
+      },
+      "required": [
+        "incident_id",
+        "match_basis",
+        "title",
+        "date",
+        "url",
+        "similarity"
+      ],
+      "title": "IncidentMatch",
+      "type": "object"
+    },
+    "Premises": {
+      "additionalProperties": false,
+      "description": "Explicit premises behind a verdict (MSZ: strength must follow from quality, recency, agreement, independence).",
+      "properties": {
+        "independent_sources": {
+          "description": "Distinct publishers (publisher_id) among the citations whose stance agrees with the verdict.",
+          "minimum": 0,
+          "title": "Independent Sources",
+          "type": "integer"
+        },
+        "primary_sources": {
+          "description": "Distinct primary-tier publishers among the agreeing citations.",
+          "minimum": 0,
+          "title": "Primary Sources",
+          "type": "integer"
+        },
+        "signatory_reviews": {
+          "default": 0,
+          "description": "Distinct IFCN/EFCSN fact-checkers (publisher_id) whose ClaimReview rating agrees with the verdict; one is enough for at least moderate strength.",
+          "minimum": 0,
+          "title": "Signatory Reviews",
+          "type": "integer"
+        },
+        "newest_source_published_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Publication date of the newest agreeing source, shown as a date.",
+          "title": "Newest Source Published At"
+        },
+        "newest_source_age_hours": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hours from the newest agreeing source to the claim date (ClaimResult.claim_date), not to now; 0 when the source is newer.",
+          "title": "Newest Source Age Hours"
+        },
+        "max_age_hours": {
+          "default": 8760,
+          "description": "Threshold from the catalogue entry of the newest source.",
+          "minimum": 1,
+          "title": "Max Age Hours",
+          "type": "integer"
+        },
+        "validity": {
+          "default": "expires",
+          "enum": [
+            "expires",
+            "in_force",
+            "updated_in_place",
+            "past_event",
+            "superseded"
+          ],
+          "title": "Validity",
+          "type": "string"
+        },
+        "agreement": {
+          "enum": [
+            "consistent",
+            "conflicting"
+          ],
+          "title": "Agreement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "independent_sources",
+        "primary_sources",
+        "agreement"
+      ],
+      "title": "Premises",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "A document from the audited corpus. Title, publisher, date and link are mandatory to show (MSZ section 2).",
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 3,
+          "title": "Title",
+          "type": "string"
+        },
+        "publisher": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "publisher_id": {
+          "description": "Publisher id from the catalogue; independence is counted on it.",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+          "title": "Publisher Id",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "domain": {
+          "maxLength": 100,
+          "minLength": 3,
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "akt_prawny",
+            "dane_publiczne",
+            "instytucja",
+            "fact_check",
+            "media",
+            "transcript"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "tier": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "title": "Tier",
+          "type": "string"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Published At"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "language": {
+          "default": "pl",
+          "pattern": "^[a-z]{2}$",
+          "title": "Language",
+          "type": "string"
+        },
+        "via": {
+          "default": "corpus",
+          "enum": [
+            "corpus",
+            "rss",
+            "web_search",
+            "mcp"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "max_age_hours": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Age threshold from the source's catalogue entry (since v14); absent means 365 days.",
+          "title": "Max Age Hours"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "publisher",
+        "publisher_id",
+        "url",
+        "domain",
+        "kind",
+        "tier",
+        "fetched_at"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SourceStatusWarning": {
+      "additionalProperties": false,
+      "description": "Neutral note that the checked content comes from an entity on the official EU sanctions list. Never a verdict.",
+      "properties": {
+        "code": {
+          "const": "eu_sanctioned_entity",
+          "title": "Code",
+          "type": "string"
+        },
+        "entity": {
+          "maxLength": 120,
+          "title": "Entity",
+          "type": "string"
+        },
+        "basis_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Basis Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "entity",
+        "basis_url"
+      ],
+      "title": "SourceStatusWarning",
+      "type": "object"
+    },
+    "CheckResult": {
+      "additionalProperties": false,
+      "description": "The answer every channel renders. The same normalised input within the result cache's lifetime gets the same substantive result on every channel.\n\nout_of_scope: an unsupported input type or a request that is not about information. needs_clarification: no claim\ncould be extracted. Any factual claim gets a verdict, \"insufficient_evidence\" included.",
+      "properties": {
+        "check_id": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Check Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "done",
+            "needs_clarification",
+            "out_of_scope",
+            "technical_failure"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "claims": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClaimResult"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "maxLength": 400,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For non-verdict statuses: what to do next.",
+          "title": "Message"
+        },
+        "failure_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "provider_unavailable",
+                "web_search_unavailable",
+                "transcription_failed",
+                "url_unavailable",
+                "not_ready"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "technical_failure only; never names a key or a provider.",
+          "title": "Failure Code"
+        },
+        "out_of_scope_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "image",
+                "audio",
+                "not_informational"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.",
+          "title": "Out Of Scope Code"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "maxLength": 300,
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "limitation_codes": {
+          "default": [],
+          "description": "Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Paired with limitations by index: one code per text, same order.",
+          "items": {
+            "enum": [
+              "fact_check_unavailable",
+              "image_search_not_run",
+              "audio_format_unsupported",
+              "audio_too_long",
+              "image_format_unsupported",
+              "image_too_large",
+              "corpus_scope",
+              "no_publications"
+            ],
+            "type": "string"
+          },
+          "title": "Limitation Codes",
+          "type": "array"
+        },
+        "transcript": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio input only: the automatic transcript, with personal data masked.",
+          "title": "Transcript"
+        },
+        "image_text": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image input only: the text read from the image, with personal data masked.",
+          "title": "Image Text"
+        },
+        "source_warning": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceStatusWarning"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "escalation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Escalation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "corpus_version": {
+          "description": "Id of the scheduled corpus snapshot.",
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "ai_disclosure": {
+          "const": true,
+          "default": true,
+          "title": "Ai Disclosure",
+          "type": "boolean"
+        },
+        "ai_marker": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AiMarker"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Machine-readable marker that an AI system wrote the answer (AI Act art. 50(2)); required on a finished check."
+        }
+      },
+      "required": [
+        "check_id",
+        "status",
+        "corpus_version"
+      ],
+      "title": "CheckResult",
+      "type": "object"
+    },
+    "CachedResult": {
+      "additionalProperties": false,
+      "description": "What the result cache keeps: only the substantive part of a CheckResult.\n\nThe key is the normalised input. The entry lives a fixed time, whatever snapshots appear meanwhile.\nEscalation and the repeat counter are not here: they are computed on every request.\nA technical failure is never cached.",
+      "properties": {
+        "status": {
+          "enum": [
+            "done",
+            "needs_clarification",
+            "out_of_scope"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "claims": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClaimResult"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "maxLength": 400,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        },
+        "out_of_scope_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "image",
+                "audio",
+                "not_informational"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "out_of_scope only: what is not handled; the channel picks the text from copy/pl.json and falls back to the generic one when it is empty. A rejected recording is audio; why it was rejected is in limitation_codes.",
+          "title": "Out Of Scope Code"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "maxLength": 300,
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "limitation_codes": {
+          "default": [],
+          "description": "Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Paired with limitations by index: one code per text, same order.",
+          "items": {
+            "enum": [
+              "fact_check_unavailable",
+              "image_search_not_run",
+              "audio_format_unsupported",
+              "audio_too_long",
+              "image_format_unsupported",
+              "image_too_large",
+              "corpus_scope",
+              "no_publications"
+            ],
+            "type": "string"
+          },
+          "title": "Limitation Codes",
+          "type": "array"
+        },
+        "transcript": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Audio input only: the automatic transcript, with personal data masked.",
+          "title": "Transcript"
+        },
+        "image_text": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image input only: the text read from the image, with personal data masked.",
+          "title": "Image Text"
+        },
+        "source_warning": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceStatusWarning"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ai_marker": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AiMarker"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Machine-readable marker that an AI system wrote the answer (AI Act art. 50(2)); required on a finished check."
+        },
+        "corpus_version": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "source_ids": {
+          "default": [],
+          "description": "Ids of the sources cited in the claims.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "cached_at": {
+          "format": "date-time",
+          "title": "Cached At",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "corpus_version",
+        "cached_at",
+        "expires_at"
+      ],
+      "title": "CachedResult",
+      "type": "object"
+    },
+    "AnalysisStep": {
+      "additionalProperties": false,
+      "description": "One step of the processing strip shown between „Sprawdź” and the result.",
+      "properties": {
+        "code": {
+          "enum": [
+            "receive",
+            "fetch_url",
+            "transcribe_audio",
+            "screen_injection",
+            "extract_claims",
+            "search_corpus",
+            "search_web",
+            "search_fact_checks",
+            "assess_evidence",
+            "verify_citations",
+            "write_answer",
+            "save_record"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "active",
+            "done",
+            "skipped",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "status"
+      ],
+      "title": "AnalysisStep",
+      "type": "object"
+    },
+    "AnalysisStatus": {
+      "additionalProperties": false,
+      "description": "Polled (or streamed) by every channel while a check runs; mirrors the DBOS workflow.",
+      "properties": {
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/AnalysisStep"
+          },
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "draft": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Streamed draft of the answer, personal data masked; a preview, never a verdict.",
+          "title": "Draft"
+        }
+      },
+      "required": [
+        "check_id",
+        "steps"
+      ],
+      "title": "AnalysisStatus",
+      "type": "object"
+    },
+    "InjectionEvent": {
+      "additionalProperties": false,
+      "description": "Instructions found in the input or a source. Logged and never executed.\n\nIn user content the instruction is cut out and the rest is analysed as data; a catalogue source\nwith an instruction drops out of the evidence.",
+      "properties": {
+        "location": {
+          "enum": [
+            "input",
+            "source"
+          ],
+          "title": "Location",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "instruction_removed",
+            "source_dropped"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        },
+        "excerpt": {
+          "maxLength": 300,
+          "title": "Excerpt",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location",
+        "action",
+        "excerpt"
+      ],
+      "title": "InjectionEvent",
+      "type": "object"
+    },
+    "ModelUsage": {
+      "additionalProperties": false,
+      "description": "One model call: provider, model, region of processing, tokens and cost.",
+      "properties": {
+        "provider": {
+          "maxLength": 60,
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 80,
+          "title": "Model",
+          "type": "string"
+        },
+        "region": {
+          "description": "Where the data was processed.",
+          "maxLength": 40,
+          "title": "Region",
+          "type": "string"
+        },
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "minimum": 0,
+          "title": "Cost Usd",
+          "type": "number"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "region",
+        "input_tokens",
+        "output_tokens",
+        "cost_usd"
+      ],
+      "title": "ModelUsage",
+      "type": "object"
+    },
+    "CheckRecord": {
+      "additionalProperties": false,
+      "description": "Audit log of one check (MSZ MVP: question, time, sources, result; plus observability).",
+      "properties": {
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "session_id": {
+          "description": "Web and extension: random id kept in the browser session. Discord, SMS, MCP: the salted hash of the channel user id (equal to channel_user_hash).",
+          "maxLength": 64,
+          "minLength": 8,
+          "title": "Session Id",
+          "type": "string"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Signed-in users only (Google or Microsoft account); None for anonymous checks.",
+          "title": "User Id"
+        },
+        "channel": {
+          "enum": [
+            "web",
+            "extension",
+            "discord",
+            "sms",
+            "mcp"
+          ],
+          "title": "Channel",
+          "type": "string"
+        },
+        "channel_user_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Discord, SMS and MCP only: salted SHA-256 of the user id, phone number or MCP client id, used to reply and count repeats; never shown to moderators.",
+          "title": "Channel User Hash"
+        },
+        "received_at": {
+          "format": "date-time",
+          "title": "Received At",
+          "type": "string"
+        },
+        "answered_at": {
+          "format": "date-time",
+          "title": "Answered At",
+          "type": "string"
+        },
+        "question_masked": {
+          "description": "Input with obvious personal data masked.",
+          "maxLength": 4000,
+          "title": "Question Masked",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "done",
+            "needs_clarification",
+            "out_of_scope",
+            "technical_failure"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "verdicts": {
+          "items": {
+            "enum": [
+              "confirmed",
+              "false",
+              "misleading",
+              "insufficient_evidence",
+              "not_verifiable"
+            ],
+            "type": "string"
+          },
+          "title": "Verdicts",
+          "type": "array"
+        },
+        "source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "corpus_version": {
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "models": {
+          "items": {
+            "$ref": "#/$defs/ModelUsage"
+          },
+          "title": "Models",
+          "type": "array"
+        },
+        "web_search_calls": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Web Search Calls",
+          "type": "integer"
+        },
+        "retrieval_errors": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "title": "Retrieval Errors",
+          "type": "array"
+        },
+        "injection_events": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/InjectionEvent"
+          },
+          "title": "Injection Events",
+          "type": "array"
+        },
+        "escalation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Escalation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cache_hit": {
+          "default": false,
+          "description": "Substantive part served from the result cache; escalation was still computed.",
+          "title": "Cache Hit",
+          "type": "boolean"
+        },
+        "retention_until": {
+          "format": "date-time",
+          "title": "Retention Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "session_id",
+        "channel",
+        "received_at",
+        "answered_at",
+        "question_masked",
+        "status",
+        "verdicts",
+        "source_ids",
+        "corpus_version",
+        "models",
+        "retention_until"
+      ],
+      "title": "CheckRecord",
+      "type": "object"
+    },
+    "CaseClaim": {
+      "additionalProperties": false,
+      "description": "One claim in a case and the checks that asked it: unanswered (\"insufficient_evidence\"), or disputed by a user.",
+      "properties": {
+        "claim": {
+          "maxLength": 500,
+          "minLength": 5,
+          "title": "Claim",
+          "type": "string"
+        },
+        "check_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Check Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "claim",
+        "check_ids"
+      ],
+      "title": "CaseClaim",
+      "type": "object"
+    },
+    "ModeratorCase": {
+      "additionalProperties": false,
+      "description": "One case per group of similar unanswered claims. Similarity is measured per claim; a repeated claim joins the case.",
+      "properties": {
+        "id": {
+          "pattern": "^#S-\\d+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "open",
+            "answered",
+            "closed"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "enum": [
+              "insufficient_evidence",
+              "high_risk",
+              "repeated_unanswered",
+              "user_dispute"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        },
+        "high_risk_topic": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Topic from the admin's high-risk list that matched.",
+          "title": "High Risk Topic"
+        },
+        "high_risk_classified_by": {
+          "anyOf": [
+            {
+              "enum": [
+                "embeddings",
+                "keywords"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Embedding similarity to the admin list above a threshold, or the keyword list as a fallback (ADR-35).",
+          "title": "High Risk Classified By"
+        },
+        "summary": {
+          "maxLength": 300,
+          "minLength": 5,
+          "title": "Summary",
+          "type": "string"
+        },
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/CaseClaim"
+          },
+          "minItems": 1,
+          "title": "Claims",
+          "type": "array"
+        },
+        "distinct_askers": {
+          "default": 1,
+          "description": "Distinct sessions or users who asked; raises the case's priority only, never decides whether it exists.",
+          "minimum": 1,
+          "title": "Distinct Askers",
+          "type": "integer"
+        },
+        "first_seen": {
+          "format": "date-time",
+          "title": "First Seen",
+          "type": "string"
+        },
+        "last_seen": {
+          "format": "date-time",
+          "title": "Last Seen",
+          "type": "string"
+        },
+        "assignee_role": {
+          "default": "moderator",
+          "enum": [
+            "moderator",
+            "analyst"
+          ],
+          "title": "Assignee Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "reasons",
+        "summary",
+        "claims",
+        "first_seen",
+        "last_seen"
+      ],
+      "title": "ModeratorCase",
+      "type": "object"
+    },
+    "CatalogEntry": {
+      "additionalProperties": false,
+      "description": "One domain in the open source catalogue: why it qualifies, how it is refreshed, whether it is excluded.",
+      "properties": {
+        "domain": {
+          "maxLength": 100,
+          "minLength": 3,
+          "title": "Domain",
+          "type": "string"
+        },
+        "publisher": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "publisher_id": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+          "title": "Publisher Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "akt_prawny",
+            "dane_publiczne",
+            "instytucja",
+            "fact_check",
+            "media",
+            "transcript"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "kind_by_path": {
+          "additionalProperties": {
+            "enum": [
+              "akt_prawny",
+              "dane_publiczne",
+              "instytucja",
+              "fact_check",
+              "media",
+              "transcript"
+            ],
+            "type": "string"
+          },
+          "default": {},
+          "title": "Kind By Path",
+          "type": "object"
+        },
+        "tier": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "title": "Tier",
+          "type": "string"
+        },
+        "role": {
+          "default": "evidence",
+          "description": "source_status: a list (sanctions, CERT warnings) that ingest skips; a check uses it only for a neutral source-status warning, never as evidence.",
+          "enum": [
+            "evidence",
+            "source_status"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "license": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "License",
+          "type": "string"
+        },
+        "ingest": {
+          "description": "mcp: the local EUvsDisinfo copy; api: a public API (IMGW, GIOS, Sejm ELI, dane.gov.pl, statistics) ingested into the corpus; live: queried at check time (Fact Check API, short-lived measurements), never in the corpus snapshot.",
+          "enum": [
+            "static",
+            "rss",
+            "sitemap",
+            "web_search",
+            "mcp",
+            "api",
+            "live"
+          ],
+          "title": "Ingest",
+          "type": "string"
+        },
+        "refresh_minutes": {
+          "anyOf": [
+            {
+              "minimum": 15,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refresh Minutes"
+        },
+        "validity": {
+          "default": "expires",
+          "description": "Age override for every document of this entry; past_event and superseded are set per evidence.",
+          "enum": [
+            "expires",
+            "in_force",
+            "updated_in_place",
+            "past_event",
+            "superseded"
+          ],
+          "title": "Validity",
+          "type": "string"
+        },
+        "max_age_hours": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shorter threshold for short-lived sources (warnings, roads, weather: hours or days).",
+          "title": "Max Age Hours"
+        },
+        "qualified_because": {
+          "maxLength": 300,
+          "minLength": 10,
+          "title": "Qualified Because",
+          "type": "string"
+        },
+        "tdm_reservation": {
+          "default": "unknown",
+          "description": "Machine-readable text and data mining opt-out (robots.txt incl. Content-Signal, meta tags, tdmrep), checked per domain.",
+          "enum": [
+            "none",
+            "reserved",
+            "unknown"
+          ],
+          "title": "Tdm Reservation",
+          "type": "string"
+        },
+        "signatory_of": {
+          "default": [],
+          "description": "IFCN or EFCSN membership; only such publishers' ClaimReview ratings may be premises (ADR-34).",
+          "items": {
+            "enum": [
+              "ifcn",
+              "efcsn"
+            ],
+            "type": "string"
+          },
+          "title": "Signatory Of",
+          "type": "array"
+        },
+        "excluded": {
+          "default": false,
+          "title": "Excluded",
+          "type": "boolean"
+        },
+        "exclusion_reason": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exclusion Reason"
+        },
+        "disclaimer": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disclaimer"
+        }
+      },
+      "required": [
+        "domain",
+        "publisher",
+        "publisher_id",
+        "kind",
+        "tier",
+        "license",
+        "ingest",
+        "qualified_because"
+      ],
+      "title": "CatalogEntry",
+      "type": "object"
+    },
+    "Notification": {
+      "additionalProperties": false,
+      "description": "An inbox entry, pushed live over SSE or WebSocket from DBOS events and shown as a toast.\n\nA toast the recipient did not act on stays in the inbox as unread. Addressed to one browser session or one\nsigned-in user (staff included). Text comes from copy/pl.json by `kind`.",
+      "properties": {
+        "id": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "check_progress",
+            "check_done",
+            "moderator_answer",
+            "new_evidence",
+            "case_assigned",
+            "system",
+            "eval_run_done"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "default": "unread",
+          "enum": [
+            "unread",
+            "read"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Id"
+        },
+        "check_id": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Id"
+        },
+        "case_id": {
+          "anyOf": [
+            {
+              "pattern": "^#S-\\d+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Case Id"
+        },
+        "step_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "receive",
+                "fetch_url",
+                "transcribe_audio",
+                "screen_injection",
+                "extract_claims",
+                "search_corpus",
+                "search_web",
+                "search_fact_checks",
+                "assess_evidence",
+                "verify_citations",
+                "write_answer",
+                "save_record"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "check_progress only: the finished pipeline step; the text is analysis.steps.<code> in copy/pl.json.",
+          "title": "Step Code"
+        },
+        "message_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "maintenance_planned",
+                "service_degraded",
+                "service_restored"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "system only: what the message says; the text is notifications.system_message.<code> in copy/pl.json, never free text.",
+          "title": "Message Code"
+        },
+        "link": {
+          "description": "In-app path to open.",
+          "maxLength": 200,
+          "pattern": "^/\\S*$",
+          "title": "Link",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "retention_until": {
+          "format": "date-time",
+          "title": "Retention Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "link",
+        "created_at",
+        "retention_until"
+      ],
+      "title": "Notification",
+      "type": "object"
+    },
+    "EvalCaseResult": {
+      "additionalProperties": false,
+      "description": "One case of a run: expected and predicted label, outcome, time and cost.\n\nA state that is not a verdict (technical_failure included) stays the predicted\nlabel and falls into one separate error class.",
+      "properties": {
+        "case_id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Case Id",
+          "type": "string"
+        },
+        "scenario": {
+          "pattern": "^[A-J]$",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "check_id": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Id"
+        },
+        "expected": {
+          "$ref": "#/$defs/EvalLabel"
+        },
+        "predicted": {
+          "$ref": "#/$defs/EvalLabel"
+        },
+        "outcome": {
+          "enum": [
+            "wrong_decisive",
+            "non_verdict",
+            "wrong_abstention",
+            "correct"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "received_at": {
+          "format": "date-time",
+          "title": "Received At",
+          "type": "string"
+        },
+        "answered_at": {
+          "format": "date-time",
+          "title": "Answered At",
+          "type": "string"
+        },
+        "cost_usd": {
+          "$ref": "#/$defs/NonNegative",
+          "default": 0.0
+        }
+      },
+      "required": [
+        "case_id",
+        "scenario",
+        "expected",
+        "predicted",
+        "outcome",
+        "received_at",
+        "answered_at"
+      ],
+      "title": "EvalCaseResult",
+      "type": "object"
+    },
+    "EvalLabel": {
+      "anyOf": [
+        {
+          "enum": [
+            "confirmed",
+            "false",
+            "misleading",
+            "insufficient_evidence",
+            "not_verifiable"
+          ],
+          "type": "string"
+        },
+        {
+          "enum": [
+            "done",
+            "needs_clarification",
+            "out_of_scope",
+            "technical_failure"
+          ],
+          "type": "string"
+        }
+      ]
+    },
+    "EvalMetrics": {
+      "additionalProperties": false,
+      "description": "The metrics of one run, as the meritum-eval report computes them.",
+      "properties": {
+        "cases": {
+          "minimum": 0,
+          "title": "Cases",
+          "type": "integer"
+        },
+        "macro_f1": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Macro F1",
+          "type": "number"
+        },
+        "citation_coverage": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "citation_correctness": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "abstention": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "robustness": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "median_seconds": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "p95_seconds": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "max_seconds": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "input_tokens_per_check": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "output_tokens_per_check": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "cost_per_check_usd": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "cost_100_checks_usd": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "channel_consistency": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "information_loop": {
+          "$ref": "#/$defs/Ratio"
+        }
+      },
+      "required": [
+        "cases",
+        "macro_f1",
+        "citation_coverage",
+        "citation_correctness",
+        "abstention",
+        "robustness",
+        "median_seconds",
+        "p95_seconds",
+        "max_seconds",
+        "input_tokens_per_check",
+        "output_tokens_per_check",
+        "cost_per_check_usd",
+        "cost_100_checks_usd",
+        "channel_consistency",
+        "information_loop"
+      ],
+      "title": "EvalMetrics",
+      "type": "object"
+    },
+    "EvalScenarioScore": {
+      "additionalProperties": false,
+      "description": "Quality per scenario, so runs on different models compare by scenario.",
+      "properties": {
+        "scenario": {
+          "pattern": "^[A-J]$",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "cases": {
+          "minimum": 1,
+          "title": "Cases",
+          "type": "integer"
+        },
+        "correct": {
+          "minimum": 0,
+          "title": "Correct",
+          "type": "integer"
+        },
+        "accuracy": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Accuracy",
+          "type": "number"
+        }
+      },
+      "required": [
+        "scenario",
+        "cases",
+        "correct",
+        "accuracy"
+      ],
+      "title": "EvalScenarioScore",
+      "type": "object"
+    },
+    "NonNegative": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "Ratio": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "EvalRun": {
+      "additionalProperties": false,
+      "description": "One evaluation run on the golden set or a staff user's case file.",
+      "properties": {
+        "id": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "case_set": {
+          "enum": [
+            "golden",
+            "user_file"
+          ],
+          "title": "Case Set",
+          "type": "string"
+        },
+        "case_file": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Case File"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "done",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "corpus_version": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Id"
+        },
+        "models": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Models",
+          "type": "array"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "metrics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvalMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scenarios": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvalScenarioScore"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "cases": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvalCaseResult"
+          },
+          "title": "Cases",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "case_set",
+        "status",
+        "corpus_version",
+        "started_at"
+      ],
+      "title": "EvalRun",
+      "type": "object"
+    }
+  }
+}

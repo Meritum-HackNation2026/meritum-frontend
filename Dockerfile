@@ -3,13 +3,13 @@
 # 2. runtime: unprivileged nginx on :8080 serving dist, /api proxied to API_UPSTREAM
 FROM node:26-slim AS build
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm install --global "$(node -p "require('./package.json').packageManager")" \
  && pnpm install --frozen-lockfile
 COPY . ./
 RUN pnpm build
 
-FROM nginxinc/nginx-unprivileged:1.29-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 # Overridden by the deploy (meritum-api-<env>:8000); `api` fits a compose service.
 ENV API_UPSTREAM=api:8000
 COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
