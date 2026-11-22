@@ -64,7 +64,7 @@ export function RecordingStop({ mic }: { mic: Microphone }) {
         <Square aria-hidden="true" className="size-4 fill-current" />
         {t.recording.stop}
       </button>
-      <span role="timer" aria-label={t.recording.elapsed} className="font-mono tabular-nums">
+      <span role="timer" aria-label={t.recording.elapsed} className="tabular-nums">
         {clock(mic.seconds)}
       </span>
       {/* biome-ignore lint/a11y/useSemanticElements: <meter> cannot take the bar styling */}
@@ -74,7 +74,7 @@ export function RecordingStop({ mic }: { mic: Microphone }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(mic.level * 100)}
-        className="hidden h-2 w-16 overflow-hidden rounded-pill bg-secondary sm:block"
+        className="block h-2 w-12 overflow-hidden rounded-pill bg-secondary sm:w-16"
       >
         <span
           className="block h-full origin-left bg-foreground transition-transform duration-150 ease-out-meritum motion-reduce:transition-none"
