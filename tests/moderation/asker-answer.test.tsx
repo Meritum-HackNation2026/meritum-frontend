@@ -25,7 +25,7 @@ test('shows the answer, each cited fragment with its source, and that it is not 
   render(<AskerAnswer caseId="#S-12" reader={found} />)
   assert.ok(await screen.findByRole('heading', { name: copy.title }))
   assert.ok(screen.getByText('Tak, to prawda.'))
-  assert.ok(screen.getByText('tekst'))
+  assert.ok(screen.getByText('tekst”').closest('blockquote'))
   assert.ok(screen.getByText('Ustawa, Sejm'))
   assert.ok(screen.getByText(copy.note))
 })

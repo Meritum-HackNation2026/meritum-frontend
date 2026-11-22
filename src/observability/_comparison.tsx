@@ -37,7 +37,7 @@ export function Comparison({ comparison }: { comparison: EvalComparison }) {
             className="flex flex-wrap items-baseline justify-between gap-x-4 border-b py-1.5 text-small"
           >
             <dt>{t.method.metrics.names[key]}</dt>
-            <dd className="inline-flex items-center gap-1.5 font-mono tabular-nums">
+            <dd className="inline-flex items-center gap-1.5 tabular-nums">
               {formatMetric(a)}
               <ArrowRight aria-hidden className="size-3.5" />
               {formatMetric(b)}

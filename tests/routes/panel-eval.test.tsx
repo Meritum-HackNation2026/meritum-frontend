@@ -22,7 +22,7 @@ import {
   runsRoute,
 } from './eval-api'
 
-test('an analyst sees each run with its status, dataset and metrics in Azeret Mono', async (t) => {
+test('an analyst sees each run with its status, dataset and metrics in tabular figures, not mono', async (t) => {
   fakeApi(t, { 'GET /api/v1/staff/me': [200, analyst], [runsRoute]: [200, [newer, older]] })
   await openEval()
   const runs = await screen.findByRole('region', { name: pl.evaluation.runs })
@@ -33,7 +33,8 @@ test('an analyst sees each run with its status, dataset and metrics in Azeret Mo
   assert.ok(first.getByText(pl.evaluation.golden_set))
   const f1 = first.getByText(pl.method.metrics.names.macro_f1).nextElementSibling
   assert.equal(f1?.textContent, '0,71')
-  assert.equal(f1?.classList.contains('font-mono'), true)
+  assert.equal(f1?.classList.contains('font-mono'), false)
+  assert.equal(f1?.classList.contains('tabular-nums'), true)
 })
 
 const csrf: Record<string, Answer> = {

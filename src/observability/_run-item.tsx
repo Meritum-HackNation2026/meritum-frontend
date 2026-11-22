@@ -31,7 +31,7 @@ function Metrics({ metrics }: { metrics: EvalMetrics }) {
       {measured.map(([key, value]) => (
         <div key={key} className="flex justify-between gap-4 border-b py-1.5 text-small">
           <dt>{t.method.metrics.names[key]}</dt>
-          <dd className="font-mono tabular-nums">{formatMetric(value)}</dd>
+          <dd className="tabular-nums">{formatMetric(value)}</dd>
         </div>
       ))}
     </dl>
@@ -143,7 +143,7 @@ export function RunItem({
             aria-hidden
             className="size-4 shrink-0 transition-transform duration-200 ease-out-meritum group-aria-expanded:rotate-90 motion-reduce:transition-none"
           />
-          <time dateTime={run.started_at} className="font-mono text-small">
+          <time dateTime={run.started_at} className="text-small tabular-nums">
             {formatDate(run.started_at)}
           </time>
           <span className="text-body font-semibold">{dataset}</span>
