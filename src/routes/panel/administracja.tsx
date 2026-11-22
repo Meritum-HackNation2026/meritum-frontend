@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { apiAdmin, apiStaff } from '@/api'
-import { Rail } from '@/components/app-shell'
+import { inRail } from '@/components/app-shell'
 import { AdminPage, loadAdmin, sectionsFor } from '@/moderation'
 
 /**
@@ -22,12 +22,5 @@ export const Route = createFileRoute('/panel/administracja')({
 })
 
 function AdminRoute() {
-  return (
-    <AdminPage
-      data={Route.useLoaderData()}
-      staff={apiStaff}
-      admin={apiAdmin}
-      rail={(content) => <Rail>{content}</Rail>}
-    />
-  )
+  return <AdminPage data={Route.useLoaderData()} staff={apiStaff} admin={apiAdmin} rail={inRail} />
 }

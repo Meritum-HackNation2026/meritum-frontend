@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { apiExport, apiStaff } from '@/api'
-import { Rail } from '@/components/app-shell'
+import { inRail } from '@/components/app-shell'
 import { Panel } from '@/moderation'
 import { ExportPage, loadExport } from '@/observability'
 
@@ -25,7 +25,7 @@ export const Route = createFileRoute('/panel/eksport')({
 function ExportRoute() {
   const { session } = Route.useLoaderData()
   return (
-    <Panel data={{ session }} api={apiStaff} rail={(content) => <Rail>{content}</Rail>}>
+    <Panel data={{ session }} api={apiStaff} rail={inRail}>
       <ExportPage api={apiExport} />
     </Panel>
   )
