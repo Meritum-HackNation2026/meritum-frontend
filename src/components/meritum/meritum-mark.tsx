@@ -2,7 +2,14 @@ import type { SVGProps } from "react"
 
 import { cn } from "@/lib/utils"
 
-/** Logo B "Dwa łuki": two arches share one stem (the consensus) with a point of agreement above. */
+/**
+ * Logo B "Dwa łuki" (DESIGN_SYSTEM.md section 2): two arches share one stem with a point of agreement above. On the
+ * web page and in the panel it is monochrome ink; under `[data-host]` (platform skins) the stem and dot are sea.
+ *
+ * @param props - SVG props; `className` sets the size and the ink colour.
+ * @returns The mark.
+ * @feature none (infrastructure)
+ */
 export function MeritumMark({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true" className={cn("size-4 shrink-0 text-foreground", className)} {...props}>
@@ -14,8 +21,11 @@ export function MeritumMark({ className, ...props }: SVGProps<SVGSVGElement>) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M24 25v15" fill="none" stroke="var(--verified)" strokeWidth={4} strokeLinecap="round" />
-      <circle cx="24" cy="7.6" r="3.5" fill="var(--verified)" />
+      {/* ink like the arcs on the page (brand/meritum-mark-mono.svg); inside a platform skin --verified is the sea colour */}
+      <g className="in-data-host:text-verified">
+        <path d="M24 25v15" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" />
+        <circle cx="24" cy="7.6" r="3.5" fill="currentColor" />
+      </g>
     </svg>
   )
 }
