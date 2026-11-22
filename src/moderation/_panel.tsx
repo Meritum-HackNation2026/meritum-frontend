@@ -1,7 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { type ReactNode, useCallback, useState } from 'react'
-import { fill, t } from '@/components/meritum'
-import { Button } from '@/components/ui/button'
+import { t } from '@/components/meritum'
 import type { ModeratorCase } from '@/contracts/meritum'
 import { CaseDetail } from './_case-detail'
 import { PanelNav, PanelSession, useWideScreen } from './_panel-rail'

@@ -24,6 +24,12 @@ function PanelPage() {
     [navigate],
   )
   return (
-    <Panel data={Route.useLoaderData()} api={apiStaff} answers={apiAnswers} onOpenCase={openCase} rail={inRail} />
+    <Panel
+      data={Route.useLoaderData()}
+      api={apiStaff}
+      answers={apiAnswers}
+      onOpenCase={openCase}
+      rail={inRail}
+    />
   )
 }
