@@ -22,7 +22,7 @@ export function VerdictSection({ claim, verdict }: { claim: Claim; verdict: Verd
   return (
     <>
       <h3 className="grid gap-1">
-        <VerdictBadge verdict={verdict} size="lg" />
+        <VerdictBadge verdict={verdict} size="lg" className="max-w-full whitespace-normal" />
         <span className="font-semibold text-body text-pretty">
           <span className="sr-only">{t.result.claim}: </span>„<span>{claim}</span>”
         </span>
