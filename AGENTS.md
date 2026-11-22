@@ -32,11 +32,11 @@ UI issues to a Claude session.
    it through the shadcn CLI registry: `pnpm dlx shadcn@latest add @shadcnblocks/<name>`.
 2. Use plain shadcn/ui (`pnpm dlx shadcn@latest add <name>`) only when no block or layout fits.
 3. Restyle what you installed with the Meritum design system (`meritum-ui`): tokens from
-   `src/styles/meritum.css`, Archivo and Azeret Mono, components from `src/components/meritum/`,
+   `src/styles/meritum.css`, Schibsted Grotesk and Azeret Mono, components from `src/components/meritum/`,
    every text from `src/copy/pl.json`. The block keeps its structure unless it breaks accessibility or a Meritum component; its colours, fonts, images
    and sample copy go.
 
-Kolejność źródeł komponentów (rejestry w `components.json`): najpierw komponenty Meritum z `src/components/meritum/`, potem darmowe bloki shadcnblocks (`@shadcnblocks/<nazwa>`, nigdy Pro ani klucz licencyjny), ReUI (`@reui/<nazwa>`), Origin UI (`@originui/<nazwa>`), na końcu zwykły shadcn/ui. Wygląd i teksty zawsze z design systemu Meritum.
+Kolejność źródeł komponentów (rejestry w `components.json`): najpierw komponenty Meritum z `src/components/meritum/`, potem zwykły shadcn/ui, a czasem darmowe bloki shadcnblocks (`@shadcnblocks/<nazwa>`, nigdy Pro ani klucz licencyjny). Innych rejestrów nie używamy. Wygląd i teksty zawsze z design systemu Meritum.
 
 The registry needs `"@shadcnblocks": "https://www.shadcnblocks.com/r/{style}/{name}"` under
 `registries` in `components.json`; add it in the PR that installs the first block. Free blocks
