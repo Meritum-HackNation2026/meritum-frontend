@@ -47,7 +47,9 @@ function levelReader(stream: MediaStream): { read: () => number; close: () => vo
       const peak = data.reduce((max, value) => Math.max(max, Math.abs(value - 128)), 0)
       return Math.min(1, peak / 64)
     },
-    close: () => void context.close(),
+    close: () => {
+      context.close().catch(() => undefined)
+    },
   }
 }
 
@@ -99,9 +101,9 @@ export function useMicrophone(onRecorded: (file: File) => void) {
     recorder.onstop = async () => {
       clearInterval(tick)
       meter.close()
-      stream.getTracks().forEach((track) => {
+      for (const track of stream.getTracks()) {
         track.stop()
-      })
+      }
       stopRef.current = null
       setRecording(false)
       setLevel(0)

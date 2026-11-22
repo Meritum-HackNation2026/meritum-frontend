@@ -36,7 +36,7 @@ class FakeRecorder {
   stop() {
     this.state = 'inactive'
     this.ondataavailable?.({ data: new Blob(['OggS'], { type: 'audio/ogg' }) })
-    void this.onstop?.()
+    this.onstop?.()
   }
 }
 
@@ -58,6 +58,9 @@ afterEach(() => {
   Reflect.deleteProperty(globalThis, 'MediaRecorder')
 })
 
+const limitText = /Nagrywanie zakończyło się samo po 10 min/
+const noop = () => undefined
+
 function renderPage() {
   render(
     <CheckPage
@@ -67,7 +70,7 @@ function renderPage() {
       reader={apiResultReader}
       progress={apiProgressSource}
       handoff={apiHandoff}
-      onAccepted={() => undefined}
+      onAccepted={noop}
     />,
   )
 }
@@ -119,6 +122,6 @@ test('a recording stops by itself at the limit and says so', async (t) => {
   act(() => {
     t.mock.timers.tick(596_000)
   })
-  await waitFor(() => assert.ok(screen.getByText(/Nagrywanie zakończyło się samo po 10 min/)))
+  await waitFor(() => assert.ok(screen.getByText(limitText)))
   assert.ok(screen.getByText(`${pl.recording.file_name}.ogg`))
 })
