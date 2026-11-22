@@ -168,6 +168,7 @@
   "result": {
     "label": "Meritum",
     "page_title": "Wynik sprawdzenia",
+    "not_found": "Nie ma takiego sprawdzenia. Mogło zostać usunięte po {days} dniach albo adres jest błędny. Wróć na stronę główną i sprawdź informację od nowa.",
     "claims_title": "Co sprawdziliśmy",
     "claims_count": {
       "$comment": "Shown after claims_title (design-system#148): pick the form with Intl.PluralRules('pl').select(count).",
