@@ -228,6 +228,7 @@ export function CheckPage({
       </div>
       <DeleteChecksDialog open={confirming} onOpenChange={setConfirming} onConfirm={erase} />
       <DeleteChecksDialog
+        account
         open={accountErase.confirming}
         onOpenChange={accountErase.setConfirming}
         onConfirm={accountErase.erase}

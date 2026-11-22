@@ -101,34 +101,50 @@ export function AccountSection({
             </p>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" className="rounded-pill" onClick={onDeleteHistory}>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-11 rounded-pill px-4 text-body"
+              onClick={onDeleteHistory}
+            >
               {t.history.delete}
             </Button>
-            <Button size="sm" variant="outline" className="rounded-pill" onClick={onSignOut}>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-11 rounded-pill px-4 text-body"
+              onClick={onSignOut}
+            >
               {t.account.sign_out}
             </Button>
             <Button
-              size="sm"
+              size="lg"
               variant="ghost"
-              className="rounded-pill text-scam-foreground"
+              className="h-11 rounded-pill px-4 text-body underline underline-offset-3"
               onClick={onDeleteAccount}
             >
               {t.account.delete_account}
             </Button>
           </div>
-          <p className="text-meta">{t.account.stored}</p>
+          <p className="text-small text-muted-foreground text-pretty">{t.account.stored}</p>
         </>
       ) : (
         <>
           <p>{t.account.optional}</p>
           <div className="flex flex-wrap gap-2">
             {LOGIN_PROVIDERS.map((provider) => (
-              <Button key={provider} asChild size="sm" variant="outline" className="rounded-pill">
+              <Button
+                key={provider}
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-11 rounded-pill px-4 text-body"
+              >
                 <a href={account.loginUrl(provider, returnTo)}>{labels[provider]}</a>
               </Button>
             ))}
           </div>
-          <p className="text-meta">{t.account.stored}</p>
+          <p className="text-small text-muted-foreground text-pretty">{t.account.stored}</p>
         </>
       )}
     </div>

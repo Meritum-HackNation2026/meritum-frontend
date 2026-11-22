@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import {
   apiAudioUploader,
   apiCheckSender,
@@ -102,7 +102,9 @@ test('signed in: „Usuń konto i historię” deletes the account and signs the
   renderPage(fakeAccount(true, deleted))
   await screen.findByText('Pytanie z telefonu')
   fireEvent.click(screen.getByRole('button', { name: pl.account.delete_account }))
-  fireEvent.click(screen.getByRole('button', { name: pl.form.delete_session_yes }))
+  const dialog = await screen.findByRole('alertdialog', { name: pl.account.delete_account_title })
+  assert.ok(within(dialog).getByText(pl.account.delete_account_text))
+  fireEvent.click(within(dialog).getByRole('button', { name: pl.account.delete_account_yes }))
   await waitFor(() => assert.deepEqual(deleted, ['account']))
   assert.ok(await screen.findByRole('link', { name: pl.account.sign_in_google }))
 })

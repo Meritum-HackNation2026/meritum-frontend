@@ -36,7 +36,7 @@ export type Publisher = string;
 export type PublisherId = string;
 export type Url1 = string;
 export type Domain = string;
-export type Kind = "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media";
+export type Kind = "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media" | "transcript";
 export type Tier = "primary" | "secondary";
 export type PublishedAt = string | null;
 export type FetchedAt = string;
@@ -357,7 +357,7 @@ export type AssigneeRole = "moderator" | "analyst";
 export type Domain1 = string;
 export type Publisher3 = string;
 export type PublisherId2 = string;
-export type Kind1 = "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media";
+export type Kind1 = "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media" | "transcript";
 export type Tier1 = "primary" | "secondary";
 /**
  * source_status: a list (sanctions, CERT warnings) that ingest skips; a check uses it only for a neutral source-status warning, never as evidence.
@@ -840,6 +840,7 @@ export interface CatalogEntry {
   publisher: Publisher3;
   publisher_id: PublisherId2;
   kind: Kind1;
+  kind_by_path?: KindByPath;
   tier: Tier1;
   role?: Role;
   license: License;
@@ -852,6 +853,9 @@ export interface CatalogEntry {
   signatory_of?: SignatoryOf1;
   excluded?: Excluded;
   exclusion_reason?: ExclusionReason;
+}
+export interface KindByPath {
+  [k: string]: "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media" | "transcript";
 }
 /**
  * An inbox entry, pushed live over SSE or WebSocket from DBOS events and shown as a toast.

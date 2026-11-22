@@ -82,6 +82,9 @@
     "sign_in_microsoft": "Zaloguj się kontem Microsoft",
     "sign_out": "Wyloguj się",
     "delete_account": "Usuń konto i historię",
+    "delete_account_title": "Usunąć konto i całą historię?",
+    "delete_account_text": "Usuniemy twoje konto i całą historię sprawdzeń zapisaną na naszym serwerze. Tego nie da się cofnąć. Bez konta możesz dalej sprawdzać informacje.",
+    "delete_account_yes": "Usuń konto",
     "stored": "Zapisujemy imię i nazwisko, adres e-mail i identyfikator konta od Google albo Microsoft. Zapisujemy też historię sprawdzeń z ukrytymi danymi osobowymi.",
     "signed_in_as": "Zalogowano jako {email}.",
     "signed_out": "Wylogowano. Historia zostaje na koncie i zobaczysz ją po ponownym zalogowaniu.",
@@ -328,7 +331,8 @@
     "dane_publiczne": "dane publiczne",
     "instytucja": "instytucja",
     "fact_check": "fact-checking",
-    "media": "media"
+    "media": "media",
+    "transcript": "stenogram wypowiedzi"
   },
   "source_tier": {
     "primary": "źródło urzędowe lub pierwotne",
