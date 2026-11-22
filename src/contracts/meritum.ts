@@ -388,6 +388,7 @@ export type TdmReservation = "none" | "reserved" | "unknown";
 export type SignatoryOf1 = ("ifcn" | "efcsn")[];
 export type Excluded = boolean;
 export type ExclusionReason = string | null;
+export type Disclaimer = string | null;
 export type Id2 = string;
 export type Kind2 =
   "check_progress" | "check_done" | "moderator_answer" | "new_evidence" | "case_assigned" | "system" | "eval_run_done";
@@ -853,6 +854,7 @@ export interface CatalogEntry {
   signatory_of?: SignatoryOf1;
   excluded?: Excluded;
   exclusion_reason?: ExclusionReason;
+  disclaimer?: Disclaimer;
 }
 export interface KindByPath {
   [k: string]: "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media" | "transcript";

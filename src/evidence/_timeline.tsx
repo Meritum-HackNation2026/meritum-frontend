@@ -2,6 +2,7 @@ import { fill, formatDate, t } from '@/components/meritum'
 import type { ClaimResult } from '@/contracts/meritum'
 import { cn } from '@/lib/utils'
 import { type StanceGroup, stanceGroups, type TimelineEntry } from './_chain'
+import { disclaimerOf } from './_disclaimers'
 
 function sourceLine({ citation }: TimelineEntry): string {
   const { publisher, kind, tier, via } = citation.source
@@ -22,6 +23,7 @@ function supersededText({ supersededOn }: TimelineEntry): string {
 // renders its own <li>, and this row is already one.
 function Entry({ entry }: { entry: TimelineEntry }) {
   const { source, fragment } = entry.citation
+  const disclaimer = disclaimerOf(source.publisher_id)
   return (
     <li className="relative grid gap-1.5 py-2 before:absolute before:top-3.5 before:-left-4 before:size-2 before:rounded-full before:bg-muted-foreground">
       <p className="text-small tabular-nums text-muted-foreground">
@@ -55,6 +57,9 @@ function Entry({ entry }: { entry: TimelineEntry }) {
         </a>{' '}
         <span>{sourceLine(entry)}</span>
       </p>
+      {disclaimer && (
+        <p className="ml-6 text-meta text-muted-foreground text-pretty">{disclaimer}</p>
+      )}
     </li>
   )
 }

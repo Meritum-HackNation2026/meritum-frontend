@@ -17,7 +17,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/mswia/regionalny-system-ostrzegania",
@@ -36,7 +37,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/rcb",
@@ -55,7 +57,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/mswia",
@@ -74,7 +77,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/kgpsp",
@@ -93,7 +97,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "policja.pl",
@@ -112,7 +117,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "mazowiecka.policja.gov.pl",
@@ -131,7 +137,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/obrona-narodowa",
@@ -150,7 +157,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/gis",
@@ -169,7 +177,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/paa",
@@ -188,7 +197,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "monitoring.paa.gov.pl",
@@ -207,7 +217,8 @@
       "tdm_reservation": "unknown",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "powietrze.gios.gov.pl",
@@ -226,7 +237,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "moje.cert.pl",
@@ -245,7 +257,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": true,
-      "exclusion_reason": "robots.txt: Disallow: / dla wszystkich robotów. Zamiast tego pobieramy cert.pl (RSS)."
+      "exclusion_reason": "robots.txt: Disallow: / dla wszystkich robotów. Zamiast tego pobieramy cert.pl (RSS).",
+      "disclaimer": null
     },
     {
       "domain": "cert.pl",
@@ -264,7 +277,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/infrastruktura",
@@ -283,7 +297,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "drogi.gddkia.gov.pl",
@@ -302,7 +317,8 @@
       "tdm_reservation": "unknown",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/gddkia",
@@ -321,7 +337,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "ulc.gov.pl",
@@ -340,7 +357,8 @@
       "tdm_reservation": "unknown",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "portalpasazera.pl",
@@ -359,7 +377,8 @@
       "tdm_reservation": "unknown",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "utk.gov.pl",
@@ -378,7 +397,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": true,
-      "exclusion_reason": "robots.txt: Disallow: / dla wszystkich robotów."
+      "exclusion_reason": "robots.txt: Disallow: / dla wszystkich robotów.",
+      "disclaimer": null
     },
     {
       "domain": "kgsok.pl",
@@ -397,7 +417,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.sar.gov.pl",
@@ -416,7 +437,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.umgdy.gov.pl",
@@ -435,7 +457,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.ums.gov.pl",
@@ -454,7 +477,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/wody-polskie",
@@ -473,7 +497,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/dyplomacja",
@@ -492,7 +517,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "odyseusz.gov.pl",
@@ -511,7 +537,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/premier",
@@ -530,7 +557,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "meteo.imgw.pl",
@@ -549,7 +577,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "hydro.imgw.pl",
@@ -568,7 +597,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "baltyk.imgw.pl",
@@ -587,7 +617,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "isap.sejm.gov.pl",
@@ -606,7 +637,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": true,
-      "exclusion_reason": "robots.txt: Disallow: / dla wszystkich robotów. Te same akty pobieramy z api.sejm.gov.pl (ELI)."
+      "exclusion_reason": "robots.txt: Disallow: / dla wszystkich robotów. Te same akty pobieramy z api.sejm.gov.pl (ELI).",
+      "disclaimer": null
     },
     {
       "domain": "api.sejm.gov.pl",
@@ -627,7 +659,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "eur-lex.europa.eu",
@@ -646,7 +679,8 @@
       "tdm_reservation": "unknown",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "dane.gov.pl",
@@ -665,7 +699,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "fakenews.pl",
@@ -686,7 +721,8 @@
         "ifcn"
       ],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "pravda.org.pl",
@@ -708,7 +744,8 @@
         "efcsn"
       ],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "euvsdisinfo.eu",
@@ -727,7 +764,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": "Przypadki w bazie EUvsDisinfo nie stanowią oficjalnego stanowiska Unii Europejskiej."
     },
     {
       "domain": "factchecktools.googleapis.com",
@@ -746,7 +784,8 @@
       "tdm_reservation": "unknown",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "demagog.org.pl",
@@ -768,7 +807,8 @@
         "efcsn"
       ],
       "excluded": true,
-      "exclusion_reason": "Content-Signal ai-train=no, use=reference i blokady botów AI w robots.txt: nie pobieramy treści, tylko ocena z Fact Check API."
+      "exclusion_reason": "Content-Signal ai-train=no, use=reference i blokady botów AI w robots.txt: nie pobieramy treści, tylko ocena z Fact Check API.",
+      "disclaimer": null
     },
     {
       "domain": "sprawdzam.afp.com",
@@ -790,7 +830,8 @@
         "efcsn"
       ],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "konkret24.tvn24.pl",
@@ -809,7 +850,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": true,
-      "exclusion_reason": "Brak w IFCN i EFCSN; TVN wymaga umowy licencyjnej (zastrzeżenie z art. 25 ust. 1 pkt 1 lit. b pr. aut.)."
+      "exclusion_reason": "Brak w IFCN i EFCSN; TVN wymaga umowy licencyjnej (zastrzeżenie z art. 25 ust. 1 pkt 1 lit. b pr. aut.).",
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/dyplomacja/bip",
@@ -828,7 +870,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "edmo.eu",
@@ -847,7 +890,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "checkfirst.network",
@@ -866,7 +910,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.nask.pl",
@@ -885,7 +930,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.eeas.europa.eu",
@@ -904,7 +950,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "ec.europa.eu/commission/presscorner",
@@ -923,7 +970,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.consilium.europa.eu",
@@ -942,7 +990,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": true,
-      "exclusion_reason": "Strona „Browser check” blokuje automaty (403), także robots.txt. Nie obchodzimy zabezpieczeń; decyzje Rady bierzemy z Dziennika Urzędowego w EUR-Lex."
+      "exclusion_reason": "Strona „Browser check” blokuje automaty (403), także robots.txt. Nie obchodzimy zabezpieczeń; decyzje Rady bierzemy z Dziennika Urzędowego w EUR-Lex.",
+      "disclaimer": null
     },
     {
       "domain": "www.nato.int",
@@ -961,7 +1010,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "bdl.stat.gov.pl",
@@ -980,7 +1030,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "api.nbp.pl",
@@ -999,7 +1050,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "ec.europa.eu/eurostat",
@@ -1018,7 +1070,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "pkw.gov.pl",
@@ -1037,7 +1090,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "webgate.ec.europa.eu/fsd",
@@ -1056,7 +1110,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "www.gov.pl/web/mswia/lista-osob-i-podmiotow-objetych-sankcjami",
@@ -1075,7 +1130,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     },
     {
       "domain": "hole.cert.pl",
@@ -1094,7 +1150,8 @@
       "tdm_reservation": "none",
       "signatory_of": [],
       "excluded": false,
-      "exclusion_reason": null
+      "exclusion_reason": null,
+      "disclaimer": null
     }
   ]
 }

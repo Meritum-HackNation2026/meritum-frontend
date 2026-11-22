@@ -151,3 +151,14 @@ test('a claim that cannot be verified still shows its sources on the timeline', 
   assert.ok(claim.getByRole('heading', { name: pl.result.timeline_title }))
   assert.ok(claim.getByRole('link', { name: 'Dokument ctx' }))
 })
+
+test('a citation whose publisher has a catalogue disclaimer shows it under the source', () => {
+  const eu = citation('eu', {}, '2025-06-01T00:00:00Z', 'eeas-euvsdisinfo')
+  const claim = renderClaim({ citations: [eu, newer] })
+  const note =
+    'Przypadki w bazie EUvsDisinfo nie stanowią oficjalnego stanowiska Unii Europejskiej.'
+  const euItem = claim.getByRole('link', { name: 'Dokument eu' }).closest('li')
+  assert.equal(euItem?.textContent?.includes(note), true)
+  const govItem = claim.getByRole('link', { name: 'Dokument new' }).closest('li')
+  assert.equal(govItem?.textContent?.includes(note), false)
+})
