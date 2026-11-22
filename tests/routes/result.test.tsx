@@ -66,7 +66,7 @@ test('an accepted check from the form opens /sprawdzenie/{id}', async (t) => {
   t.after(() => {
     globalThis.EventSource = original
   })
-  const history = createMemoryHistory({ initialEntries: ['/'] })
+  const history = createMemoryHistory({ initialEntries: ['/sprawdz'] })
   const router = createRouter({ routeTree, history })
   render(<RouterProvider router={router} />)
   fireEvent.change(await screen.findByLabelText(pl.form.input_label), {
