@@ -47,7 +47,8 @@ export interface paths {
          *         probe: the readiness probe.
          *
          *     Returns:
-         *         200 when nothing is missing, otherwise 503 with what is missing.
+         *         200 when required dependencies are ready, even if health is degraded
+         *         by optional providers. Otherwise 503 with the same report.
          *
          *     Features:
          *         US-WDR-08, US-BEZ-03, F-30
@@ -766,6 +767,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/demo/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open Demo Link
+         * @description Sign the visitor in as the technical account the link was issued for.
+         *
+         *     Args:
+         *         token: the raw token from the link.
+         *         request: the request holding the session.
+         *         origin: the client address used for rate limiting.
+         *         store: link store.
+         *         settings: environment.
+         *
+         *     Returns:
+         *         A redirect to the account's landing page, without the token.
+         *
+         *     Raises:
+         *         HTTPException: 404 outside dev or for an unknown or malformed link,
+         *             410 when expired, 429 when rate limited, 503 on storage failure.
+         *
+         *     Features:
+         *         US-OBS-06, US-MOD-05, F-28, F-25
+         */
+        get: operations["open_demo_link_api_v1_auth_demo__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/demo-links": {
         parameters: {
             query?: never;
@@ -849,43 +887,6 @@ export interface paths {
          *         US-OBS-06, US-MOD-05, F-28, F-25
          */
         post: operations["revoke_demo_link_api_v1_staff_demo_links_revoke_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/demo/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Open Demo Link
-         * @description Sign the visitor in as the technical account the link was issued for.
-         *
-         *     Args:
-         *         token: the raw token from the link.
-         *         request: the request holding the session.
-         *         origin: the client address used for rate limiting.
-         *         store: link store.
-         *         settings: environment.
-         *
-         *     Returns:
-         *         A redirect to the account's landing page, without the token.
-         *
-         *     Raises:
-         *         HTTPException: 404 outside dev or for an unknown or malformed link,
-         *             410 when expired, 429 when rate limited, 503 on storage failure.
-         *
-         *     Features:
-         *         US-OBS-06, US-MOD-05, F-28, F-25
-         */
-        get: operations["open_demo_link_api_v1_auth_demo__token__get"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1121,6 +1122,76 @@ export interface paths {
          *         US-MOD-07, US-POW-02, F-39
          */
         get: operations["read_my_answer_api_v1_moderation_answers__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{case_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Case
+         * @description Close an open case without sending an answer or a notification.
+         *
+         *     ``open_case`` answers 404 for an unknown case and 409 for one not open.
+         *
+         *     Args:
+         *         case_id: the case id, e.g. ``#S-12``.
+         *         draft: the reason.
+         *         member: the signed-in moderator, recorded as the closer.
+         *         _csrf: the account, CSRF checked.
+         *         cases: the case repository.
+         *         closures: where the close is kept.
+         *
+         *     Returns:
+         *         The close as recorded.
+         *
+         *     Features:
+         *         US-MOD-01, US-MOD-07, F-25, F-39
+         */
+        post: operations["close_case_api_v1_moderation_cases__case_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{case_id}/closure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Closure
+         * @description Who closed the case without an answer, and why.
+         *
+         *     Args:
+         *         case_id: the case id.
+         *         _member: a signed-in moderator or administrator.
+         *         closures: where the close is kept.
+         *
+         *     Returns:
+         *         The close.
+         *
+         *     Raises:
+         *         HTTPException: 404 when the case was not closed this way.
+         *
+         *     Features:
+         *         US-MOD-01, F-25
+         */
+        get: operations["read_closure_api_v1_moderation_cases__case_id__closure_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1753,9 +1824,6 @@ export interface paths {
          * Export
          * @description Export the checks of the last ``days`` days and the cases, masked.
          *
-         *     shortcut: the record port has no "list all", so the checks are the ones the
-         *     cases cover; switch to a port query when core adds one.
-         *
          *     Args:
          *         _member: a signed-in analyst or administrator.
          *         records: the check record store.
@@ -1765,6 +1833,9 @@ export interface paths {
          *
          *     Returns:
          *         The export in the chosen format.
+         *
+         *     Raises:
+         *         HTTPException: the selected period has too many records.
          *
          *     Features:
          *         US-OBS-03, F-36
@@ -2211,6 +2282,32 @@ export interface components {
             check_ids: string[];
         };
         /**
+         * CaseClosure
+         * @description What the panel keeps about a close; the askers are not told.
+         *
+         *     Attributes:
+         *         case_id: the closed case.
+         *         closed_by: the moderator's address.
+         *         reason: why the case was closed.
+         *         closed_at: when it was closed.
+         *
+         *     Features:
+         *         US-MOD-01, US-MOD-07, F-25
+         */
+        CaseClosure: {
+            /** Case Id */
+            case_id: string;
+            /** Closed By */
+            closed_by: string | null;
+            /** Reason */
+            reason: string;
+            /**
+             * Closed At
+             * Format: date-time
+             */
+            closed_at: string;
+        };
+        /**
          * CaseVerdict
          * @description One case of a run for the page.
          *
@@ -2532,6 +2629,20 @@ export interface components {
              * @enum {string}
              */
             stance: "supports" | "refutes" | "context";
+        };
+        /**
+         * ClosureDraft
+         * @description Body of a close: the moderator's reason, e.g. a test or groundless case.
+         *
+         *     Attributes:
+         *         reason: why the case is closed.
+         *
+         *     Features:
+         *         US-MOD-01, F-25
+         */
+        ClosureDraft: {
+            /** Reason */
+            reason: string;
         };
         /**
          * Comparison
@@ -4390,6 +4501,37 @@ export interface operations {
             };
         };
     };
+    open_demo_link_api_v1_auth_demo__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_demo_links_api_v1_staff_demo_links_get: {
         parameters: {
             query?: never;
@@ -4462,37 +4604,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    open_demo_link_api_v1_auth_demo__token__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            303: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
             };
             /** @description Validation Error */
             422: {
@@ -4738,6 +4849,86 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Answer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_case_api_v1_moderation_cases__case_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClosureDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseClosure"];
+                };
+            };
+            /** @description case not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description case is not open */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_closure_api_v1_moderation_cases__case_id__closure_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseClosure"];
                 };
             };
             /** @description Validation Error */

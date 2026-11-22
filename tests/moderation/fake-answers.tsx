@@ -4,7 +4,13 @@
  *
  * @feature US-MOD-07, F-39, ADR-06
  */
-import type { AnswerApi, AnswerDraft, AnswerOutcome, AnswerSource } from '@/moderation'
+import type {
+  AnswerApi,
+  AnswerDraft,
+  AnswerOutcome,
+  AnswerSource,
+  CloseOutcome,
+} from '@/moderation'
 
 /**
  * The catalogue sources the fake offers.
@@ -19,20 +25,27 @@ export const sources: AnswerSource[] = [
 /**
  * @param outcome - What every send gives.
  * @param catalogue - What the source list gives; null means it could not be read.
- * @returns The port and the sends it received.
+ * @param closing - What every close gives.
+ * @returns The port, the sends and the closes it received.
  * @feature US-MOD-07, F-39, ADR-06
  */
 export function fakeAnswers(
   outcome: AnswerOutcome = 'sent',
   catalogue: AnswerSource[] | null = sources,
+  closing: CloseOutcome = 'closed',
 ) {
   const calls: { caseId: string; draft: AnswerDraft }[] = []
+  const closes: { caseId: string; reason: string }[] = []
   const api: AnswerApi = {
     sources: () => Promise.resolve(catalogue),
     send(caseId, draft) {
       calls.push({ caseId, draft })
       return Promise.resolve(outcome)
     },
+    close(caseId, reason) {
+      closes.push({ caseId, reason })
+      return Promise.resolve(closing)
+    },
   }
-  return { api, calls }
+  return { api, calls, closes }
 }

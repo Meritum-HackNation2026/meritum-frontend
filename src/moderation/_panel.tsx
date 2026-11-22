@@ -2,6 +2,7 @@ import { Link, type LinkProps, useNavigate } from '@tanstack/react-router'
 import { type ReactNode, useCallback, useState } from 'react'
 import { fill, t } from '@/components/meritum'
 import { Button } from '@/components/ui/button'
+import type { ModeratorCase } from '@/contracts/meritum'
 import { CaseDetail } from './_case-detail'
 import { CaseQueue } from './_queue'
 import { type PanelData, type PanelSection, sectionsFor } from './_session'
@@ -26,30 +27,44 @@ const notices: Record<Exclude<StaffSession['kind'], 'member'>, string | null> = 
 function CasesSection({
   cases,
   answers,
+  openCaseId,
+  onOpenCase,
 }: {
   cases: PanelData['cases']
   answers?: AnswerApi | undefined
+  openCaseId?: string | undefined
+  onOpenCase?: ((caseId: string) => void) | undefined
 }) {
-  const [openId, setOpenId] = useState<string>()
-  // cases the moderator answered in this visit: the list is not read again until a reload
-  const [answered, setAnswered] = useState<readonly string[]>([])
-  const markAnswered = useCallback((id: string) => setAnswered((ids) => [...ids, id]), [])
+  const [localId, setLocalId] = useState<string>()
+  const openId = onOpenCase ? openCaseId : localId
+  // cases the moderator answered or closed in this visit: the list is not read again until a reload
+  const [changed, setChanged] = useState<Readonly<Record<string, ModeratorCase['state']>>>({})
+  const markAnswered = useCallback(
+    (id: string) => setChanged((states) => ({ ...states, [id]: 'answered' })),
+    [],
+  )
+  const markClosed = useCallback(
+    (id: string) => setChanged((states) => ({ ...states, [id]: 'closed' })),
+    [],
+  )
   if (cases === null) {
     return <p className="text-body">{t.errors.offline}</p>
   }
-  const shown = cases.map((c) =>
-    answered.includes(c.id) ? { ...c, state: 'answered' as const } : c,
-  )
+  const shown = cases.map((c) => {
+    const state = changed[c.id]
+    return state ? { ...c, state } : c
+  })
   const open = shown.find((c) => c.id === openId)
   return (
     <div className="grid grid-cols-1 gap-6">
-      <CaseQueue cases={shown} selectedId={openId} onOpen={setOpenId} />
+      <CaseQueue cases={shown} selectedId={openId} onOpen={onOpenCase ?? setLocalId} />
       {open && (
         <CaseDetail
           key={open.id}
           moderatorCase={open}
           answers={answers}
           onAnswered={markAnswered}
+          onClosed={markClosed}
         />
       )}
     </div>
@@ -67,19 +82,26 @@ function CasesSection({
  * @param props.api - The staff API (login addresses, sign-out).
  * @param props.answers - The answer API; without it an open case has no answer form.
  * @param props.children - Another panel page in place of the cases (e.g. administration).
+ * @param props.openCaseId - The case the address opens (`/panel/sprawy/S-4`), with `onOpenCase`.
+ * @param props.onOpenCase - Opens a case by changing the address; without it the open case is
+ *   kept in the page only.
  * @returns The panel.
- * @feature US-MOD-05, US-MOD-02, US-POW-05, US-MOD-07, F-25, F-26, F-39
+ * @feature US-MOD-05, US-MOD-02, US-POW-05, US-MOD-07, US-MOD-01, F-25, F-26, F-39
  */
 export function Panel({
   data,
   api,
   answers,
   children,
+  openCaseId,
+  onOpenCase,
 }: {
   data: Pick<PanelData, 'session'> & Partial<Pick<PanelData, 'cases'>>
   api: StaffApi
   answers?: AnswerApi | undefined
   children?: ReactNode
+  openCaseId?: string | undefined
+  onOpenCase?: ((caseId: string) => void) | undefined
 }) {
   const navigate = useNavigate()
   const signOut = useCallback(async () => {
@@ -126,7 +148,12 @@ export function Panel({
       </div>
       {children ??
         (sections.includes('cases') && (
-          <CasesSection cases={data.cases ?? null} answers={answers} />
+          <CasesSection
+            cases={data.cases ?? null}
+            answers={answers}
+            openCaseId={openCaseId}
+            onOpenCase={onOpenCase}
+          />
         ))}
     </div>
   )

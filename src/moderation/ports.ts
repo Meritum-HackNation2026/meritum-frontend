@@ -154,7 +154,24 @@ export interface AnswerApi {
    * @returns What the API did.
    */
   send(caseId: string, draft: AnswerDraft): Promise<AnswerOutcome>
+  /**
+   * Closes an open case without an answer (`POST /moderation/cases/{id}/close`, backend issue 140):
+   * nobody is notified, the API keeps who closed it and why.
+   *
+   * @param caseId - The case, e.g. `#S-12`.
+   * @param reason - Why it is closed, e.g. a test or groundless case.
+   * @returns What the API did.
+   */
+  close(caseId: string, reason: string): Promise<CloseOutcome>
 }
+
+/**
+ * What a close gave: closed, an ended session, a role taken away, or an API that did not answer
+ * or refused (a case no longer open included).
+ *
+ * @feature US-MOD-01, F-25
+ */
+export type CloseOutcome = 'closed' | 'expired' | 'no_access' | 'failed'
 
 /**
  * The answer as the asker reads it: the text and each cited fragment with its source's name.

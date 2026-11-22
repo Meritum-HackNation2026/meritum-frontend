@@ -76,3 +76,25 @@ test('sources lists each source the checks cited once', async (t) => {
   )
   assert.deepEqual(found?.[0], source)
 })
+
+const closePath = '/api/v1/moderation/cases/%23S-12/close'
+
+test('close posts the reason with the CSRF header and gives closed', async (t) => {
+  const fetch = fakeApi(t, { ...csrf, [closePath]: { status: 200, body: {} } })
+  assert.equal(await apiAnswers.close('#S-12', 'sprawa testowa'), 'closed')
+  const request = sentRequest(fetch.mock.calls[1]?.arguments[0])
+  assert.equal(request.method, 'POST')
+  assert.equal(request.headers.get('X-CSRF-Token'), 'tok')
+  assert.deepEqual(await request.json(), { reason: 'sprawa testowa' })
+})
+
+test('a refused close reads as an ended session, a taken role or a failure', async (t) => {
+  fakeApi(t, { ...csrf, [closePath]: { status: 401 } })
+  assert.equal(await apiAnswers.close('#S-12', 'x'), 'expired')
+  fakeApi(t, { ...csrf, [closePath]: { status: 403 } })
+  assert.equal(await apiAnswers.close('#S-12', 'x'), 'no_access')
+  fakeApi(t, { ...csrf, [closePath]: { status: 409 } })
+  assert.equal(await apiAnswers.close('#S-12', 'x'), 'failed')
+  t.mock.method(globalThis, 'fetch', () => Promise.reject(new TypeError('Failed to fetch')))
+  assert.equal(await apiAnswers.close('#S-12', 'x'), 'failed')
+})
