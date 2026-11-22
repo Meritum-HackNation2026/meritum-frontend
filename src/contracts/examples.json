@@ -8,6 +8,7 @@
     "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "limitations": ["Sprawdziliśmy tylko tekst Konstytucji RP w korpusie. Nie oceniamy planowanych zmian prawa."],
+    "limitation_codes": ["corpus_scope"],
     "claims": [
       {
         "claim": "Prezydent w Polsce może sprawować urząd przez trzy kadencje.",
@@ -55,6 +56,7 @@
     "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "limitations": ["Korpus i wyszukiwanie w zatwierdzonych serwisach nie zawierają jeszcze publikacji na ten temat."],
+    "limitation_codes": ["no_publications"],
     "claims": [
       {
         "claim": "Wczoraj w Gdańsku wyłączono wszystkie bankomaty.",
@@ -128,6 +130,7 @@
     "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "limitations": ["Korpus i wyszukiwanie w zatwierdzonych serwisach nie zawierają jeszcze publikacji na ten temat."],
+    "limitation_codes": ["no_publications"],
     "claims": [
       {
         "claim": "Wczoraj w Gdańsku wyłączono wszystkie bankomaty.",
@@ -184,5 +187,33 @@
   "Notification": {
     "id": "n_01", "kind": "check_done", "status": "unread", "session_id": "s_7f3a9c21", "check_id": "c_02",
     "link": "/sprawdzenia/c_02", "created_at": "2026-11-21T14:02:24+01:00", "retention_until": "2026-12-21T14:02:24+01:00"
+  },
+  "Notification.check_progress": {
+    "id": "n_02", "kind": "check_progress", "status": "unread", "session_id": "s_7f3a9c21", "check_id": "c_02",
+    "step_code": "search_corpus",
+    "link": "/sprawdzenia/c_02", "created_at": "2026-11-21T14:02:12+01:00", "retention_until": "2026-12-21T14:02:12+01:00"
+  },
+  "Notification.system": {
+    "id": "n_03", "kind": "system", "status": "unread", "user_id": "u_4b8e2d10",
+    "message_code": "maintenance_planned",
+    "link": "/", "created_at": "2026-11-21T18:00:00+01:00", "retention_until": "2026-12-21T18:00:00+01:00"
+  },
+  "Notification.eval_run_done": {
+    "id": "n_04", "kind": "eval_run_done", "status": "unread", "user_id": "u_9f2a7c31",
+    "link": "/eval/ev_0001", "created_at": "2026-11-22T10:30:00+01:00", "retention_until": "2026-12-22T10:30:00+01:00"
+  },
+  "EvalRun": {
+    "id": "ev_0001", "case_set": "golden", "status": "done", "corpus_version": "2026-11-22", "user_id": "u_9f2a7c31",
+    "models": ["vertex/gemini-2.5-flash"], "started_at": "2026-11-22T10:00:00+01:00", "finished_at": "2026-11-22T10:30:00+01:00",
+    "metrics": {
+      "cases": 30, "macro_f1": 0.82, "citation_coverage": 0.95, "citation_correctness": 0.9, "abstention": 0.8, "robustness": 1.0,
+      "median_seconds": 12.5, "p95_seconds": 28.0, "max_seconds": 41.0, "input_tokens_per_check": 5200, "output_tokens_per_check": 640,
+      "cost_per_check_usd": 0.004, "cost_100_checks_usd": 0.4, "channel_consistency": 1.0, "information_loop": 1.0
+    },
+    "scenarios": [{"scenario": "A", "cases": 4, "correct": 4, "accuracy": 1.0}],
+    "cases": [
+      {"case_id": "A-org-pap-depesza", "scenario": "A", "check_id": "c_02", "expected": "false", "predicted": "false", "outcome": "correct",
+       "received_at": "2026-11-22T10:00:00+01:00", "answered_at": "2026-11-22T10:00:12+01:00", "cost_usd": 0.004}
+    ]
   }
 }

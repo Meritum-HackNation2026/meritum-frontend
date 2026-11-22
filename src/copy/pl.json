@@ -121,6 +121,8 @@
     "limitations": "Ograniczenia",
     "incident": "Podobne do znanego przypadku dezinformacji z bazy {database}: {title} ({date}). To kontekst, a nie podstawa oceny.",
     "incident_domain": "Ten link prowadzi do serwisu z bazy {database} ({title}). To informacja o serwisie, a nie ocena tej treści.",
+    "incident_link": "Opis przypadku",
+    "context_title": "Kontekst, który nie zmienia werdyktu",
     "ai_disclosure": "Odpowiedź przygotował system z użyciem AI. Sprawdź źródła sam: linki prowadzą do oryginałów.",
     "via_web": "znalezione w wyszukiwaniu w zatwierdzonych serwisach",
     "superseded": "Ten dowód zastąpił nowszy dokument z {date}.",
@@ -137,6 +139,7 @@
     "transcript_hint": "Transkrypcję przygotował system automatycznie. Może zawierać błędy.",
     "claim_review": "Według {publisher}: „{rating}”.",
     "claim_review_context": "Ocena fact-checkera {publisher}: „{rating}”. To kontekst, a nie podstawa naszej oceny.",
+    "claim_review_meta": "Ocena fact-checkera z {date}, bez fragmentu strony",
     "fact_check_unavailable": "Nie mogę teraz sprawdzić indeksu Google Fact Check z powodu błędu dostępu. To nie znaczy, że takiej oceny nie ma.",
     "no_result_hint": "Brak wyniku w naszych źródłach nie oznacza, że tak nie jest.",
     "no_change_hint": "Brak wyniku w naszych źródłach nie oznacza, że zmiany nie było.",
@@ -211,11 +214,13 @@
     "not_ready": "Meritum jeszcze się uruchamia i nie przyjmuje sprawdzeń. To nie jest ocena treści. Spróbuj za kilka minut."
   },
   "limitation_code": {
-    "$comment": "CheckResult.limitation_codes and CachedResult.limitation_codes: listed under result.limitations. A limitation never changes the status. result.fact_check_unavailable is kept for channels that read it. audio_format_unsupported and audio_too_long explain an out_of_scope recording; the card already says the reason, so they only give the accepted formats ({formats}, as in form.audio_limits) and the length limit ({max_minutes}) (design-system#83).",
+    "$comment": "CheckResult.limitation_codes and CachedResult.limitation_codes: listed under result.limitations. A limitation never changes the status. result.fact_check_unavailable is kept for channels that read it. audio_format_unsupported and audio_too_long explain an out_of_scope recording; the card already says the reason, so they only give the accepted formats ({formats}, as in form.audio_limits) and the length limit ({max_minutes}) (design-system#83). corpus_scope says what the corpus covers; no_publications says neither the corpus nor web search found anything (meritum-core#108).",
     "fact_check_unavailable": "Nie mogę teraz sprawdzić indeksu Google Fact Check z powodu błędu dostępu. To nie znaczy, że takiej oceny nie ma.",
     "image_search_not_run": "Nie szukaliśmy wcześniejszych wystąpień tego obrazu. Nie wiemy, czy pojawił się już gdzie indziej.",
     "audio_format_unsupported": "Przyjmujemy pliki: {formats}.",
-    "audio_too_long": "Sprawdzamy nagrania do {max_minutes} min."
+    "audio_too_long": "Sprawdzamy nagrania do {max_minutes} min.",
+    "corpus_scope": "Szukaliśmy tylko w źródłach z naszego katalogu. Czegoś spoza niego mogliśmy nie zobaczyć.",
+    "no_publications": "Nie znaleźliśmy publikacji na ten temat ani w naszej bazie, ani w wyszukiwarce."
   },
   "escalation": {
     "$comment": "Escalation.state: recommended, created and updated match the contract. not_saved is shown on HTTP 503 when „Przekaż moderatorom” or „Zgłoś błąd” could not persist the case (no case_id, no case number). Backend will send it instead of escalation.recommended once meritum-backend picks up this key. updated has the same text as created and the frontend shows created in both states, so the citizen never learns that someone else asked the same (meritum-frontend#23).",
@@ -225,7 +230,8 @@
     "not_saved": "Sprawy nie zapisaliśmy u moderatorów. Spróbuj jeszcze raz."
   },
   "source_warning": {
-    "eu_sanctioned_entity": "Ta treść pochodzi od podmiotu z listy sankcji UE ({entity}). To informacja o źródle, a nie ocena samej treści."
+    "eu_sanctioned_entity": "Ta treść pochodzi od podmiotu z listy sankcji UE ({entity}). To informacja o źródle, a nie ocena samej treści.",
+    "basis_link": "Wpis na liście sankcji"
   },
   "analysis": {
     "title": "Meritum sprawdza",
@@ -445,6 +451,11 @@
       "case_assigned": "Nowa albo zaktualizowana sprawa {case}.",
       "system": "{message}",
       "eval_run_done": "Przebieg ewaluacji się zakończył. Zobacz wyniki."
+    },
+    "system_message": {
+      "maintenance_planned": "Planujemy prace techniczne. Meritum może na chwilę przestać działać.",
+      "service_degraded": "Meritum działa wolniej niż zwykle. Sprawdzenia mogą potrwać dłużej albo się nie udać.",
+      "service_restored": "Meritum znów działa normalnie."
     },
     "status": {
       "unread": "nieprzeczytane",

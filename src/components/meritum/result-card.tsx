@@ -38,7 +38,7 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
             <Note className="mx-3.5">
               {fill(t.source_warning.eu_sanctioned_entity, { entity: result.source_warning.entity })}{" "}
               <a href={result.source_warning.basis_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-3">
-                podstawa
+                {t.source_warning.basis_link}
               </a>
             </Note>
           )}
@@ -163,7 +163,7 @@ function ClaimBlock({ claim: c }: { claim: ClaimResult }) {
             date: formatDate(c.incident.date),
           })}{" "}
           <a href={c.incident.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-3">
-            opis przypadku
+            {t.result.incident_link}
           </a>
         </Note>
       )}

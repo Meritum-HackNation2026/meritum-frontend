@@ -112,7 +112,7 @@ test('a technique shows its name and one "how to spot" sentence', () => {
 test('the limitations of the check are listed', () => {
   render(<CheckResultCard result={done} handoff={handoff} />)
   assert.ok(screen.getByText(pl.result.limitations))
-  assert.ok(screen.getByText(done.limitations?.[0] ?? ''))
+  assert.ok(screen.getByText(pl.limitation_code.corpus_scope))
   assert.equal(screen.getAllByRole('article').length, 2)
 })
 

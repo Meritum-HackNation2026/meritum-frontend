@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Meritum contracts",
-  "x-contract-version": 8,
+  "x-contract-version": 11,
   "$defs": {
     "CheckRequest": {
       "additionalProperties": false,
@@ -933,13 +933,15 @@
         },
         "limitation_codes": {
           "default": [],
-          "description": "Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Not paired with limitations by index: each code has its own text in copy/pl.json, and limitations may also hold texts with no code (e.g. notes on the corpus scope).",
+          "description": "Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Paired with limitations by index: one code per text, same order.",
           "items": {
             "enum": [
               "fact_check_unavailable",
               "image_search_not_run",
               "audio_format_unsupported",
-              "audio_too_long"
+              "audio_too_long",
+              "corpus_scope",
+              "no_publications"
             ],
             "type": "string"
           },
@@ -1079,13 +1081,15 @@
         },
         "limitation_codes": {
           "default": [],
-          "description": "Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Not paired with limitations by index: each code has its own text in copy/pl.json, and limitations may also hold texts with no code (e.g. notes on the corpus scope).",
+          "description": "Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Paired with limitations by index: one code per text, same order.",
           "items": {
             "enum": [
               "fact_check_unavailable",
               "image_search_not_run",
               "audio_format_unsupported",
-              "audio_too_long"
+              "audio_too_long",
+              "corpus_scope",
+              "no_publications"
             ],
             "type": "string"
           },
@@ -1843,7 +1847,8 @@
             "moderator_answer",
             "new_evidence",
             "case_assigned",
-            "system"
+            "system",
+            "eval_run_done"
           ],
           "title": "Kind",
           "type": "string"
@@ -1912,6 +1917,51 @@
           "default": null,
           "title": "Case Id"
         },
+        "step_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "receive",
+                "fetch_url",
+                "transcribe_audio",
+                "screen_injection",
+                "extract_claims",
+                "search_corpus",
+                "search_web",
+                "search_fact_checks",
+                "assess_evidence",
+                "verify_citations",
+                "write_answer",
+                "save_record"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "check_progress only: the finished pipeline step; the text is analysis.steps.<code> in copy/pl.json.",
+          "title": "Step Code"
+        },
+        "message_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "maintenance_planned",
+                "service_degraded",
+                "service_restored"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "system only: what the message says; the text is notifications.system_message.<code> in copy/pl.json, never free text.",
+          "title": "Message Code"
+        },
         "link": {
           "description": "In-app path to open.",
           "maxLength": 200,
@@ -1938,6 +1988,353 @@
         "retention_until"
       ],
       "title": "Notification",
+      "type": "object"
+    },
+    "EvalCaseResult": {
+      "additionalProperties": false,
+      "description": "One case of a run: expected and predicted label, outcome, time and cost.\n\nA state that is not a verdict (technical_failure included) stays the predicted\nlabel and falls into one separate error class.",
+      "properties": {
+        "case_id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Case Id",
+          "type": "string"
+        },
+        "scenario": {
+          "pattern": "^[A-J]$",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "check_id": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Id"
+        },
+        "expected": {
+          "$ref": "#/$defs/EvalLabel"
+        },
+        "predicted": {
+          "$ref": "#/$defs/EvalLabel"
+        },
+        "outcome": {
+          "enum": [
+            "wrong_decisive",
+            "non_verdict",
+            "wrong_abstention",
+            "correct"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "received_at": {
+          "format": "date-time",
+          "title": "Received At",
+          "type": "string"
+        },
+        "answered_at": {
+          "format": "date-time",
+          "title": "Answered At",
+          "type": "string"
+        },
+        "cost_usd": {
+          "$ref": "#/$defs/NonNegative",
+          "default": 0.0
+        }
+      },
+      "required": [
+        "case_id",
+        "scenario",
+        "expected",
+        "predicted",
+        "outcome",
+        "received_at",
+        "answered_at"
+      ],
+      "title": "EvalCaseResult",
+      "type": "object"
+    },
+    "EvalLabel": {
+      "anyOf": [
+        {
+          "enum": [
+            "confirmed",
+            "false",
+            "misleading",
+            "insufficient_evidence",
+            "not_verifiable"
+          ],
+          "type": "string"
+        },
+        {
+          "enum": [
+            "done",
+            "needs_clarification",
+            "out_of_scope",
+            "technical_failure"
+          ],
+          "type": "string"
+        }
+      ]
+    },
+    "EvalMetrics": {
+      "additionalProperties": false,
+      "description": "The metrics of one run, as the meritum-eval report computes them.",
+      "properties": {
+        "cases": {
+          "minimum": 0,
+          "title": "Cases",
+          "type": "integer"
+        },
+        "macro_f1": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Macro F1",
+          "type": "number"
+        },
+        "citation_coverage": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "citation_correctness": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "abstention": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "robustness": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "median_seconds": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "p95_seconds": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "max_seconds": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "input_tokens_per_check": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "output_tokens_per_check": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "cost_per_check_usd": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "cost_100_checks_usd": {
+          "$ref": "#/$defs/NonNegative"
+        },
+        "channel_consistency": {
+          "$ref": "#/$defs/Ratio"
+        },
+        "information_loop": {
+          "$ref": "#/$defs/Ratio"
+        }
+      },
+      "required": [
+        "cases",
+        "macro_f1",
+        "citation_coverage",
+        "citation_correctness",
+        "abstention",
+        "robustness",
+        "median_seconds",
+        "p95_seconds",
+        "max_seconds",
+        "input_tokens_per_check",
+        "output_tokens_per_check",
+        "cost_per_check_usd",
+        "cost_100_checks_usd",
+        "channel_consistency",
+        "information_loop"
+      ],
+      "title": "EvalMetrics",
+      "type": "object"
+    },
+    "EvalScenarioScore": {
+      "additionalProperties": false,
+      "description": "Quality per scenario, so runs on different models compare by scenario.",
+      "properties": {
+        "scenario": {
+          "pattern": "^[A-J]$",
+          "title": "Scenario",
+          "type": "string"
+        },
+        "cases": {
+          "minimum": 1,
+          "title": "Cases",
+          "type": "integer"
+        },
+        "correct": {
+          "minimum": 0,
+          "title": "Correct",
+          "type": "integer"
+        },
+        "accuracy": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Accuracy",
+          "type": "number"
+        }
+      },
+      "required": [
+        "scenario",
+        "cases",
+        "correct",
+        "accuracy"
+      ],
+      "title": "EvalScenarioScore",
+      "type": "object"
+    },
+    "NonNegative": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "Ratio": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "EvalRun": {
+      "additionalProperties": false,
+      "description": "One evaluation run on the golden set or a staff user's case file.",
+      "properties": {
+        "id": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "case_set": {
+          "enum": [
+            "golden",
+            "user_file"
+          ],
+          "title": "Case Set",
+          "type": "string"
+        },
+        "case_file": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Case File"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "done",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "corpus_version": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Corpus Version",
+          "type": "string"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Id"
+        },
+        "models": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Models",
+          "type": "array"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "metrics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvalMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scenarios": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvalScenarioScore"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "cases": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvalCaseResult"
+          },
+          "title": "Cases",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "case_set",
+        "status",
+        "corpus_version",
+        "started_at"
+      ],
+      "title": "EvalRun",
       "type": "object"
     }
   }
