@@ -1,6 +1,7 @@
 import type { ModeratorCase } from '@/contracts/meritum'
 import { SECTION_ROLES } from './constants'
-import type { AdminApi, RiskTopic, StaffAccount, StaffApi, StaffRole, StaffSession } from './ports'
+import type { StaffApi, StaffRole, StaffSession } from './ports'
+import type { AdminApi, RiskTopic, StaffAccount } from './ports-admin'
 
 /**
  * One section of the panel navigation.

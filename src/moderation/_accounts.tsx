@@ -15,7 +15,8 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { AdminSection, Field, type Notice, refusalText, tableClass } from './_admin-parts'
 import { EMAIL_PATTERN, GRANTABLE_ROLES, MAX_EMAIL_CHARS } from './constants'
-import type { AdminApi, StaffAccount, StaffRole } from './ports'
+import type { StaffRole } from './ports'
+import type { AdminApi, StaffAccount } from './ports-admin'
 
 const copy = t.staff.admin.accounts
 const byEmail = (a: StaffAccount, b: StaffAccount) => a.email.localeCompare(b.email)

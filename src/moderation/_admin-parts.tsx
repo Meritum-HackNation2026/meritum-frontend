@@ -1,6 +1,6 @@
 import { type ReactNode, useId } from 'react'
 import { t } from '@/components/meritum'
-import type { AdminOutcome } from './ports'
+import type { AdminOutcome } from './ports-admin'
 
 const refusals: Record<Exclude<AdminOutcome, 'saved' | 'invalid'>, string> = {
   expired: t.staff.sign_in.session_expired,
