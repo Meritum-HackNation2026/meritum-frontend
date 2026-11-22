@@ -142,10 +142,10 @@ export function ReportError({
       <Button
         ref={toggle}
         type="button"
-        variant="outline"
+        variant="link"
         aria-expanded={open}
         aria-controls={open ? formId : undefined}
-        className="h-10 rounded-pill px-4 text-small font-semibold"
+        className="h-10 px-0 text-small text-muted-foreground underline underline-offset-3"
         onClick={toggleForm}
       >
         {t.result.report_error}

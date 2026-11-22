@@ -25,7 +25,7 @@ export function CheckResultCard({ result, handoff }: { result: CheckResult; hand
   return (
     <section
       aria-label={t.result.label}
-      className="min-w-0 rounded-lg border border-border bg-card text-card-foreground motion-safe:animate-rise"
+      className="min-w-0 rounded-lg border border-border bg-card in-data-reply:border-transparent text-card-foreground motion-safe:animate-rise"
     >
       <header className="flex items-center px-3.5 pt-3 in-data-reply:hidden">
         <MeritumLabel />
@@ -42,10 +42,11 @@ export function CheckResultCard({ result, handoff }: { result: CheckResult; hand
           />
         </ClaimBlock>
       ))}
-      <footer className="mt-3 grid gap-1.5 border-t border-border px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
+      <footer className="mt-1 grid gap-1.5 px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
         <EscalationLine result={result} handoff={handoff} savedCase={savedCase} />
         <Limitations items={limitationTexts(result)} />
-        <p>{t.result.ai_disclosure}</p>
+        {/* in the conversation the AI line stands once, above the composer (design-system#108) */}
+        <p className="in-data-reply:hidden">{t.result.ai_disclosure}</p>
       </footer>
     </section>
   )

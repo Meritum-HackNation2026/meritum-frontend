@@ -50,7 +50,7 @@ test('a citation shows title as a link, publisher, date and the verbatim fragmen
   assert.ok(claim.getByText('Kancelaria Sejmu (ISAP). Akt prawny, źródło urzędowe lub pierwotne.'))
   assert.equal(
     claim.getByRole('blockquote').textContent,
-    `${pl.result.fragment}: „${citation.fragment}”`,
+    `„${pl.result.fragment}: ${citation.fragment}”`,
   )
 })
 
@@ -65,14 +65,32 @@ test('strength "umiarkowana" comes with its premises', () => {
   )
 })
 
-test('the explanation stands in its own block with the AI note, and the card has the AI line', () => {
+test('the explanation stands in its own block without a per-claim AI note; the card has the AI line once', () => {
   const claim = renderClaim(claimWith({}))
   const block = claim.getByRole('heading', { name: pl.result.explanation }).parentElement
   assert.ok(block)
   assert.equal(within(block).getByText(falseClaim?.explanation ?? '').tagName, 'P')
-  assert.ok(within(block).getByText(pl.result.explanation_hint))
+  assert.equal(within(block).queryByText(pl.result.explanation_hint), null)
   assert.equal(within(block).queryAllByRole('blockquote').length, 0)
   assert.ok(screen.getByText(pl.result.ai_disclosure))
+})
+
+test('a claim reads from its verdict: the verdict word comes before the claim, the explanation and the quotes', () => {
+  // design-system#108: the verdict leads the card
+  const claim = renderClaim(claimWith({}))
+  const html = screen.getByRole('article').innerHTML
+  const at = (text: string) => html.indexOf(text)
+  const order = [
+    pl.verdict.false,
+    falseClaim?.claim ?? '',
+    falseClaim?.explanation ?? '',
+    'blockquote',
+  ]
+  assert.deepEqual(
+    order.map(at),
+    [...order.map(at)].sort((a, b) => a - b),
+  )
+  assert.ok(claim.getByRole('heading', { level: 3, name: new RegExp(`^${pl.verdict.false}`) }))
 })
 
 test('strength is ink-coloured with three level bars, two of them filled for "moderate"', () => {
@@ -140,11 +158,12 @@ for (const [verdict, shown] of [
   })
 }
 
-test('the long label "Brak wystarczających dowodów" is whole and can wrap below the claim', () => {
+test('the long label "Brak wystarczających dowodów" is whole and heads the claim on its own line', () => {
   const claim = renderClaim(claimWith({ verdict: 'insufficient_evidence', strength: null }))
   const badge = claim.getByText('Brak wystarczających dowodów')
   assert.equal(badge.textContent, 'Brak wystarczających dowodów')
-  assert.equal(badge.parentElement?.className.includes('flex-wrap'), true)
+  assert.equal(badge.parentElement?.className.includes('block'), true)
+  assert.equal(badge.parentElement?.parentElement?.tagName, 'H3')
 })
 
 const claimReview = examples['CheckResult.claim_review'] as CheckResult

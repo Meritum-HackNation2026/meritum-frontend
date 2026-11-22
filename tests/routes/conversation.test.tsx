@@ -22,9 +22,7 @@ const running = { check_id: 'c_01', steps: [{ code: 'receive', status: 'active' 
 
 /** A progress stream that never reports, so only the API read drives the page. */
 class SilentEventSource {
-  close() {
-    return undefined
-  }
+  close() {}
 }
 
 /** POST /api/v1/checks accepts c_01, its read is still running, the inbox is empty. */

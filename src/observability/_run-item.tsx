@@ -111,7 +111,7 @@ export function RunItem({
   const [cases, setCases] = useState<EvalCase[] | null>()
   const toggle = useCallback(async () => {
     setOpen(!isOpen)
-    if (!isOpen && !cases) {
+    if (!(isOpen || cases)) {
       setCases(await api.cases(run.id))
     }
   }, [api, cases, isOpen, run.id])
