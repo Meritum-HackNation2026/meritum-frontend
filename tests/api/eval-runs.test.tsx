@@ -48,3 +48,12 @@ test('a comparison keeps only metrics measured in both runs', async (t) => {
     changed_cases: [{ case_id: 'g_42', a: 'confirmed', b: 'false' }],
   })
 })
+
+test('without a staff session a run is not sent and the session counts as ended', async (t) => {
+  const fetch = fakeApi(t, { detail: 'Not signed in' }, 401)
+  assert.equal(await apiEval.start('golden'), 'expired')
+  const file = new File(['{}'], 'zestaw.json', { type: 'application/json' })
+  assert.equal(await apiEval.upload(file), 'expired')
+  const posts = fetch.mock.calls.filter((call) => call.arguments[1]?.method === 'POST')
+  assert.equal(posts.length, 0)
+})

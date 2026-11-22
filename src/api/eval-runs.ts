@@ -9,9 +9,8 @@ import {
   type EvalOutcome,
   type EvalRun,
 } from '@/observability'
-import { fetchClient } from './_client'
+import { csrfHeaders } from './_csrf'
 import {
-  CSRF_HEADER,
   EVAL_DATASETS_ENDPOINT,
   EVAL_RUNS_ENDPOINT,
   HTTP_FORBIDDEN,
@@ -76,12 +75,6 @@ function parseComparison(body: unknown): EvalComparison | null {
   return { metrics: pairs, changed_cases: cases }
 }
 
-// The staff session's CSRF token, which every state-changing staff request repeats.
-async function csrfHeaders(): Promise<Record<string, string>> {
-  const { data } = await fetchClient.GET('/api/v1/auth/me')
-  return data ? { [CSRF_HEADER]: data.csrf_token } : {}
-}
-
 const outcomeOf = (response: Response): EvalOutcome => {
   if (response.ok) {
     return 'done'
@@ -89,14 +82,21 @@ const outcomeOf = (response: Response): EvalOutcome => {
   return response.status === HTTP_UNAUTHORIZED ? 'expired' : 'failed'
 }
 
-async function start(dataset: string): Promise<EvalOutcome> {
+function startWith(headers: Record<string, string>, dataset: string): Promise<Response> {
+  return fetch(EVAL_RUNS_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify({ dataset }),
+  })
+}
+
+// Every write repeats the session's CSRF token; no session means it ended, and nothing is sent.
+async function write(
+  call: (headers: Record<string, string>) => Promise<EvalOutcome>,
+): Promise<EvalOutcome> {
   try {
-    const response = await fetch(EVAL_RUNS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(await csrfHeaders()) },
-      body: JSON.stringify({ dataset }),
-    })
-    return outcomeOf(response)
+    const headers = await csrfHeaders()
+    return headers ? await call(headers) : 'expired'
   } catch {
     return 'failed'
   }
@@ -133,25 +133,22 @@ export const apiEval: EvalApi = {
       return null
     }
   },
-  start,
-  async upload(file) {
-    try {
+  start: (dataset) => write(async (headers) => outcomeOf(await startWith(headers, dataset))),
+  upload: (file) =>
+    write(async (headers) => {
       const form = new FormData()
       form.append('file', file)
       const response = await fetch(EVAL_DATASETS_ENDPOINT, {
         method: 'POST',
-        headers: await csrfHeaders(),
+        headers,
         body: form,
       })
       const body: unknown = response.ok ? await response.json() : null
       if (!(isRecord(body) && isId(body['id']))) {
-        return outcomeOf(response) === 'expired' ? 'expired' : 'failed'
+        return outcomeOf(response) === 'done' ? 'failed' : outcomeOf(response)
       }
-      return await start(body['id'])
-    } catch {
-      return 'failed'
-    }
-  },
+      return outcomeOf(await startWith(headers, body['id']))
+    }),
   async compare(a, b) {
     try {
       const query = new URLSearchParams({ a, b })
