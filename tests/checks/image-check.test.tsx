@@ -49,6 +49,7 @@ function fakeApi(t: TestContext, ...answers: Answer[]) {
 
 function renderPage(): string[] {
   const opened: string[] = []
+  const onAccepted = opened.push.bind(opened)
   render(
     <CheckPage
       sender={apiCheckSender}
@@ -58,7 +59,7 @@ function renderPage(): string[] {
       reader={apiResultReader}
       progress={apiProgressSource}
       handoff={apiHandoff}
-      onAccepted={opened.push.bind(opened)}
+      onAccepted={onAccepted}
     />,
   )
   return opened

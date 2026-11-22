@@ -146,6 +146,7 @@ function Thumbnail({ file }: { file: File }) {
   const url = useMemo(() => URL.createObjectURL(file), [file])
   useEffect(() => () => URL.revokeObjectURL(url), [url])
   return (
+    // biome-ignore lint/performance/noImgElement: a blob preview of the chosen file, nothing to optimise
     <img
       src={url}
       alt={fill(t.conversation.image_question, { name: file.name })}
