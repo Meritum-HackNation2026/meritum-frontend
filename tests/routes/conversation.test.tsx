@@ -31,6 +31,9 @@ class SilentEventSource {
 function fakeApi(t: TestContext) {
   const fetch = t.mock.method(globalThis, 'fetch', (input: unknown) => {
     const path = requestPath(input)
+    if (path === '/api/v1/audio') {
+      return Promise.resolve(new Response(JSON.stringify({ audio_id: 'a_01' }), { status: 201 }))
+    }
     if (path === '/api/v1/checks') {
       return Promise.resolve(new Response(JSON.stringify({ check_id: 'c_01' }), { status: 202 }))
     }
@@ -131,3 +134,38 @@ test('a result address shows the earlier turns of this tab above its own check',
   assert.ok(await within(turns[1] as HTMLElement).findByText(pl.analysis.title))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
+
+for (const [kind, send, question] of [
+  [
+    'a pasted link',
+    () => {
+      const field = screen.getByLabelText(pl.form.input_label)
+      fireEvent.change(field, { target: { value: 'https://example.com/artykul' } })
+      fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
+    },
+    'https://example.com/artykul',
+  ],
+  [
+    'a recording',
+    () => {
+      const file = new File(['ID3'], 'wywiad.mp3', { type: 'audio/mpeg' })
+      const picker = screen.getByLabelText(pl.conversation.attach_audio)
+      fireEvent.change(picker, { target: { files: [file] } })
+      fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
+    },
+    'Nagranie: wywiad.mp3',
+  ],
+] as const) {
+  test(`${kind} stands in the thread as the question above Meritum’s steps`, async (t) => {
+    fakeApi(t)
+    const router = renderAt('/')
+    await screen.findByLabelText(pl.form.input_label)
+    send()
+    await waitFor(() => assert.equal(router.state.location.pathname, '/sprawdzenie/c_01'))
+    const [turn] = turnsOf(await thread()) as [HTMLElement]
+    const shown = within(turn).getByText(question)
+    const steps = await within(turn).findByText(pl.analysis.title)
+    assert.ok(shown.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING)
+    await waitFor(() => assert.equal(router.state.status, 'idle'))
+  })
+}
