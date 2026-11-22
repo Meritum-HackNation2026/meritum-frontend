@@ -1,6 +1,13 @@
 import type { NotificationsApi } from '@/notifications'
 import { sessionId } from './_session'
-import { NOTIFICATIONS_ENDPOINT, SESSION_HEADER, SESSION_QUERY_PARAM } from './constants'
+import {
+  NOTIFICATIONS_ENDPOINT,
+  NOTIFICATIONS_MAX_RETRIES,
+  NOTIFICATIONS_RETRY_MS,
+  NOTIFICATIONS_STABLE_MS,
+  SESSION_HEADER,
+  SESSION_QUERY_PARAM,
+} from './constants'
 
 const parse = (data: string): unknown => {
   try {
@@ -32,7 +39,9 @@ const send = async (path: string, method: 'GET' | 'POST' | 'DELETE'): Promise<Re
 
 /**
  * Notifications API of meritum-backend for this tab's session: server-sent events through
- * `EventSource` and the inbox over `fetch`. Never throws: an unreachable API is an empty inbox.
+ * `EventSource` and the inbox over `fetch`. Never throws: an unreachable API is an empty inbox,
+ * and a stream that keeps failing is retried `NOTIFICATIONS_MAX_RETRIES` times with a doubling
+ * pause, then left closed; only a stream open for `NOTIFICATIONS_STABLE_MS` resets the count.
  *
  * @feature US-POW-01, US-POW-04, F-26
  */
@@ -43,14 +52,41 @@ export const apiNotifications: NotificationsApi = {
       return () => undefined
     }
     const query = new URLSearchParams({ [SESSION_QUERY_PARAM]: sessionId() })
-    const source = new EventSource(`${NOTIFICATIONS_ENDPOINT}/stream?${query}`)
-    source.onmessage = (event: MessageEvent<string>) => {
-      const value = parse(event.data)
-      if (!isForOtherSession(value)) {
-        onEvent(value)
+    let source: EventSource
+    let retry: ReturnType<typeof setTimeout> | undefined
+    let failures = 0
+    let openedAt: number | undefined
+    const open = () => {
+      openedAt = undefined
+      source = new EventSource(`${NOTIFICATIONS_ENDPOINT}/stream?${query}`)
+      source.onopen = () => {
+        openedAt = Date.now()
+      }
+      source.onmessage = (event: MessageEvent<string>) => {
+        const value = parse(event.data)
+        if (!isForOtherSession(value)) {
+          onEvent(value)
+        }
+      }
+      // The browser would reconnect a dropped stream every few seconds forever; close it
+      // and retry with a doubling pause, then give up (no worker, a 404 or 502 by a proxy).
+      source.onerror = () => {
+        source.close()
+        const wasStable = openedAt !== undefined && Date.now() - openedAt >= NOTIFICATIONS_STABLE_MS
+        if (wasStable) {
+          failures = 0
+        }
+        if (failures < NOTIFICATIONS_MAX_RETRIES) {
+          retry = setTimeout(open, NOTIFICATIONS_RETRY_MS * 2 ** failures)
+          failures += 1
+        }
       }
     }
-    return () => source.close()
+    open()
+    return () => {
+      clearTimeout(retry)
+      source.close()
+    }
   },
   async list() {
     const response = await send('', 'GET')

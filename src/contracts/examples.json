@@ -5,6 +5,7 @@
   "CheckResult.done": {
     "check_id": "c_01",
     "status": "done",
+    "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "limitations": ["Sprawdziliśmy tylko tekst Konstytucji RP w korpusie. Nie oceniamy planowanych zmian prawa."],
     "claims": [
@@ -51,6 +52,7 @@
   "CheckResult.abstain": {
     "check_id": "c_02",
     "status": "done",
+    "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "limitations": ["Korpus i wyszukiwanie w zatwierdzonych serwisach nie zawierają jeszcze publikacji na ten temat."],
     "claims": [
@@ -60,7 +62,8 @@
         "verdict": "insufficient_evidence",
         "citations": [],
         "explanation": "Nie znaleźliśmy żadnej publikacji z zatwierdzonych źródeł, która by to potwierdzała albo obalała.",
-        "unresolved": "Czy takie zdarzenie miało miejsce i kto je ogłosił."
+        "unresolved": "Czy takie zdarzenie miało miejsce i kto je ogłosił.",
+        "would_change_verdict": ["needs_named_source"]
       }
     ],
     "escalation": { "state": "created", "case_id": "#S-1" }
@@ -68,6 +71,7 @@
   "CheckResult.claim_review": {
     "check_id": "c_04",
     "status": "done",
+    "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "transcript": "Prezydent w Polsce może rządzić trzy kadencje.",
     "limitations": ["Nie przeszukaliśmy obrazów: nagranie nie zawiera zdjęć."],
@@ -103,8 +107,17 @@
     "corpus_version": "2026-11-21.1",
     "message": "Nie udało się przeszukać źródeł: usługa wyszukiwania nie odpowiada. To nie jest ocena treści. Spróbuj za kilka minut."
   },
+  "CheckResult.audio_rejected": {
+    "check_id": "c_05",
+    "status": "out_of_scope",
+    "corpus_version": "2026-11-21.1",
+    "message": "Nagranie w nieobsługiwanym formacie.",
+    "limitations": ["Nie sprawdziliśmy nagrania: ten format nie jest obsługiwany."],
+    "limitation_codes": ["audio_format_unsupported"]
+  },
   "CachedResult": {
     "status": "done",
+    "ai_marker": { "ai_generated": true, "provider": "vertex", "model": "gemini-2.0-flash-001", "generated_at": "2026-11-21T14:02:20+01:00" },
     "corpus_version": "2026-11-21.1",
     "limitations": ["Korpus i wyszukiwanie w zatwierdzonych serwisach nie zawierają jeszcze publikacji na ten temat."],
     "claims": [
@@ -114,7 +127,8 @@
         "verdict": "insufficient_evidence",
         "citations": [],
         "explanation": "Nie znaleźliśmy żadnej publikacji z zatwierdzonych źródeł, która by to potwierdzała albo obalała.",
-        "unresolved": "Czy takie zdarzenie miało miejsce i kto je ogłosił."
+        "unresolved": "Czy takie zdarzenie miało miejsce i kto je ogłosił.",
+        "would_change_verdict": ["needs_named_source"]
       }
     ],
     "source_ids": [],

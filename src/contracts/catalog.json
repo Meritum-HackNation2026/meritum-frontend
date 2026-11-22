@@ -644,7 +644,9 @@
       "max_age_hours": null,
       "qualified_because": "Sygnatariusz IFCN, bez blokad dla robotów, z RSS i mapą strony.",
       "tdm_reservation": "none",
-      "signatory_of": [],
+      "signatory_of": [
+        "ifcn"
+      ],
       "excluded": false,
       "exclusion_reason": null
     },
@@ -662,7 +664,10 @@
       "max_age_hours": null,
       "qualified_because": "Sygnatariusz IFCN, bez blokad dla robotów, z RSS i mapą strony.",
       "tdm_reservation": "none",
-      "signatory_of": [],
+      "signatory_of": [
+        "ifcn",
+        "efcsn"
+      ],
       "excluded": false,
       "exclusion_reason": null
     },
@@ -716,7 +721,10 @@
       "max_age_hours": null,
       "qualified_because": "Sygnatariusz IFCN; ocena wchodzi tylko przez Fact Check API.",
       "tdm_reservation": "reserved",
-      "signatory_of": [],
+      "signatory_of": [
+        "ifcn",
+        "efcsn"
+      ],
       "excluded": true,
       "exclusion_reason": "Content-Signal ai-train=no, use=reference i blokady botów AI w robots.txt: nie pobieramy treści, tylko ocena z Fact Check API."
     },
@@ -734,7 +742,10 @@
       "max_age_hours": null,
       "qualified_because": "Sygnatariusz IFCN; ocena wchodzi tylko przez Fact Check API.",
       "tdm_reservation": "unknown",
-      "signatory_of": [],
+      "signatory_of": [
+        "ifcn",
+        "efcsn"
+      ],
       "excluded": false,
       "exclusion_reason": null
     },

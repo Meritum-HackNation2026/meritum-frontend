@@ -2,7 +2,8 @@ import type { ModeratorCase } from '@/contracts/meritum'
 
 /**
  * What a hand-off to the moderators gave: the number of the saved case (created or joined,
- * shown the same), or the `errors` key of copy/pl.json when no case was saved.
+ * shown the same), or why no case was saved: an `errors` key of copy/pl.json, or `not_saved`
+ * (`escalation.not_saved`) when the server failed or answered without a case.
  *
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
@@ -11,7 +12,7 @@ export type HandoffOutcome =
   | 'rate_limited_handoff'
   | 'handoff_not_found'
   | 'handoff_rejected'
-  | 'busy'
+  | 'not_saved'
   | 'offline'
 
 /**

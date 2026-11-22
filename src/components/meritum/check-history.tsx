@@ -22,8 +22,13 @@ const TIME = new Intl.DateTimeFormat("pl-PL", { hour: "2-digit", minute: "2-digi
 /**
  * "Twoje sprawdzenia" under the form (DESIGN_SYSTEM.md 6.1, points 5 and 6): newest first, a click opens the result.
  * Anonymous history lives in sessionStorage, signed-in history on the server; sign-in is optional.
+ * Without `account` (or with `account={false}`) the sign-in block is left out, for a page without accounts (design-system#74).
+ *
+ * @param props - History items, optional account (`false` or left out: no sign-in block), `onOpen` and optional CSS class.
+ * @returns The history section.
+ * @feature US-BEZ-05, F-20
  */
-export function CheckHistory({ items, account, onOpen, className }: { items: HistoryItem[]; account: Account; onOpen: (checkId: string) => void; className?: string }) {
+export function CheckHistory({ items, account, onOpen, className }: { items: HistoryItem[]; account?: Account | false; onOpen: (checkId: string) => void; className?: string }) {
   return (
     <section aria-labelledby="meritum-history" className={cn("grid min-w-0 max-w-[720px] gap-2 font-sans", className)}>
       <h2 id="meritum-history" className="text-body font-bold">
@@ -50,36 +55,38 @@ export function CheckHistory({ items, account, onOpen, className }: { items: His
           ))}
         </ul>
       )}
-      <p className="text-meta text-muted-foreground text-pretty">{account.signedIn ? t.history.account_note : t.history.session_note}</p>
+      <p className="text-meta text-muted-foreground text-pretty">{account && account.signedIn ? t.history.account_note : t.history.session_note}</p>
 
-      <div className="mt-2 grid gap-2">
-        {account.signedIn ? (
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" className="rounded-pill" onClick={account.onDeleteHistory}>
-              {t.history.delete}
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-pill" onClick={account.onSignOut}>
-              {t.account.sign_out}
-            </Button>
-            <Button size="sm" variant="ghost" className="rounded-pill text-scam-foreground" onClick={account.onDeleteAccount}>
-              {t.account.delete_account}
-            </Button>
-          </div>
-        ) : (
-          <>
-            <p className="text-small text-pretty">{t.account.optional}</p>
+      {account && (
+        <div className="mt-2 grid gap-2">
+          {account.signedIn ? (
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" className="rounded-pill" onClick={() => account.onSignIn("google")}>
-                {t.account.sign_in_google}
+              <Button size="sm" variant="outline" className="rounded-pill" onClick={account.onDeleteHistory}>
+                {t.history.delete}
               </Button>
-              <Button size="sm" variant="outline" className="rounded-pill" onClick={() => account.onSignIn("microsoft")}>
-                {t.account.sign_in_microsoft}
+              <Button size="sm" variant="outline" className="rounded-pill" onClick={account.onSignOut}>
+                {t.account.sign_out}
+              </Button>
+              <Button size="sm" variant="ghost" className="rounded-pill text-scam-foreground" onClick={account.onDeleteAccount}>
+                {t.account.delete_account}
               </Button>
             </div>
-          </>
-        )}
-        <p className="text-meta text-muted-foreground text-pretty">{t.account.stored}</p>
-      </div>
+          ) : (
+            <>
+              <p className="text-small text-pretty">{t.account.optional}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" className="rounded-pill" onClick={() => account.onSignIn("google")}>
+                  {t.account.sign_in_google}
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-pill" onClick={() => account.onSignIn("microsoft")}>
+                  {t.account.sign_in_microsoft}
+                </Button>
+              </div>
+            </>
+          )}
+          <p className="text-meta text-muted-foreground text-pretty">{t.account.stored}</p>
+        </div>
+      )}
     </section>
   )
 }

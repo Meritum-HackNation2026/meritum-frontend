@@ -90,6 +90,31 @@ export const STEP_STATUSES = {
 export const NOTIFICATIONS_ENDPOINT = '/api/v1/notifications'
 
 /**
+ * Pause before the notification stream is opened again after its first failure; it doubles
+ * with each failure in a row, so a missing worker or endpoint is not asked every few seconds.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const NOTIFICATIONS_RETRY_MS = 1000
+
+/**
+ * Reconnects of the notification stream after failures in a row (1, 2, 4 and 8 s apart); after
+ * the next failure it stays closed until the page loads again. Only a stream open for
+ * `NOTIFICATIONS_STABLE_MS` resets the count, so one event before each drop does not.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const NOTIFICATIONS_MAX_RETRIES = 4
+
+/**
+ * How long the notification stream must stay open to count as working: a proxy that drops a
+ * quiet stream now and then never uses up the retries, a stream that drops at once does.
+ *
+ * @feature US-POW-01, F-26
+ */
+export const NOTIFICATIONS_STABLE_MS = 30_000
+
+/**
  * Query parameter carrying the session id on the notification stream, because `EventSource`
  * cannot send the session header.
  *
@@ -172,7 +197,7 @@ const HTTP_UNPROCESSABLE_CONTENT = 422
 /**
  * Refusals of the hand-off endpoints by HTTP status: 429 the hand-off limit, 404 a check that is
  * gone or has no such claim, 422 a justification the API refused; any other answer without a
- * saved case is `busy`.
+ * saved case is `not_saved`.
  *
  * @feature US-MOD-03, US-MOD-06, F-24, F-17, ADR-22
  */
@@ -180,4 +205,4 @@ export const HANDOFF_REFUSALS = {
   [HTTP_TOO_MANY_REQUESTS]: 'rate_limited_handoff',
   [HTTP_NOT_FOUND]: 'handoff_not_found',
   [HTTP_UNPROCESSABLE_CONTENT]: 'handoff_rejected',
-} as const satisfies Record<number, Exclude<HandoffOutcome, object | 'busy' | 'offline'>>
+} as const satisfies Record<number, Exclude<HandoffOutcome, object | 'not_saved' | 'offline'>>
