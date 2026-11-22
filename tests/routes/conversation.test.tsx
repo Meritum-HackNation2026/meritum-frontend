@@ -61,10 +61,10 @@ const thread = () => screen.findByRole('list', { name: pl.conversation.label })
 /** The thread's own turns; the analysis steps inside a turn are a list too. */
 const turnsOf = (list: HTMLElement) => Array.from(list.children) as HTMLElement[]
 
-test('puste wejście: a welcome, the example claims to click and the message field', async (t) => {
+test('nowe sprawdzenie: the title, the example claims to click and the message field', async (t) => {
   fakeApi(t)
-  const router = renderAt('/')
-  assert.ok(await screen.findByText(pl.brand.taglines[0] ?? ''))
+  const router = renderAt('/sprawdz')
+  assert.ok(await screen.findByRole('heading', { level: 1, name: pl.form.title }))
   for (const claim of pl.conversation.examples) {
     assert.ok(screen.getByRole('button', { name: `„${claim}”` }))
   }
@@ -75,7 +75,7 @@ test('puste wejście: a welcome, the example claims to click and the message fie
 
 test('a clicked example is sent as the question and the steps follow it in the thread', async (t) => {
   const fetch = fakeApi(t)
-  const router = renderAt('/')
+  const router = renderAt('/sprawdz')
   const [claim = ''] = pl.conversation.examples
   fireEvent.click(await screen.findByRole('button', { name: `„${claim}”` }))
   await waitFor(() => assert.equal(router.state.location.pathname, '/sprawdzenie/c_01'))
@@ -91,7 +91,7 @@ test('a clicked example is sent as the question and the steps follow it in the t
 
 test('sprawdzenie wygląda jak rozmowa: the sent text stands above Meritum’s steps', async (t) => {
   fakeApi(t)
-  const router = renderAt('/')
+  const router = renderAt('/sprawdz')
   const text = 'Od stycznia nie zapłacisz w sklepie gotówką'
   fireEvent.change(await screen.findByLabelText(pl.form.input_label), { target: { value: text } })
   fireEvent.click(screen.getByRole('button', { name: pl.form.submit }))
@@ -112,7 +112,7 @@ test('historia sesji to wątek: two checks are two question–answer turns, olde
   saveCheck(done)
   rememberQuestion(abstain.check_id, 'Drugie pytanie')
   saveCheck(abstain)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${abstain.check_id}`)
   const turns = turnsOf(await thread())
   assert.equal(turns.length, 2)
   const [first, second] = turns as [HTMLElement, HTMLElement]
@@ -159,7 +159,7 @@ for (const [kind, send, question] of [
 ] as const) {
   test(`${kind} stands in the thread as the question above Meritum’s steps`, async (t) => {
     fakeApi(t)
-    const router = renderAt('/')
+    const router = renderAt('/sprawdz')
     await screen.findByLabelText(pl.form.input_label)
     send()
     await waitFor(() => assert.equal(router.state.location.pathname, '/sprawdzenie/c_01'))

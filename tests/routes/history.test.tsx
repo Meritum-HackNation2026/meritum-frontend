@@ -55,7 +55,7 @@ function renderAt(path: string) {
 test('powrót do wyniku: a kept check shows its card in the thread without asking the API', async (t) => {
   const fetch = fakeApi(t)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   const thread = await screen.findByRole('list', { name: pl.conversation.label })
   assert.ok(within(thread).getByText(done.claims?.[0]?.claim ?? ''))
   assert.ok(within(thread).getByText(pl.verdict.false))
@@ -74,7 +74,7 @@ test('usunięcie sprawdzeń: the API, sessionStorage and the inbox are emptied',
   const fetch = fakeApi(t)
   rememberQuestion(done.check_id, 'Czy prezydent może rządzić trzy kadencje?')
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.channel_privacy.deleted))
   // the citizen's own questions go too, or they would come back as turns on reload
@@ -90,7 +90,7 @@ test('usunięcie sprawdzeń: the API, sessionStorage and the inbox are emptied',
 test('„Anuluj” closes the dialog and deletes nothing', async (t) => {
   const fetch = fakeApi(t)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   await confirmDelete(pl.form.delete_session_cancel)
   await waitFor(() => assert.equal(screen.queryByRole('alertdialog'), null))
   assert.ok(!calls(fetch).some((call) => call.startsWith('DELETE')))
@@ -101,7 +101,7 @@ test('„Anuluj” closes the dialog and deletes nothing', async (t) => {
 test('a refused deletion says so and keeps the history to try again', async (t) => {
   const fetch = fakeApi(t, 503)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.extension.popup_delete_failed))
   assert.ok(!calls(fetch).includes('DELETE /api/v1/notifications'))
@@ -124,7 +124,7 @@ test('deleting on a result address empties the thread there and says so', async 
 test('Esc closes the dialog and gives focus back to „Usuń moje sprawdzenia”', async (t) => {
   fakeApi(t)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   const trigger = await screen.findByRole('button', { name: pl.form.delete_session })
   trigger.focus()
   fireEvent.click(trigger)
@@ -137,7 +137,7 @@ test('Esc closes the dialog and gives focus back to „Usuń moje sprawdzenia”
 
 test('the tab title names the page', async (t) => {
   fakeApi(t)
-  const router = renderAt('/')
+  const router = renderAt('/sprawdz')
   await waitFor(() => assert.equal(document.title, `${pl.form.title} · ${pl.brand.name}`))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })

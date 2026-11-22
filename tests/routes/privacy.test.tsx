@@ -104,8 +104,8 @@ test('the website policy describes Google or Microsoft sign-in and its OAuth sco
   }
 })
 
-test('the home page shows the AI notice with the privacy link', async () => {
-  const history = createMemoryHistory({ initialEntries: ['/'] })
+test('the new check page shows the AI notice with the privacy link', async () => {
+  const history = createMemoryHistory({ initialEntries: ['/sprawdz'] })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, enabled: false } } })
   render(
     <QueryClientProvider client={client}>

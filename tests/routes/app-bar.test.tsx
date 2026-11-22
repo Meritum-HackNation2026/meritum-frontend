@@ -46,7 +46,7 @@ test('the bar shows the logotype, both links with icons, the bell and „Zaloguj
   const nav = within(bar).getByRole('navigation', { name: pl.nav.menu })
   const check = within(nav).getByRole('link', { name: pl.nav.check })
   const how = within(nav).getByRole('link', { name: pl.nav.how })
-  assert.equal(check.getAttribute('href'), '/')
+  assert.equal(check.getAttribute('href'), '/sprawdz')
   assert.equal(how.getAttribute('href'), '/jak-dziala')
   assert.ok(check.querySelector('svg') && how.querySelector('svg'), 'each link has an icon')
   assert.equal(how.getAttribute('aria-current'), 'page')
@@ -86,7 +86,7 @@ test('on a phone the menu in the bar holds the same two links', async (t) => {
   assert.deepEqual(
     links.map((link) => [link.textContent, link.getAttribute('href')]),
     [
-      [pl.nav.check, '/'],
+      [pl.nav.check, '/sprawdz'],
       [pl.nav.how, '/jak-dziala'],
     ],
   )
