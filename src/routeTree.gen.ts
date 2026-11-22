@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JakDzialaRouteImport } from './routes/jak-dziala'
+import { Route as OdpowiedziCaseIdRouteImport } from './routes/odpowiedzi/$caseId'
 import { Route as PanelIndexRouteImport } from './routes/panel/index'
 import { Route as PanelAdministracjaRouteImport } from './routes/panel/administracja'
 import { Route as PanelEvalRouteImport } from './routes/panel/eval'
@@ -28,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
 const JakDzialaRoute = JakDzialaRouteImport.update({
   id: '/jak-dziala',
   path: '/jak-dziala',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OdpowiedziCaseIdRoute = OdpowiedziCaseIdRouteImport.update({
+  id: '/odpowiedzi/$caseId',
+  path: '/odpowiedzi/$caseId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PanelIndexRoute = PanelIndexRouteImport.update({
@@ -74,6 +80,7 @@ const SprawdzenieCheckIdRoute = SprawdzenieCheckIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
   '/panel/eval': typeof PanelEvalRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
   '/panel/eval': typeof PanelEvalRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
   '/panel/eval': typeof PanelEvalRoute
   '/prywatnosc/discord': typeof PrywatnoscDiscordRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/jak-dziala'
+    | '/odpowiedzi/$caseId'
     | '/panel/administracja'
     | '/panel/eval'
     | '/prywatnosc/discord'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/jak-dziala'
+    | '/odpowiedzi/$caseId'
     | '/panel/administracja'
     | '/panel/eval'
     | '/prywatnosc/discord'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/jak-dziala'
+    | '/odpowiedzi/$caseId'
     | '/panel/administracja'
     | '/panel/eval'
     | '/prywatnosc/discord'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JakDzialaRoute: typeof JakDzialaRoute
+  OdpowiedziCaseIdRoute: typeof OdpowiedziCaseIdRoute
   PanelAdministracjaRoute: typeof PanelAdministracjaRoute
   PanelEvalRoute: typeof PanelEvalRoute
   PrywatnoscDiscordRoute: typeof PrywatnoscDiscordRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/jak-dziala'
       fullPath: '/jak-dziala'
       preLoaderRoute: typeof JakDzialaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/odpowiedzi/$caseId': {
+      id: '/odpowiedzi/$caseId'
+      path: '/odpowiedzi/$caseId'
+      fullPath: '/odpowiedzi/$caseId'
+      preLoaderRoute: typeof OdpowiedziCaseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/panel/': {
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JakDzialaRoute: JakDzialaRoute,
+  OdpowiedziCaseIdRoute: OdpowiedziCaseIdRoute,
   PanelAdministracjaRoute: PanelAdministracjaRoute,
   PanelEvalRoute: PanelEvalRoute,
   PrywatnoscDiscordRoute: PrywatnoscDiscordRoute,

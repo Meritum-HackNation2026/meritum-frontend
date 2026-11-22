@@ -8,6 +8,10 @@
       "Każde ustalenie ma źródło. Gdy źródeł brak, mówimy to wprost."
     ]
   },
+  "layout": {
+    "$comment": "Page frame shared by every route. skip_to_content is the first focusable link on each page and moves focus to <main> (meritum-frontend#89).",
+    "skip_to_content": "Przejdź do treści"
+  },
   "form": {
     "$comment": "audio_transcription_warning is shown next to the audio field before sending; result.transcript_hint is shown on the result card next to the transcript (meritum-frontend#22, frontend/007). audio_provider, audio_cost and audio_retention sit under the audio field; {days} is the same check-record retention as in form.privacy (design-system#69). delete_session_* confirm „Usuń moje sprawdzenia” on the page (design-system#74).",
     "title": "Sprawdź informację",
@@ -117,6 +121,7 @@
   },
   "result": {
     "label": "Meritum",
+    "page_title": "Wynik sprawdzenia",
     "claims_title": "Co sprawdziliśmy",
     "claim": "Twierdzenie",
     "explanation": "Wyjaśnienie",
@@ -393,6 +398,17 @@
       "citation_not_verbatim": "Cytat {n} nie przeszedł weryfikacji: tego fragmentu nie ma dosłownie w tekście źródła. Popraw go albo usuń. Odpowiedź nie została wysłana.",
       "sources_failed": "Nie udało się wczytać źródeł z katalogu. Odśwież stronę.",
       "not_sent": "Nie udało się wysłać odpowiedzi. Twoje wpisy zostały. Spróbuj jeszcze raz."
+    },
+    "asker_answer": {
+      "$comment": "The moderator's answer as the asker reads it at /odpowiedzi/{case_id} (meritum-frontend#85, US-MOD-07, F-39). Never names who else asked.",
+      "title": "Odpowiedź moderatora",
+      "loading": "Wczytujemy odpowiedź…",
+      "citations_title": "Cytaty ze źródeł",
+      "note": "Tę odpowiedź dostają tylko osoby, które pytały. Nie jest publiczna.",
+      "not_found_title": "Nie ma tu odpowiedzi",
+      "not_found": "Nie znaleźliśmy odpowiedzi do tej sprawy dla tej przeglądarki. Odpowiedź otwiera się tylko tam, gdzie przyszło powiadomienie.",
+      "error": "Nie udało się wczytać odpowiedzi. Sprawdź połączenie i spróbuj jeszcze raz.",
+      "retry": "Spróbuj jeszcze raz"
     }
   },
   "staff": {
