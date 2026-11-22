@@ -1,4 +1,4 @@
-import { ArrowUp, Mic, X } from "lucide-react"
+import { ArrowUp, ImageIcon, Mic, X } from "lucide-react"
 import { type FormEvent, type KeyboardEvent, type ReactNode, useId, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -132,23 +132,42 @@ export function Welcome({
 }
 
 /**
- * A recording attached to the composer (6.8): the file name, a remove button and, as `children`, what happens to
- * the recording (provider, cost, retention, limits, transcription warning) and its refusals, shown before it is sent.
+ * A file attached to the composer (6.8): a recording (`kind="audio"`, the default) or a screenshot or photo
+ * (`kind="image"`). It shows the kind's icon, or the app's `preview` (a thumbnail of the image), the file name,
+ * the kind's remove button and, as `children`, what happens to the file (provider, cost, retention, limits,
+ * warnings) and its refusals, shown before it is sent.
  *
- * @param props - The file `name`, `onRemove`, the notes and errors as `children`, `disabled` while it is sent.
+ * @param props - `kind`, the file `name`, `onRemove`, an optional `preview` in place of the icon, the notes and
+ *   errors as `children`, `disabled` while it is sent.
  * @returns The attachment.
- * @feature US-SPR-11, F-08
+ * @feature US-SPR-11, US-SPR-08, F-08, F-33
  */
-export function Attachment({ name, onRemove, children, disabled = false }: { name: string; onRemove: () => void; children?: ReactNode; disabled?: boolean }) {
+export function Attachment({
+  kind = "audio",
+  name,
+  onRemove,
+  preview,
+  children,
+  disabled = false,
+}: {
+  kind?: "audio" | "image"
+  name: string
+  onRemove: () => void
+  preview?: ReactNode
+  children?: ReactNode
+  disabled?: boolean
+}) {
+  const Icon = kind === "image" ? ImageIcon : Mic
+  const removeLabel = kind === "image" ? t.conversation.remove_image : t.conversation.remove_audio
   return (
     <div className="grid gap-2 px-2 pt-1 font-sans">
-      <p className="flex min-w-0 items-center gap-2 text-body">
-        <Mic aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+      <div className="flex min-w-0 items-center gap-2 text-body">
+        {preview ?? <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />}
         <span className="min-w-0 flex-1 truncate">{name}</span>
-        <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={onRemove} aria-label={t.conversation.remove_audio} className={cn("size-10 rounded-pill", FOCUS)}>
+        <Button type="button" variant="ghost" size="icon" disabled={disabled} onClick={onRemove} aria-label={removeLabel} className={cn("size-10 rounded-pill", FOCUS)}>
           <X aria-hidden="true" className="size-4" />
         </Button>
-      </p>
+      </div>
       {children && <div className="grid gap-1 text-small text-muted-foreground text-pretty">{children}</div>}
     </div>
   )

@@ -1,14 +1,24 @@
-import { ImagePlus, X } from 'lucide-react'
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fill, t } from '@/components/meritum'
-import { Button } from '@/components/ui/button'
+import { ImagePlus } from 'lucide-react'
+import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { Attachment, fill, t } from '@/components/meritum'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { ErrorKey } from './_request'
-import { IMAGE_ACCEPT, IMAGE_FORMATS, MAX_IMAGE_BYTES, MAX_IMAGE_MB } from './constants'
+import {
+  IMAGE_ACCEPT,
+  IMAGE_FORMATS,
+  MAX_IMAGE_BYTES,
+  MAX_IMAGE_MB,
+  RETENTION_DAYS,
+} from './constants'
 import type { CheckSender, ImageOutcome, ImageUploader } from './ports'
 
 const limits = { max_mb: MAX_IMAGE_MB, formats: IMAGE_FORMATS.join(', ') }
-const aboutLines = [t.form.image_note, fill(t.form.image_limits, limits)]
+const aboutLines = [
+  t.form.image_note,
+  fill(t.form.image_limits, limits),
+  t.form.image_cost,
+  fill(t.form.image_retention, { days: RETENTION_DAYS }),
+]
 
 /** Uploads the file, then starts a check of its `image_id`; the first refusal ends it. */
 async function checkImage(
@@ -143,8 +153,16 @@ export function ImageButton({ image }: { image: ImageCheck }) {
 
 /** A small preview of the chosen file; it is only read in the browser until „Sprawdź”. */
 function Thumbnail({ file }: { file: File }) {
-  const url = useMemo(() => URL.createObjectURL(file), [file])
-  useEffect(() => () => URL.revokeObjectURL(url), [url])
+  // created in the effect, so StrictMode's second run does not keep a revoked URL
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    const created = URL.createObjectURL(file)
+    setUrl(created)
+    return () => URL.revokeObjectURL(created)
+  }, [file])
+  if (!url) {
+    return null
+  }
   return (
     // biome-ignore lint/performance/noImgElement: a blob preview of the chosen file, nothing to optimise
     <img
@@ -156,8 +174,8 @@ function Thumbnail({ file }: { file: File }) {
 }
 
 /**
- * The chosen image in place of the text field: its preview and name, „Usuń obraz”, the scope
- * note and the limits, shown before it is sent; a size, format or rate-limit refusal shows
+ * The chosen image in place of the text field, in the design system's `Attachment`: its preview
+ * and name, „Usuń obraz”, the scope note, limits, cost and retention, shown before it is sent; a size, format or rate-limit refusal shows
  * under them.
  *
  * @param props.image - The image state from `useImageCheck`.
@@ -170,23 +188,14 @@ export function ImageAttachment({ image }: { image: ImageCheck }) {
     return null
   }
   return (
-    <div className="grid gap-2 px-2 pt-1 font-sans">
-      <div className="flex min-w-0 items-center gap-2 text-body">
-        <Thumbnail file={file} />
-        <span className="min-w-0 flex-1 truncate">{file.name}</span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          disabled={pending}
-          onClick={remove}
-          aria-label={t.conversation.remove_image}
-          className="size-10 rounded-pill focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          <X aria-hidden="true" className="size-4" />
-        </Button>
-      </div>
-      <div className="grid max-h-28 gap-1 overflow-y-auto text-small text-muted-foreground text-pretty sm:max-h-none">
+    <Attachment
+      kind="image"
+      name={file.name}
+      onRemove={remove}
+      disabled={pending}
+      preview={<Thumbnail file={file} />}
+    >
+      <div className="grid max-h-28 gap-1 overflow-y-auto sm:max-h-none">
         {aboutLines.map((line) => (
           <p key={line}>{line}</p>
         ))}
@@ -196,6 +205,6 @@ export function ImageAttachment({ image }: { image: ImageCheck }) {
           {fill(t.errors[refusal], limits)}
         </p>
       )}
-    </div>
+    </Attachment>
   )
 }

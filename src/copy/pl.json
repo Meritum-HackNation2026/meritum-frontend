@@ -13,7 +13,7 @@
     "skip_to_content": "Przejdź do treści"
   },
   "form": {
-    "$comment": "audio_transcription_warning is shown next to the audio field before sending; result.transcript_hint is shown on the result card next to the transcript (meritum-frontend#22, frontend/007). audio_provider, audio_cost and audio_retention sit under the audio field; {days} is the same check-record retention as in form.privacy (design-system#69). delete_session_* confirm „Usuń moje sprawdzenia” on the page (design-system#74).",
+    "$comment": "audio_transcription_warning is shown next to the audio field before sending; result.transcript_hint is shown on the result card next to the transcript (meritum-frontend#22, frontend/007). audio_provider, audio_cost and audio_retention sit under the audio field; {days} is the same check-record retention as in form.privacy (design-system#69). image_cost and image_retention sit under the image field the same way. delete_session_* confirm „Usuń moje sprawdzenia” on the page (design-system#74).",
     "title": "Sprawdź informację",
     "lead": "Wklej tekst albo link. Sprawdzimy twierdzenia w opisanych źródłach i pokażemy, na czym opieramy odpowiedź.",
     "input_label": "Tekst albo link",
@@ -35,7 +35,9 @@
     "audio_retention": "Plik nagrania i transkrypcję usuwamy razem z zapisem sprawdzenia, najpóźniej po {days} dniach.",
     "image_label": "Albo zrzut ekranu lub zdjęcie z tekstem",
     "image_limits": "Plik do {max_mb} MB. Formaty: {formats}.",
-    "image_note": "Odczytamy tekst z obrazu w regionie UE i sprawdzimy go tak jak wklejony tekst."
+    "image_note": "Odczytamy tekst z obrazu w regionie UE i sprawdzimy go tak jak wklejony tekst.",
+    "image_cost": "Odczytanie tekstu z obrazu jest bezpłatne.",
+    "image_retention": "Plik obrazu i odczytany tekst usuwamy razem z zapisem sprawdzenia, najpóźniej po {days} dniach."
   },
   "history": {
     "title": "Twoje sprawdzenia",
