@@ -162,9 +162,6 @@ export function RecordingAttachment({ recording }: { recording: Recording }) {
  */
 export function RecordingRefusal({ recording }: { recording: Recording }) {
   return recording.refusal === 'unsupported_format' ? (
-    <ResultState
-      status="out_of_scope"
-      hint={`${t.out_of_scope_code.audio} ${limitsLine}`}
-    />
+    <ResultState status="out_of_scope" hint={`${t.out_of_scope_code.audio} ${limitsLine}`} />
   ) : null
 }
