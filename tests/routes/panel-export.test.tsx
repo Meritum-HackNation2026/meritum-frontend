@@ -20,6 +20,8 @@ async function openExport() {
   return router
 }
 
+const savedJson = /\.json\.?$/
+const fileName = /^meritum-eksport-30d-\d{4}-\d{2}-\d{2}\.json$/
 const exportRoute = 'GET /api/v1/export?format=stix&days=30'
 
 test('an analyst downloads the STIX bundle of the last 30 days and is told DISARM codes need confirming', async (t) => {
@@ -41,9 +43,9 @@ test('an analyst downloads the STIX bundle of the last 30 days and is told DISAR
   })
   fireEvent.click(screen.getByRole('button', { name: pl.export.download }))
   const done = await screen.findByRole('status')
-  await waitFor(() => assert.match(done.textContent ?? '', /\.json\.?$/))
+  await waitFor(() => assert.match(done.textContent ?? '', savedJson))
   assert.ok(calls(fetch).includes(exportRoute))
-  assert.match(saved[0] ?? '', /^meritum-eksport-30d-\d{4}-\d{2}-\d{2}\.json$/)
+  assert.match(saved[0] ?? '', fileName)
 })
 
 test('a failed export says so and saves nothing', async (t) => {
