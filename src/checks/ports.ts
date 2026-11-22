@@ -179,7 +179,9 @@ export interface CitizenAccount {
   historyEraser: SessionEraser
   /** „Usuń konto”: deletes the account's history, notifications and session. */
   accountEraser: SessionEraser
+}
 
+/**
  * Why an image was not taken: an `errors` key of copy/pl.json to show under the image field.
  *
  * @feature US-SPR-08, F-33

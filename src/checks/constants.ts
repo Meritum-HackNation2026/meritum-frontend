@@ -215,6 +215,7 @@ export const RECORDER_BUTTON =
  */
 export const LOGIN_PROVIDERS = ['google', 'microsoft'] as const
 
+/**
  * Largest image the API takes, in MB (MiB, as `IMAGE_MAX_MB` in meritum-backend: 413 above it);
  * shown in `form.image_limits`.
  *
