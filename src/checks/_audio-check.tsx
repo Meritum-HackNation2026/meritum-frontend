@@ -3,6 +3,8 @@ import { type ChangeEvent, useCallback, useRef, useState } from 'react'
 import { Attachment, fill, t } from '@/components/meritum'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import privacy from '@/copy/privacy.json'
+import type { useMicrophone } from './_microphone'
+import { MicrophoneStart, RecordingPreview, RecordingStop } from './_recorder'
 import type { ErrorKey } from './_request'
 import { ResultState } from './_result-state'
 import {
@@ -91,14 +93,19 @@ export function useRecording(
     setFile(event.target.files?.[0] ?? null)
     setRefusal(null)
   }, [])
+  const attach = useCallback((recorded: File) => {
+    setFile(recorded)
+    setRefusal(null)
+  }, [])
   const remove = useCallback(() => {
     setFile(null)
     setRefusal(null)
   }, [])
-  return { file, pending, refusal, send, pick, remove }
+  return { file, pending, refusal, send, pick, attach, remove }
 }
 
 type Recording = ReturnType<typeof useRecording>
+type Microphone = ReturnType<typeof useMicrophone>
 
 /**
  * The microphone button of the message field. It opens a note first, so what happens to a
@@ -107,10 +114,11 @@ type Recording = ReturnType<typeof useRecording>
  * note and the note closes once a file is chosen. The button is disabled while a recording is sent.
  *
  * @param props.recording - The recording state from `useRecording`.
+ * @param props.mic - The microphone state from `useMicrophone`.
  * @returns The button with its note.
  * @feature US-SPR-11, F-08
  */
-export function RecordingButton({ recording }: { recording: Recording }) {
+export function RecordingButton({ recording, mic }: { recording: Recording; mic: Microphone }) {
   const [open, setOpen] = useState(false)
   const { pick: pickFile } = recording
   const pick = useCallback(
@@ -120,6 +128,10 @@ export function RecordingButton({ recording }: { recording: Recording }) {
     },
     [pickFile],
   )
+  const close = useCallback(() => setOpen(false), [])
+  if (mic.recording) {
+    return <RecordingStop mic={mic} />
+  }
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -142,6 +154,7 @@ export function RecordingButton({ recording }: { recording: Recording }) {
             {line}
           </p>
         ))}
+        <MicrophoneStart mic={mic} onStart={close} />
         <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-pill border border-border px-4 font-semibold hover:bg-secondary has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring">
           {t.conversation.attach_audio}
           <input type="file" accept={AUDIO_ACCEPT} onChange={pick} className="sr-only" />
@@ -168,6 +181,7 @@ export function RecordingAttachment({ recording }: { recording: Recording }) {
   const fieldError = refusal === 'unsupported_format' ? null : refusal
   return (
     <Attachment name={file.name} onRemove={remove} disabled={pending}>
+      <RecordingPreview file={file} />
       <div className="grid max-h-28 gap-1 overflow-y-auto sm:max-h-none">
         {aboutLines.map((line) => (
           <p key={line}>{line}</p>
