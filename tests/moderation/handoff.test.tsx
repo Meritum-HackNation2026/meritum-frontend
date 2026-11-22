@@ -209,7 +209,7 @@ test('the report form leaves nothing for React to call as a cleanup when it clos
     if (original) {
       proto.scrollIntoView = original
     } else {
-      delete proto.scrollIntoView
+      Reflect.deleteProperty(proto, 'scrollIntoView')
     }
     console.error = consoleError
   }

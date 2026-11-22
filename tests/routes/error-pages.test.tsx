@@ -37,9 +37,11 @@ test('an unknown address shows the Polish 404 with a link home', async () => {
 test('the error page is in Polish, hides the technical error and retries on request', async (t) => {
   t.mock.method(console, 'error', () => undefined)
   let resets = 0
-  renderAt(() => (
-    <ErrorPage error={new TypeError('l is not a function')} reset={() => (resets += 1)} />
-  ))
+  const reset = () => {
+    resets += 1
+  }
+  const error = new TypeError('l is not a function')
+  renderAt(() => <ErrorPage error={error} reset={reset} />)
   assert.ok(await screen.findByRole('heading', { name: pl.layout.error_title }))
   assert.equal(document.body.textContent?.includes('l is not a function'), false)
   assert.equal(document.body.textContent?.includes('Something went wrong'), false)
