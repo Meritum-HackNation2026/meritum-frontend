@@ -92,6 +92,23 @@ test('on a phone the menu in the bar holds the same two links', async (t) => {
   )
 })
 
+const fromSm = /\bmax-sm:hidden\b/
+const belowSm = /\bsm:hidden\b/
+
+test('„Motyw” and „Rozmiar tekstu” are two buttons in the bar, in the phone menu below 640 px', async (t) => {
+  fakeApi(t, signedOut)
+  const bar = await open('/')
+  const theme = within(bar).getByRole('button', { name: pl.display.theme_title })
+  const text = within(bar).getByRole('button', { name: pl.display.text_title })
+  assert.notEqual(theme, text)
+  assert.match(theme.parentElement?.className ?? '', fromSm)
+  fireEvent.click(within(bar).getByRole('button', { name: pl.nav.menu }))
+  const menu = await screen.findByRole('dialog')
+  const inMenu = within(menu).getByRole('button', { name: pl.display.text_title })
+  assert.ok(within(menu).getByRole('button', { name: pl.display.theme_title }))
+  assert.match(inMenu.parentElement?.className ?? '', belowSm)
+})
+
 test('the page keeps the focused element below the sticky bar (WCAG 2.4.11)', async (t) => {
   fakeApi(t, signedOut)
   const bar = await open('/')
