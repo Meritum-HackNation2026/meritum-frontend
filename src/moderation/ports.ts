@@ -154,3 +154,59 @@ export interface AdminApi {
    */
   deleteTopic(name: string): Promise<AdminOutcome>
 }
+
+/**
+ * A source of the catalogue a moderator can cite: what the picker shows. The API checks the
+ * fragment against the text of this source, never the browser.
+ *
+ * @feature US-MOD-07, F-39, ADR-06
+ */
+export type AnswerSource = { id: string; title: string; publisher: string }
+
+/**
+ * One citation of a moderator's answer: a source of the catalogue and a fragment of its text.
+ *
+ * @feature US-MOD-07, F-39, ADR-06
+ */
+type AnswerCitation = { source_id: string; fragment: string }
+
+/**
+ * What the moderator sends: the answer text and at least one citation.
+ *
+ * @feature US-MOD-07, F-39, ADR-06
+ */
+export type AnswerDraft = { text: string; citations: AnswerCitation[] }
+
+/**
+ * What a send gave: sent (the case is `answered`, the askers are notified), the positions
+ * (from 0) of the citations that are not verbatim in their source, an ended session, a role taken
+ * away, or an API that did not answer or refused the answer.
+ *
+ * @feature US-MOD-07, F-39, ADR-06
+ */
+export type AnswerOutcome = 'sent' | { rejected: number[] } | 'expired' | 'no_access' | 'failed'
+
+/**
+ * The answer API of meritum-backend (`POST /moderation/cases/{id}/answer`, backend#36).
+ * Adapters never throw.
+ *
+ * @feature US-MOD-07, F-39, ADR-06
+ */
+export interface AnswerApi {
+  /**
+   * Reads the catalogue sources a citation can point to: the sources the case's checks cited
+   * (the API has no list of the whole catalogue yet).
+   *
+   * @param checkIds - The checks of the case's claims.
+   * @returns The sources, or null when none can be read.
+   */
+  sources(checkIds: readonly string[]): Promise<AnswerSource[] | null>
+  /**
+   * Answers a case; the API checks every citation verbatim before it notifies anyone.
+   *
+   * @param caseId - The case, e.g. `#S-12`.
+   * @param draft - The text and its citations.
+   * @returns What the API did.
+   */
+  send(caseId: string, draft: AnswerDraft): Promise<AnswerOutcome>
+}

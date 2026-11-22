@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { apiStaff } from '@/api'
+import { apiAnswers, apiStaff } from '@/api'
 import { loadPanel, Panel } from '@/moderation'
 
 /**
@@ -14,5 +14,5 @@ export const Route = createFileRoute('/panel/')({
 })
 
 function PanelPage() {
-  return <Panel data={Route.useLoaderData()} api={apiStaff} />
+  return <Panel data={Route.useLoaderData()} api={apiStaff} answers={apiAnswers} />
 }
