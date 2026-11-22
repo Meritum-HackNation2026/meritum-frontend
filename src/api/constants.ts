@@ -241,3 +241,6 @@ export const IMAGE_REFUSALS = {
   413: 'image_too_large',
   415: 'image_format_unsupported',
 } as const satisfies Record<number, ImageOutcome>
+
+/** The `provider` of `GET /api/v1/auth/me` for a demo account (no Google or Microsoft data). @feature US-SPR-10, F-31 */
+export const DEMO_PROVIDER = 'demo'

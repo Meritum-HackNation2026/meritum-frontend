@@ -126,7 +126,9 @@ export function AccountSection({
               {t.account.delete_account}
             </Button>
           </div>
-          <p className="text-small text-muted-foreground text-pretty">{t.account.stored}</p>
+          <p className="text-small text-muted-foreground text-pretty">
+            {user.isDemo ? t.account.stored_demo : t.account.stored}
+          </p>
         </>
       ) : (
         <>
