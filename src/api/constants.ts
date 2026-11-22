@@ -99,8 +99,8 @@ export const NOTIFICATIONS_RETRY_MS = 1000
 
 /**
  * Reconnects of the notification stream after failures in a row (1, 2, 4 and 8 s apart); after
- * the next failure it stays closed until the page loads again. A delivered event, or a stream
- * open for `NOTIFICATIONS_STABLE_MS`, resets the count.
+ * the next failure it stays closed until the page loads again. Only a stream open for
+ * `NOTIFICATIONS_STABLE_MS` resets the count, so one event before each drop does not.
  *
  * @feature US-POW-01, F-26
  */

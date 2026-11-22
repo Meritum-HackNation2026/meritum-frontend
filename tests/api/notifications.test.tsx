@@ -80,16 +80,17 @@ test('after five failures in a row the stream stays closed', (t) => {
   assert.equal(last().closed, true)
 })
 
-test('a delivered event starts the count again', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] })
+test('a stream that delivers one event and drops at once still runs out of retries', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
   const events: unknown[] = []
   apiNotifications.subscribe((value: unknown) => events.push(value))
-  failAndWait(t, 1000)
-  failAndWait(t, 2000)
-  last().emit({ id: 'n_1' })
-  failAndWait(t, 1000)
-  assert.equal(FakeEventSource.opened.length, 4)
-  assert.deepEqual(events, [{ id: 'n_1' }])
+  for (const pause of [1000, 2000, 4000, 8000, 16_000]) {
+    last().open()
+    last().emit({ id: 'n_1' })
+    failAndWait(t, pause)
+  }
+  assert.equal(FakeEventSource.opened.length, 5)
+  assert.equal(events.length, 5)
 })
 
 test('a stream open for 30 s starts the count again, so idle drops never end it', (t) => {

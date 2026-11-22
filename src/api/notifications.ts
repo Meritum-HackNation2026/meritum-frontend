@@ -41,7 +41,7 @@ const send = async (path: string, method: 'GET' | 'POST' | 'DELETE'): Promise<Re
  * Notifications API of meritum-backend for this tab's session: server-sent events through
  * `EventSource` and the inbox over `fetch`. Never throws: an unreachable API is an empty inbox,
  * and a stream that keeps failing is retried `NOTIFICATIONS_MAX_RETRIES` times with a doubling
- * pause, then left closed.
+ * pause, then left closed; only a stream open for `NOTIFICATIONS_STABLE_MS` resets the count.
  *
  * @feature US-POW-01, US-POW-04, F-26
  */
@@ -63,7 +63,6 @@ export const apiNotifications: NotificationsApi = {
         openedAt = Date.now()
       }
       source.onmessage = (event: MessageEvent<string>) => {
-        failures = 0
         const value = parse(event.data)
         if (!isForOtherSession(value)) {
           onEvent(value)
