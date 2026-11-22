@@ -112,7 +112,7 @@ function GrantForm({ onAdd }: { onAdd: (account: StaffAccount) => Promise<boolea
     <form
       onSubmit={submit}
       noValidate
-      className="grid items-end gap-3 sm:grid-cols-[1fr_auto_auto]"
+      className="grid items-end gap-3 sm:flex [&>:first-child]:flex-1"
     >
       <Field id={emailId} label={copy.email}>
         <Input

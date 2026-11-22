@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react'
 import { t } from '@/components/meritum'
 import {
   AlertDialog,
@@ -30,9 +31,20 @@ export function DeleteChecksDialog({
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
 }) {
+  // controlled without a Trigger, so Radix has nothing to return focus to on close
+  const returnTo = useRef<HTMLElement | null>(null)
+  const remember = useCallback(() => {
+    returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  }, [])
+  const restore = useCallback((event: Event) => {
+    if (returnTo.current?.isConnected) {
+      event.preventDefault()
+      returnTo.current.focus()
+    }
+  }, [])
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent onOpenAutoFocus={remember} onCloseAutoFocus={restore}>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-body font-bold">
             {t.form.delete_session_title}

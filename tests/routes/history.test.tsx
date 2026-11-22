@@ -117,3 +117,24 @@ test('deleting on a result address empties the thread there and says so', async 
   assert.equal(screen.queryByRole('list', { name: pl.conversation.label }), null)
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
+
+test('Esc closes the dialog and gives focus back to „Usuń moje sprawdzenia”', async (t) => {
+  fakeApi(t)
+  saveCheck(done)
+  const router = renderAt('/')
+  const trigger = await screen.findByRole('button', { name: pl.form.delete_session })
+  trigger.focus()
+  fireEvent.click(trigger)
+  const dialog = await screen.findByRole('alertdialog', { name: pl.form.delete_session_title })
+  fireEvent.keyDown(dialog, { key: 'Escape' })
+  await waitFor(() => assert.equal(screen.queryByRole('alertdialog'), null))
+  await waitFor(() => assert.equal(document.activeElement, trigger))
+  await waitFor(() => assert.equal(router.state.status, 'idle'))
+})
+
+test('the tab title names the page', async (t) => {
+  fakeApi(t)
+  const router = renderAt('/')
+  await waitFor(() => assert.equal(document.title, `${pl.form.title} · ${pl.brand.name}`))
+  await waitFor(() => assert.equal(router.state.status, 'idle'))
+})
