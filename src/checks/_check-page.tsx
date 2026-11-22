@@ -8,6 +8,7 @@ import { DeleteChecksDialog } from './_delete-checks'
 import { forgetChecks, rememberQuestion } from './_history'
 import { type ErrorKey, validateCheck } from './_request'
 import { conversationTurns, Thread, withAccountTurns } from './_thread'
+import type { PageArchives } from './archive/ports'
 import { RETENTION_DAYS } from './constants'
 import type {
   AudioUploader,
@@ -79,6 +80,7 @@ type CheckPageProps = {
   reader: ResultReader
   progress: ProgressSource
   handoff: Handoff
+  archives?: PageArchives
   account?: CitizenAccount
   onAccepted: (checkId: string) => void
   onErased?: () => Promise<void> | void
@@ -104,6 +106,7 @@ type CheckPageProps = {
  * @param props.reader - Reads a check from the API (the `src/api` adapter in the app).
  * @param props.progress - Streams a check's steps (the `src/api` SSE adapter in the app).
  * @param props.handoff - Hands claims to the moderators (the `src/api` adapter in the app).
+ * @param props.archives - Archives a checked link („Zarchiwizuj stronę”); no action without it.
  * @param props.account - The optional citizen account (Google or Microsoft sign-in): signed in, the
  * history comes from the server and the page offers sign-out and deleting the history or the
  * account; without it, or signed out, the history stays in sessionStorage.
@@ -112,7 +115,7 @@ type CheckPageProps = {
  * @param props.activeCheckId - The check of the result address, shown as the current turn.
  * @param props.notice - The AI notice, once on the screen, above the field.
  * @returns The conversation page.
- * @feature US-SPR-01, US-SPR-08, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, US-SPR-10, F-01, F-08, F-20, F-21, F-31, F-33
+ * @feature US-SPR-01, US-SPR-08, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, US-SPR-10, US-KOR-07, F-01, F-08, F-20, F-21, F-31, F-33, F-38
  */
 export function CheckPage({
   sender,
@@ -122,6 +125,7 @@ export function CheckPage({
   reader,
   progress,
   handoff,
+  archives,
   account,
   onAccepted,
   onErased = () => undefined,
@@ -173,6 +177,7 @@ export function CheckPage({
           reader={reader}
           progress={progress}
           handoff={handoff}
+          archives={archives}
         />
       )}
       <div className="grid gap-1.5 text-small text-muted-foreground text-pretty">

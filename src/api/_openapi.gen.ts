@@ -130,6 +130,128 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/archives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Archive
+         * @description Enqueue ``archive_page`` for the caller („Zarchiwizuj stronę”).
+         *
+         *     Args:
+         *         request: the request; slowapi reads the client address from it.
+         *         body: the page to archive.
+         *         jobs: the job queue port.
+         *         callers: the caller's account and session ids.
+         *
+         *     Returns:
+         *         The copy's id to poll.
+         *
+         *     Raises:
+         *         HTTPException: 400 without a session or account, 503 when the queue is
+         *             unreachable (429 above the limit comes from slowapi).
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        post: operations["request_archive_api_v1_archives_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/archives/{archive_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Archive
+         * @description The copy's state: pending, done (hash, dates), refused or failed.
+         *
+         *     A pending job shows no data, so its random id is enough to poll it.
+         *
+         *     Args:
+         *         request: the request; slowapi reads the client address from it.
+         *         archive_id: the copy's id.
+         *         jobs: the job queue port.
+         *         access: the caller and the stores.
+         *
+         *     Returns:
+         *         What the caller may see.
+         *
+         *     Raises:
+         *         HTTPException: 404 for no copy, or one the caller may not see.
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        get: operations["read_archive_api_v1_archives__archive_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Archive
+         * @description Delete a copy and its text, on the request of its owner or a moderator.
+         *
+         *     Args:
+         *         request: the request; slowapi reads the client address from it.
+         *         archive_id: the copy's id.
+         *         access: the caller and the stores.
+         *
+         *     Raises:
+         *         HTTPException: 404 for no copy, or one the caller may not delete.
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        delete: operations["delete_archive_api_v1_archives__archive_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/archives/{archive_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Archive
+         * @description Download the archived text as a .txt file.
+         *
+         *     Args:
+         *         request: the request; slowapi reads the client address from it.
+         *         archive_id: the copy's id.
+         *         access: the caller and the stores.
+         *
+         *     Returns:
+         *         The text, as an attachment.
+         *
+         *     Raises:
+         *         HTTPException: 404 for no copy, or one the caller may not see.
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        get: operations["download_archive_api_v1_archives__archive_id__content_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/discord/interactions": {
         parameters: {
             query?: never;
@@ -1196,6 +1318,7 @@ export interface paths {
          *     Args:
          *         request: the request; slowapi reads the client address from it.
          *         jobs: the job queue port.
+         *         cache: the result cache (a hit has no workflow).
          *         check_id: the finished check.
          *         claim_index: the claim's position in the check's result.
          *         response: the response; gets 503 when no case was saved.
@@ -1238,6 +1361,7 @@ export interface paths {
          *     Args:
          *         request: the request; slowapi reads the client address from it.
          *         jobs: the job queue port.
+         *         cache: the result cache (a hit has no workflow).
          *         check_id: the finished check.
          *         claim_index: the claim's position in the check's result.
          *         response: the response; gets 503 when no case was saved.
@@ -1634,6 +1758,218 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/.well-known/oauth-protected-resource/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resource Metadata
+         * @description Which authorization server protects /mcp.
+         *
+         *     Args:
+         *         oauth: the OAuth server.
+         *
+         *     Returns:
+         *         The RFC 9728 document.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        get: operations["resource_metadata__well_known_oauth_protected_resource_mcp_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/.well-known/oauth-protected-resource": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resource Metadata
+         * @description Which authorization server protects /mcp.
+         *
+         *     Args:
+         *         oauth: the OAuth server.
+         *
+         *     Returns:
+         *         The RFC 9728 document.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        get: operations["resource_metadata__well_known_oauth_protected_resource_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/.well-known/oauth-authorization-server": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Server Metadata
+         * @description Endpoints and capabilities of the authorization server.
+         *
+         *     Args:
+         *         oauth: the OAuth server.
+         *
+         *     Returns:
+         *         The RFC 8414 document.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        get: operations["server_metadata__well_known_oauth_authorization_server_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/oauth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register
+         * @description RFC 7591 registration of a public client.
+         *
+         *     Args:
+         *         body: the client metadata.
+         *         oauth: the OAuth server.
+         *
+         *     Returns:
+         *         201 with the client id, or 400 for a redirect URI that is not allowed.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        post: operations["register_api_v1_oauth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/oauth/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Authorize
+         * @description Authorization endpoint; a signed-out user signs in with Google or Microsoft.
+         *
+         *     Args:
+         *         request: the authorization request.
+         *         oauth: the OAuth server.
+         *         user: the signed-in account, if any.
+         *         login: the login provider.
+         *
+         *     Returns:
+         *         A redirect with a code or an error, a redirect to the login, or 400
+         *         when the client or its redirect URI is unknown.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        get: operations["authorize_api_v1_oauth_authorize_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/oauth/authorize/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resume
+         * @description Finish the authorization request kept during login.
+         *
+         *     Args:
+         *         http: the request with the pending cookie.
+         *         oauth: the OAuth server.
+         *         user: the account the login just signed in.
+         *         login: the login provider.
+         *
+         *     Returns:
+         *         What the authorization endpoint answers, or 400 without a live request.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        get: operations["resume_api_v1_oauth_authorize_resume_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/oauth/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Token
+         * @description Token endpoint: authorization code with PKCE, or a refresh token.
+         *
+         *     Args:
+         *         body: the token request.
+         *         oauth: the OAuth server.
+         *
+         *     Returns:
+         *         The tokens, or an RFC 6749 error.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        post: operations["token_api_v1_oauth_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1730,6 +2066,56 @@ export interface components {
             text: string;
             /** Quotes */
             quotes: components["schemas"]["QuoteDraft"][];
+        };
+        /**
+         * ArchiveBody
+         * @description Body of POST /api/v1/archives.
+         *
+         *     Attributes:
+         *         url: the public http(s) page; the worker's fetcher blocks private hosts.
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        ArchiveBody: {
+            /** Url */
+            url: string;
+        };
+        /** @enum {string} */
+        ArchiveStatus: "pending" | "done" | "refused" | "failed";
+        /**
+         * ArchiveView
+         * @description The answer of GET /api/v1/archives/{id}.
+         *
+         *     Attributes:
+         *         archive_id: the copy's id.
+         *         status: pending, done, refused or failed.
+         *         url: the archived page, once done.
+         *         sha256: hash of the stored text, once done.
+         *         archived_at: when it was made, once done.
+         *         expires_at: when it is deleted, once done.
+         *         refusal: why there is no copy.
+         *         message: what the citizen is told when refused.
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        ArchiveView: {
+            /** Archive Id */
+            archive_id: string;
+            status: components["schemas"]["ArchiveStatus"];
+            /** Url */
+            url?: string | null;
+            /** Sha256 */
+            sha256?: string | null;
+            /** Archived At */
+            archived_at?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Refusal */
+            refusal?: ("login_wall" | "robots_or_tdm" | "fetch_failed" | "rate_limited") | null;
+            /** Message */
+            message?: string | null;
         };
         /**
          * AudioAccepted
@@ -1946,6 +2332,11 @@ export interface components {
              * @description Audio input only: the automatic transcript, with personal data masked.
              */
             transcript?: string | null;
+            /**
+             * Image Text
+             * @description Image input only: the text read from the image, with personal data masked.
+             */
+            image_text?: string | null;
             source_warning?: components["schemas"]["SourceStatusWarning"] | null;
             escalation?: components["schemas"]["Escalation"] | null;
             /**
@@ -2225,20 +2616,6 @@ export interface components {
         Dispute: {
             /** Justification */
             justification?: string | null;
-        };
-        /**
-         * Enqueued
-         * @description Answer to an accepted job.
-         *
-         *     Attributes:
-         *         workflow_id: the id to poll at GET /api/v1/jobs/{workflow_id}.
-         *
-         *     Features:
-         *         ADR-03
-         */
-        Enqueued: {
-            /** Workflow Id */
-            workflow_id: string;
         };
         /**
          * Escalation
@@ -2789,6 +3166,12 @@ export interface components {
              */
             primary_sources: number;
             /**
+             * Signatory Reviews
+             * @description Distinct IFCN/EFCSN fact-checkers (publisher_id) whose ClaimReview rating agrees with the verdict; one is enough for at least moderate strength.
+             * @default 0
+             */
+            signatory_reviews: number;
+            /**
              * Newest Source Published At
              * @description Publication date of the newest agreeing source, shown as a date.
              */
@@ -2890,6 +3273,32 @@ export interface components {
              */
             status: "accepted" | "duplicate" | "deleted" | "rejected" | "refused" | "ignored";
         };
+        /**
+         * RegisterRequest
+         * @description RFC 7591 client metadata; the rest of it is ignored.
+         *
+         *     Attributes:
+         *         redirect_uris: https or loopback URIs, exact match at authorize.
+         *         client_name: shown nowhere yet, echoed back.
+         *         token_endpoint_auth_method: only ``none`` (public client with PKCE).
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        RegisterRequest: {
+            /**
+             * Redirect Uris
+             * @default []
+             */
+            redirect_uris: string[];
+            /** Client Name */
+            client_name?: string | null;
+            /**
+             * Token Endpoint Auth Method
+             * @default none
+             */
+            token_endpoint_auth_method: string;
+        };
         ReturnPath: string;
         /**
          * RunSummary
@@ -2955,7 +3364,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media";
+            kind: "akt_prawny" | "dane_publiczne" | "instytucja" | "fact_check" | "media" | "transcript";
             /**
              * Tier
              * @enum {string}
@@ -3079,6 +3488,59 @@ export interface components {
         /** @enum {string} */
         TargetKind: "webhook" | "google_chat" | "email";
         /**
+         * TokenRequest
+         * @description Form of the token endpoint.
+         *
+         *     Attributes:
+         *         grant_type: ``authorization_code`` or ``refresh_token``.
+         *         code: the authorization code.
+         *         redirect_uri: the redirect URI the code was issued for.
+         *         client_id: the client's id.
+         *         code_verifier: the PKCE verifier.
+         *         refresh_token: the refresh token.
+         *         resource: RFC 8707 resource indicator.
+         *
+         *     Features:
+         *         US-WDR-06, F-37, ADR-17
+         */
+        TokenRequest: {
+            /**
+             * Grant Type
+             * @default
+             */
+            grant_type: string;
+            /**
+             * Code
+             * @default
+             */
+            code: string;
+            /**
+             * Redirect Uri
+             * @default
+             */
+            redirect_uri: string;
+            /**
+             * Client Id
+             * @default
+             */
+            client_id: string;
+            /**
+             * Code Verifier
+             * @default
+             */
+            code_verifier: string;
+            /**
+             * Refresh Token
+             * @default
+             */
+            refresh_token: string;
+            /**
+             * Resource
+             * @default
+             */
+            resource: string;
+        };
+        /**
          * TooManyChecks
          * @description 429 answer: a message for people, never a verdict.
          *
@@ -3122,6 +3584,34 @@ export interface components {
             fragment: string;
         };
         _StaffEmail: string;
+        /**
+         * Enqueued
+         * @description 202 answer of POST /api/v1/archives.
+         *
+         *     Attributes:
+         *         archive_id: the id to poll at GET /api/v1/archives/{archive_id}.
+         *
+         *     Features:
+         *         US-KOR-07, F-38
+         */
+        meritum_backend__archives__models__Enqueued: {
+            /** Archive Id */
+            archive_id: string;
+        };
+        /**
+         * Enqueued
+         * @description Answer to an accepted job.
+         *
+         *     Attributes:
+         *         workflow_id: the id to poll at GET /api/v1/jobs/{workflow_id}.
+         *
+         *     Features:
+         *         ADR-03
+         */
+        meritum_backend__jobs__api__Enqueued: {
+            /** Workflow Id */
+            workflow_id: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -3201,7 +3691,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Enqueued"];
+                    "application/json": components["schemas"]["meritum_backend__jobs__api__Enqueued"];
                 };
             };
             /** @description Validation Error */
@@ -3233,6 +3723,138 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_archive_api_v1_archives_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArchiveBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["meritum_backend__archives__models__Enqueued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_archive_api_v1_archives__archive_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path: {
+                archive_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArchiveView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_archive_api_v1_archives__archive_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path: {
+                archive_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_archive_api_v1_archives__archive_id__content_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Meritum-Session"?: string | null;
+            };
+            path: {
+                archive_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -4671,6 +5293,196 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resource_metadata__well_known_oauth_protected_resource_mcp_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    resource_metadata__well_known_oauth_protected_resource_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    server_metadata__well_known_oauth_authorization_server_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    register_api_v1_oauth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    authorize_api_v1_oauth_authorize_get: {
+        parameters: {
+            query?: {
+                response_type?: string;
+                client_id?: string;
+                redirect_uri?: string;
+                code_challenge?: string;
+                code_challenge_method?: string;
+                state?: string;
+                scope?: string;
+                resource?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_api_v1_oauth_authorize_resume_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    token_api_v1_oauth_token_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["TokenRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

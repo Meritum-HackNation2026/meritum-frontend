@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCallback, useContext } from 'react'
 import {
   apiAccount,
+  apiArchives,
   apiAudioUploader,
   apiCheckSender,
   apiHandoff,
@@ -43,6 +44,7 @@ function Result() {
       reader={apiResultReader}
       progress={apiProgressSource}
       handoff={apiHandoff}
+      archives={apiArchives}
       account={apiAccount}
       activeCheckId={checkId}
       onAccepted={open}

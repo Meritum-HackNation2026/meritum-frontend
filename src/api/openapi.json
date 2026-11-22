@@ -94,7 +94,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Enqueued"
+                  "$ref": "#/components/schemas/meritum_backend__jobs__api__Enqueued"
                 }
               }
             }
@@ -139,6 +139,232 @@
                 "schema": {
                   "$ref": "#/components/schemas/JobState"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/archives": {
+      "post": {
+        "tags": [
+          "archives"
+        ],
+        "summary": "Request Archive",
+        "description": "Enqueue ``archive_page`` for the caller („Zarchiwizuj stronę”).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    body: the page to archive.\n    jobs: the job queue port.\n    callers: the caller's account and session ids.\n\nReturns:\n    The copy's id to poll.\n\nRaises:\n    HTTPException: 400 without a session or account, 503 when the queue is\n        unreachable (429 above the limit comes from slowapi).\n\nFeatures:\n    US-KOR-07, F-38",
+        "operationId": "request_archive_api_v1_archives_post",
+        "parameters": [
+          {
+            "name": "X-Meritum-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Meritum-Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/meritum_backend__archives__models__Enqueued"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/archives/{archive_id}": {
+      "get": {
+        "tags": [
+          "archives"
+        ],
+        "summary": "Read Archive",
+        "description": "The copy's state: pending, done (hash, dates), refused or failed.\n\nA pending job shows no data, so its random id is enough to poll it.\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    archive_id: the copy's id.\n    jobs: the job queue port.\n    access: the caller and the stores.\n\nReturns:\n    What the caller may see.\n\nRaises:\n    HTTPException: 404 for no copy, or one the caller may not see.\n\nFeatures:\n    US-KOR-07, F-38",
+        "operationId": "read_archive_api_v1_archives__archive_id__get",
+        "parameters": [
+          {
+            "name": "archive_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Archive Id"
+            }
+          },
+          {
+            "name": "X-Meritum-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Meritum-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "archives"
+        ],
+        "summary": "Delete Archive",
+        "description": "Delete a copy and its text, on the request of its owner or a moderator.\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    archive_id: the copy's id.\n    access: the caller and the stores.\n\nRaises:\n    HTTPException: 404 for no copy, or one the caller may not delete.\n\nFeatures:\n    US-KOR-07, F-38",
+        "operationId": "delete_archive_api_v1_archives__archive_id__delete",
+        "parameters": [
+          {
+            "name": "archive_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Archive Id"
+            }
+          },
+          {
+            "name": "X-Meritum-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Meritum-Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/archives/{archive_id}/content": {
+      "get": {
+        "tags": [
+          "archives"
+        ],
+        "summary": "Download Archive",
+        "description": "Download the archived text as a .txt file.\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    archive_id: the copy's id.\n    access: the caller and the stores.\n\nReturns:\n    The text, as an attachment.\n\nRaises:\n    HTTPException: 404 for no copy, or one the caller may not see.\n\nFeatures:\n    US-KOR-07, F-38",
+        "operationId": "download_archive_api_v1_archives__archive_id__content_get",
+        "parameters": [
+          {
+            "name": "archive_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Archive Id"
+            }
+          },
+          {
+            "name": "X-Meritum-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Meritum-Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -1502,7 +1728,7 @@
           "moderation"
         ],
         "summary": "Escalate Claim",
-        "description": "„Przekaż moderatorom”: turn a recommendation into a saved case.\n\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n    announce: tells the moderators about the case after the response.\n\nReturns:\n    The case created or joined with its number and escalation.created or\n    escalation.updated; with 503, escalation recommended (no number) and\n    escalation.not_saved when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-03, F-24, ADR-22",
+        "description": "„Przekaż moderatorom”: turn a recommendation into a saved case.\n\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    cache: the result cache (a hit has no workflow).\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n    announce: tells the moderators about the case after the response.\n\nReturns:\n    The case created or joined with its number and escalation.created or\n    escalation.updated; with 503, escalation recommended (no number) and\n    escalation.not_saved when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-03, F-24, ADR-22",
         "operationId": "escalate_claim_api_v1_checks__check_id__claims__claim_index__escalate_post",
         "parameters": [
           {
@@ -1568,7 +1794,7 @@
           "moderation"
         ],
         "summary": "Dispute Claim",
-        "description": "„Zgłoś błąd”: a case with reason user_dispute and a masked justification.\n\nThe stored result does not change; a moderator reviews the dispute first.\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n    announce: tells the moderators about the case after the response.\n    pii: the personal-data masking gate.\n    dispute: the person's optional reason, masked here before the workflow\n        starts; no body or a blank reason sends none.\n\nReturns:\n    The case with its number and result.report_error_done; with 503,\n    escalation recommended (no number) when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-06, F-24, ADR-22",
+        "description": "„Zgłoś błąd”: a case with reason user_dispute and a masked justification.\n\nThe stored result does not change; a moderator reviews the dispute first.\nLimited to HANDOFF_LIMIT per client address (429 above that).\n\nArgs:\n    request: the request; slowapi reads the client address from it.\n    jobs: the job queue port.\n    cache: the result cache (a hit has no workflow).\n    check_id: the finished check.\n    claim_index: the claim's position in the check's result.\n    response: the response; gets 503 when no case was saved.\n    announce: tells the moderators about the case after the response.\n    pii: the personal-data masking gate.\n    dispute: the person's optional reason, masked here before the workflow\n        starts; no body or a blank reason sends none.\n\nReturns:\n    The case with its number and result.report_error_done; with 503,\n    escalation recommended (no number) when the case was not saved.\n\nRaises:\n    HTTPException: 404 when the check is not finished or has no such claim.\n\nFeatures:\n    US-MOD-06, F-24, ADR-22",
         "operationId": "dispute_claim_api_v1_checks__check_id__claims__claim_index__dispute_post",
         "parameters": [
           {
@@ -2259,6 +2485,290 @@
           }
         }
       }
+    },
+    "/.well-known/oauth-protected-resource/mcp": {
+      "get": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Resource Metadata",
+        "description": "Which authorization server protects /mcp.\n\nArgs:\n    oauth: the OAuth server.\n\nReturns:\n    The RFC 9728 document.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "resource_metadata__well_known_oauth_protected_resource_mcp_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Resource Metadata  Well Known Oauth Protected Resource Mcp Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/oauth-protected-resource": {
+      "get": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Resource Metadata",
+        "description": "Which authorization server protects /mcp.\n\nArgs:\n    oauth: the OAuth server.\n\nReturns:\n    The RFC 9728 document.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "resource_metadata__well_known_oauth_protected_resource_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Resource Metadata  Well Known Oauth Protected Resource Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/oauth-authorization-server": {
+      "get": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Server Metadata",
+        "description": "Endpoints and capabilities of the authorization server.\n\nArgs:\n    oauth: the OAuth server.\n\nReturns:\n    The RFC 8414 document.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "server_metadata__well_known_oauth_authorization_server_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Server Metadata  Well Known Oauth Authorization Server Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/register": {
+      "post": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Register",
+        "description": "RFC 7591 registration of a public client.\n\nArgs:\n    body: the client metadata.\n    oauth: the OAuth server.\n\nReturns:\n    201 with the client id, or 400 for a redirect URI that is not allowed.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "register_api_v1_oauth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/authorize": {
+      "get": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Authorize",
+        "description": "Authorization endpoint; a signed-out user signs in with Google or Microsoft.\n\nArgs:\n    request: the authorization request.\n    oauth: the OAuth server.\n    user: the signed-in account, if any.\n    login: the login provider.\n\nReturns:\n    A redirect with a code or an error, a redirect to the login, or 400\n    when the client or its redirect URI is unknown.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "authorize_api_v1_oauth_authorize_get",
+        "parameters": [
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Response Type"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Client Id"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Redirect Uri"
+            }
+          },
+          {
+            "name": "code_challenge",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Code Challenge"
+            }
+          },
+          {
+            "name": "code_challenge_method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Code Challenge Method"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "State"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Scope"
+            }
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Resource"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/authorize/resume": {
+      "get": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Resume",
+        "description": "Finish the authorization request kept during login.\n\nArgs:\n    http: the request with the pending cookie.\n    oauth: the OAuth server.\n    user: the account the login just signed in.\n    login: the login provider.\n\nReturns:\n    What the authorization endpoint answers, or 400 without a live request.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "resume_api_v1_oauth_authorize_resume_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/token": {
+      "post": {
+        "tags": [
+          "mcp-oauth"
+        ],
+        "summary": "Token",
+        "description": "Token endpoint: authorization code with PKCE, or a refresh token.\n\nArgs:\n    body: the token request.\n    oauth: the OAuth server.\n\nReturns:\n    The tokens, or an RFC 6749 error.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17",
+        "operationId": "token_api_v1_oauth_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2437,6 +2947,123 @@
         ],
         "title": "AnswerDraft",
         "description": "Body of a moderator's answer.\n\nAttributes:\n    text: the answer.\n    quotes: at least one quote, each verified.\n\nFeatures:\n    US-MOD-07, F-39"
+      },
+      "ArchiveBody": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://\\S+$",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "ArchiveBody",
+        "description": "Body of POST /api/v1/archives.\n\nAttributes:\n    url: the public http(s) page; the worker's fetcher blocks private hosts.\n\nFeatures:\n    US-KOR-07, F-38"
+      },
+      "ArchiveStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "done",
+          "refused",
+          "failed"
+        ]
+      },
+      "ArchiveView": {
+        "properties": {
+          "archive_id": {
+            "type": "string",
+            "title": "Archive Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ArchiveStatus"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "refusal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "login_wall",
+                  "robots_or_tdm",
+                  "fetch_failed",
+                  "rate_limited"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refusal"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "archive_id",
+          "status"
+        ],
+        "title": "ArchiveView",
+        "description": "The answer of GET /api/v1/archives/{id}.\n\nAttributes:\n    archive_id: the copy's id.\n    status: pending, done, refused or failed.\n    url: the archived page, once done.\n    sha256: hash of the stored text, once done.\n    archived_at: when it was made, once done.\n    expires_at: when it is deleted, once done.\n    refusal: why there is no copy.\n    message: what the citizen is told when refused.\n\nFeatures:\n    US-KOR-07, F-38"
       },
       "AudioAccepted": {
         "properties": {
@@ -2873,6 +3500,19 @@
             ],
             "title": "Transcript",
             "description": "Audio input only: the automatic transcript, with personal data masked."
+          },
+          "image_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Text",
+            "description": "Image input only: the text read from the image, with personal data masked."
           },
           "source_warning": {
             "anyOf": [
@@ -3389,20 +4029,6 @@
         "type": "object",
         "title": "Dispute",
         "description": "Body of „Zgłoś błąd”.\n\nAttributes:\n    justification: what the person thinks is wrong, optional (a blank one\n        counts as none, over JUSTIFICATION_INPUT_MAX_CHARS is refused);\n        masked, then cut to MAX_JUSTIFICATION_CHARS before any marker.\n\nFeatures:\n    US-MOD-06, F-24"
-      },
-      "Enqueued": {
-        "properties": {
-          "workflow_id": {
-            "type": "string",
-            "title": "Workflow Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "workflow_id"
-        ],
-        "title": "Enqueued",
-        "description": "Answer to an accepted job.\n\nAttributes:\n    workflow_id: the id to poll at GET /api/v1/jobs/{workflow_id}.\n\nFeatures:\n    ADR-03"
       },
       "Escalation": {
         "properties": {
@@ -4271,6 +4897,13 @@
             "title": "Primary Sources",
             "description": "Distinct primary-tier publishers among the agreeing citations."
           },
+          "signatory_reviews": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Signatory Reviews",
+            "description": "Distinct IFCN/EFCSN fact-checkers (publisher_id) whose ClaimReview rating agrees with the verdict; one is enough for at least moderate strength.",
+            "default": 0
+          },
           "newest_source_published_at": {
             "anyOf": [
               {
@@ -4437,6 +5070,37 @@
         "title": "Received",
         "description": "202 answer to the gateway (it only looks at the status code).\n\nAttributes:\n    status: accepted (a check started), duplicate (a retried event),\n        deleted (USUN), rejected (text not checkable), refused (over a\n        limit or the queue is full; no reply, so no SMS cost) or ignored.\n\nFeatures:\n    US-WTY-07, F-32"
       },
+      "RegisterRequest": {
+        "properties": {
+          "redirect_uris": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Redirect Uris",
+            "default": []
+          },
+          "client_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Name"
+          },
+          "token_endpoint_auth_method": {
+            "type": "string",
+            "title": "Token Endpoint Auth Method",
+            "default": "none"
+          }
+        },
+        "type": "object",
+        "title": "RegisterRequest",
+        "description": "RFC 7591 client metadata; the rest of it is ignored.\n\nAttributes:\n    redirect_uris: https or loopback URIs, exact match at authorize.\n    client_name: shown nowhere yet, echoed back.\n    token_endpoint_auth_method: only ``none`` (public client with PKCE).\n\nFeatures:\n    US-WDR-06, F-37, ADR-17"
+      },
       "ReturnPath": {
         "type": "string"
       },
@@ -4536,7 +5200,8 @@
               "dane_publiczne",
               "instytucja",
               "fact_check",
-              "media"
+              "media",
+              "transcript"
             ],
             "title": "Kind"
           },
@@ -4740,6 +5405,48 @@
           "email"
         ]
       },
+      "TokenRequest": {
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "title": "Grant Type",
+            "default": ""
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": ""
+          },
+          "redirect_uri": {
+            "type": "string",
+            "title": "Redirect Uri",
+            "default": ""
+          },
+          "client_id": {
+            "type": "string",
+            "title": "Client Id",
+            "default": ""
+          },
+          "code_verifier": {
+            "type": "string",
+            "title": "Code Verifier",
+            "default": ""
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token",
+            "default": ""
+          },
+          "resource": {
+            "type": "string",
+            "title": "Resource",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "TokenRequest",
+        "description": "Form of the token endpoint.\n\nAttributes:\n    grant_type: ``authorization_code`` or ``refresh_token``.\n    code: the authorization code.\n    redirect_uri: the redirect URI the code was issued for.\n    client_id: the client's id.\n    code_verifier: the PKCE verifier.\n    refresh_token: the refresh token.\n    resource: RFC 8707 resource indicator.\n\nFeatures:\n    US-WDR-06, F-37, ADR-17"
+      },
       "TooManyChecks": {
         "properties": {
           "message_key": {
@@ -4816,6 +5523,34 @@
         "type": "string",
         "maxLength": 254,
         "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+      },
+      "meritum_backend__archives__models__Enqueued": {
+        "properties": {
+          "archive_id": {
+            "type": "string",
+            "title": "Archive Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "archive_id"
+        ],
+        "title": "Enqueued",
+        "description": "202 answer of POST /api/v1/archives.\n\nAttributes:\n    archive_id: the id to poll at GET /api/v1/archives/{archive_id}.\n\nFeatures:\n    US-KOR-07, F-38"
+      },
+      "meritum_backend__jobs__api__Enqueued": {
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "title": "Workflow Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workflow_id"
+        ],
+        "title": "Enqueued",
+        "description": "Answer to an accepted job.\n\nAttributes:\n    workflow_id: the id to poll at GET /api/v1/jobs/{workflow_id}.\n\nFeatures:\n    ADR-03"
       }
     }
   }
