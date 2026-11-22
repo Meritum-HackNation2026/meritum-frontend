@@ -1,12 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useCallback } from 'react'
 import { apiAnswers, apiStaff } from '@/api'
-import { loadPanel, Panel } from '@/moderation'
+import { caseParam, loadPanel, Panel } from '@/moderation'
 
 /**
  * The moderator panel at /panel: the staff session and cases are read before the page shows,
- * so a person without a role only ever sees the sign-in page.
+ * so a person without a role only ever sees the sign-in page. Opening a case goes to its own
+ * address, /panel/sprawy/{case}.
  *
- * @feature US-MOD-05, US-MOD-02, US-POW-05, F-25
+ * @feature US-MOD-05, US-MOD-02, US-POW-05, US-MOD-01, F-25
  */
 export const Route = createFileRoute('/panel/')({
   loader: () => loadPanel(apiStaff),
@@ -14,5 +16,13 @@ export const Route = createFileRoute('/panel/')({
 })
 
 function PanelPage() {
-  return <Panel data={Route.useLoaderData()} api={apiStaff} answers={apiAnswers} />
+  const navigate = useNavigate()
+  const openCase = useCallback(
+    (caseId: string) =>
+      navigate({ to: '/panel/sprawy/$caseId', params: { caseId: caseParam(caseId) } }),
+    [navigate],
+  )
+  return (
+    <Panel data={Route.useLoaderData()} api={apiStaff} answers={apiAnswers} onOpenCase={openCase} />
+  )
 }

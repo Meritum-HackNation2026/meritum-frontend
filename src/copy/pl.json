@@ -482,6 +482,16 @@
       "sources_failed": "Nie udało się wczytać źródeł z katalogu. Odśwież stronę.",
       "not_sent": "Nie udało się wysłać odpowiedzi. Twoje wpisy zostały. Spróbuj jeszcze raz."
     },
+    "close": {
+      "$comment": "Closing an open case without an answer in the case detail (meritum-frontend#121, meritum-backend#140, US-MOD-01, F-25). The askers get no notification.",
+      "reason_label": "Powód zamknięcia bez odpowiedzi",
+      "reason_hint": "Na przykład sprawa testowa albo bezzasadna. Pytający nie dostaną powiadomienia.",
+      "button": "Zamknij bez odpowiedzi",
+      "closing": "Zamykamy…",
+      "reason_required": "Wpisz powód zamknięcia.",
+      "closed_note": "Sprawa zamknięta bez odpowiedzi. Pytający nie dostali powiadomienia.",
+      "not_closed": "Nie udało się zamknąć sprawy. Twój wpis został. Spróbuj jeszcze raz."
+    },
     "asker_answer": {
       "$comment": "The moderator's answer as the asker reads it at /odpowiedzi/{case_id} (meritum-frontend#85, US-MOD-07, F-39). Never names who else asked.",
       "title": "Odpowiedź moderatora",
