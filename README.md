@@ -1,6 +1,6 @@
 # meritum-frontend
 
-Aplikacja webowa Meritum: React, TypeScript, Vite, TanStack Router i Query, shadcn/ui (Radix), Tailwind CSS v4, Biome, pnpm. Wygląd pochodzi z design systemu: tokeny `src/styles/meritum.css` to kopia `design-system/tokens/meritum.css` (tryb ciemny włącza klasa `dark` według ustawienia systemu), kroje Archivo i Azeret Mono są dołączone do builda (bez Google Fonts), a komponenty w `src/components/meritum/` to kopie z `design-system/components/meritum/` (zob. „Kopie z design systemu”). W produkcji to statyczny build w kontenerze nginx, który przekazuje `/api` do [meritum-backend](https://github.com/Meritum-HackNation2026/meritum-backend) tego samego środowiska, więc front i API mają jeden adres i nie potrzebują CORS.
+Aplikacja webowa Meritum: React, TypeScript, Vite, TanStack Router i Query, shadcn/ui (Radix), Tailwind CSS v4, Biome, pnpm. Wygląd pochodzi z design systemu: tokeny `src/styles/meritum.css` to kopia `design-system/tokens/meritum.css` (motyw „Atrament”; tryb ciemny włącza klasa `dark` według ustawienia systemu), a `src/styles/display.css` to kopia `design-system/tokens/display.css` (ciemny motyw o wysokim kontraście i skala rozmiaru tekstu przez `data-contrast` i `data-text` na `<html>`), importowana w `src/index.css` po `meritum.css`. Kroje są dołączone do builda (bez Google Fonts): Schibsted Grotesk dla całego interfejsu, Archivo tylko dla logotypu (`--font-logo`) i Azeret Mono, a komponenty w `src/components/meritum/` to kopie z `design-system/components/meritum/` (zob. „Kopie z design systemu”). W produkcji to statyczny build w kontenerze nginx, który przekazuje `/api` do [meritum-backend](https://github.com/Meritum-HackNation2026/meritum-backend) tego samego środowiska, więc front i API mają jeden adres i nie potrzebują CORS.
 
 | Środowisko | Gałąź     | Adres                          | Kontener          | `/api` trafia do       |
 | ---------- | --------- | ------------------------------ | ----------------- | ---------------------- |
@@ -49,12 +49,10 @@ Zapytanie z formularza sprawdza przed wysłaniem schemat [zod](https://zod.dev/)
 Komponentu szukamy w tej kolejności i bierzemy z pierwszego źródła, które go ma:
 
 1. komponenty Meritum w `src/components/meritum/` (kopie z design systemu, np. `CheckForm`, `ResultCard`),
-2. darmowe bloki [shadcnblocks](https://www.shadcnblocks.com) (`@shadcnblocks/<nazwa>`), nigdy bloki Pro ani klucz licencyjny (repozytorium jest publiczne),
-3. [ReUI](https://reui.io) (`@reui/<nazwa>`),
-4. [Origin UI](https://coss.com/origin) (`@originui/<nazwa>`),
-5. zwykły [shadcn/ui](https://ui.shadcn.com) (`pnpm dlx shadcn@latest add <nazwa>`).
+2. zwykły [shadcn/ui](https://ui.shadcn.com) (`pnpm dlx shadcn@latest add <nazwa>`),
+3. czasem darmowy blok [shadcnblocks](https://www.shadcnblocks.com) (`@shadcnblocks/<nazwa>`), nigdy blok Pro ani klucz licencyjny (repozytorium jest publiczne).
 
-Rejestry są w `components.json` (`registries`), więc wystarczy `pnpm dlx shadcn@latest add @reui/<nazwa>`. Wygląd i teksty zawsze pochodzą z design systemu Meritum: blok po dodaniu przechodzi na tokeny, kroje i teksty z `copy/pl.json`. Blok z rejestru to kod z cudzego serwera: jego diff przeglądamy jak każdy inny kod.
+Innych rejestrów nie używamy. Rejestr shadcnblocks jest w `components.json` (`registries`), więc wystarczy `pnpm dlx shadcn@latest add @shadcnblocks/<nazwa>`. Wygląd i teksty zawsze pochodzą z design systemu Meritum: blok po dodaniu przechodzi na tokeny, kroje i teksty z `copy/pl.json`. Blok z rejestru to kod z cudzego serwera: jego diff przeglądamy jak każdy inny kod.
 
 ## Testy komponentów
 
@@ -98,6 +96,7 @@ Typy API, teksty, komponenty i tokeny bierzemy z [meritum-design-system](https:/
 | `src/copy/pl.json`                                                 | `copy/pl.json`                                                  |
 | `src/components/meritum/`                                          | `components/meritum/`                                           |
 | `src/styles/meritum.css`                                           | `tokens/meritum.css`                                            |
+| `src/styles/display.css`                                           | `tokens/display.css`                                            |
 | `src/contracts/catalog.json`                                       | `catalog/catalog.json` w meritum-core (eksport katalogu źródeł) |
 
 Nie edytujemy ich tutaj: poprawki idą do design systemu (albo do core), potem:
