@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { CheckResult } from '@/contracts/meritum'
 import pl from '@/copy/pl.json'
 import { CheckResultCard } from '@/evidence'
@@ -21,6 +21,7 @@ test('a check with no sources renders its card', () => {
 
 test('a limit the API repeats is listed once', () => {
   render(<CheckResultCard result={payload as CheckResult} handoff={handoff} />)
+  fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${pl.result.limitations}`) }))
   const limitation = pl.limitation_code.corpus_scope
   const items = screen.getAllByRole('listitem').filter((item) => item.textContent === limitation)
   assert.equal(items.length, 1)

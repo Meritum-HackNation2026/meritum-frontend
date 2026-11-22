@@ -1,12 +1,16 @@
 import { type ReactNode, useCallback, useState } from 'react'
-import { Composer, fill, t, Welcome } from '@/components/meritum'
+import { CheckHistory, Composer, fill, QuotedClaim, t } from '@/components/meritum'
 import type { Handoff } from '@/moderation'
 import { AccountSection, useAccount } from './_account'
 import { useAttachments } from './_attachments'
-import { DeleteChecksDialog } from './_delete-checks'
-import { forgetChecks, rememberQuestion } from './_history'
+import { DeleteChecksDialog, useErase } from './_delete-checks'
+import { rememberQuestion } from './_history'
+import { historyItems } from './_new-check'
+import { PageArchive } from './_page-archive'
+import { ResultPage } from './_result-page'
 import { useSend } from './_send'
-import { conversationTurns, Thread, withAccountTurns } from './_thread'
+import { conversationTurns, withAccountTurns } from './_turns'
+import { LINK_QUESTION } from './archive/constants'
 import type { PageArchives } from './archive/ports'
 import { RETENTION_DAYS } from './constants'
 import type {
@@ -19,30 +23,27 @@ import type {
   SessionEraser,
 } from './ports'
 
-/** „Usuń moje sprawdzenia”: the confirmation, the deletion and its outcome; `onEmptied` clears the thread. */
-function useErase(
-  eraser: SessionEraser,
-  onErased: () => Promise<void> | void,
-  onEmptied: () => void,
-) {
-  const [confirming, setConfirming] = useState(false)
-  const [erased, setErased] = useState<boolean | null>(null)
-  const erase = useCallback(async () => {
-    setErased(null)
-    const ok = await eraser.erase()
-    // the local copies go only once the server deleted its records, so a failure can be retried
-    if (ok) {
-      forgetChecks()
-      onEmptied()
-      await onErased()
+const fileQuestions = [
+  ['audio', t.conversation.audio_question],
+  ['image', t.conversation.image_question],
+] as const
+
+/** The claim heading: a sent recording or image by its file name, a text in quotes, else the page title. */
+function Heading({ question }: { question: string | undefined }) {
+  if (!question) {
+    return <h1 className="text-title font-bold tracking-tight">{t.result.page_title}</h1>
+  }
+  for (const [kind, template] of fileQuestions) {
+    const prefix = fill(template, { name: '' })
+    if (question.startsWith(prefix)) {
+      return <QuotedClaim file={{ kind, name: question.slice(prefix.length) }} />
     }
-    setErased(ok)
-  }, [eraser, onErased, onEmptied])
-  const ask = useCallback(() => setConfirming(true), [])
-  return { confirming, setConfirming, ask, erased, erase }
+  }
+  return <QuotedClaim>{question}</QuotedClaim>
 }
 
 type CheckPageProps = {
+  checkId: string
   sender: CheckSender
   uploader: AudioUploader
   imageUploader: ImageUploader
@@ -53,22 +54,22 @@ type CheckPageProps = {
   archives?: PageArchives
   account?: CitizenAccount
   onAccepted: (checkId: string) => void
+  onOpen: (checkId: string) => void
+  onNew: () => void
+  rail: (content: ReactNode) => ReactNode
   onErased?: () => Promise<void> | void
-  activeCheckId?: string
   notice?: ReactNode
 }
 
 /**
- * The web channel as one conversation (ADR-08, DESIGN_SYSTEM.md 6.8), without sign-in: this
- * tab's checks as question–answer turns (`Thread`), or on an empty tab a welcome with example
- * claims; under them `notice` (the AI notice), the privacy line with „Usuń moje sprawdzenia”
- * (asks first, then deletes the session's records on the server, the tab's history and, through
- * `onErased`, its notifications); at the bottom the docked message field. A typed text or link
- * is checked with zod (`validateCheck`) before it is sent; a clicked example is sent the same
- * way. API errors, rate limit included, show under the field, never as a verdict. A recording
- * attaches through the microphone button, a screenshot or photo through the image button. An accepted check keeps its question for the thread
- * and is handed on by its id, to open its result address.
+ * One check on its own page (DESIGN_SYSTEM.md 6.8): the question as the
+ * h1 quote (`QuotedClaim`), the archive of a checked link, then the progress bar while the check
+ * runs and the result as a list of claims once it is there (`ResultPage`). Only after the run
+ * ended comes the field „Sprawdź kolejną informację”: an accepted check opens its own page. Under
+ * it, quietly, the AI notice, the privacy line with „Usuń moje sprawdzenia” and the account; both
+ * deletions ask first. The rail holds „Nowe sprawdzenie” and this tab's (or the account's) checks.
  *
+ * @param props.checkId - The check of the address.
  * @param props.sender - Sends the request to the API (the `src/api` adapter in the app).
  * @param props.uploader - Uploads a recording to the API (the `src/api` adapter in the app).
  * @param props.imageUploader - Uploads a screenshot or photo to the API (the `src/api` adapter in the app).
@@ -77,17 +78,19 @@ type CheckPageProps = {
  * @param props.progress - Streams a check's steps (the `src/api` SSE adapter in the app).
  * @param props.handoff - Hands claims to the moderators (the `src/api` adapter in the app).
  * @param props.archives - Archives a checked link („Zarchiwizuj stronę”); no action without it.
- * @param props.account - The optional citizen account (Google or Microsoft sign-in): signed in, the
- * history comes from the server and the page offers sign-out and deleting the history or the
- * account; without it, or signed out, the history stays in sessionStorage.
- * @param props.onAccepted - Called with the id of an accepted check.
+ * @param props.account - The optional citizen account: signed in, the history comes from the
+ * server and the page offers sign-out and deleting the history or the account.
+ * @param props.onAccepted - Called with the id of an accepted next check.
+ * @param props.onOpen - Called with the id of a check clicked in the rail.
+ * @param props.onNew - Called by „Nowe sprawdzenie” in the rail.
+ * @param props.rail - Puts its content into the layout's side rail.
  * @param props.onErased - Called after the server deleted the records; empties the inbox.
- * @param props.activeCheckId - The check of the result address, shown as the current turn.
- * @param props.notice - The AI notice, once on the screen, above the field.
- * @returns The conversation page.
- * @feature US-SPR-01, US-SPR-08, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, US-SPR-10, US-KOR-07, F-01, F-08, F-20, F-21, F-31, F-33, F-38
+ * @param props.notice - The AI notice.
+ * @returns The check page.
+ * @feature US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-08, US-SPR-09, US-SPR-10, US-SPR-11, US-BEZ-05, US-BEZ-07, US-KOR-07, F-01, F-08, F-09, F-17, F-20, F-21, F-31, F-33, F-38
  */
 export function CheckPage({
+  checkId,
   sender,
   uploader,
   imageUploader,
@@ -98,22 +101,30 @@ export function CheckPage({
   archives,
   account,
   onAccepted,
+  onOpen,
+  onNew,
+  rail,
   onErased = () => undefined,
-  activeCheckId,
   notice,
 }: CheckPageProps) {
-  const [turns, setTurns] = useState(() => conversationTurns(activeCheckId))
   const [value, setValue] = useState('')
-  const clearTurns = useCallback(() => setTurns([]), [])
+  const [ended, setEnded] = useState(false)
+  // bumped when the rail must read the tab's history again (a deletion, a result that arrived)
+  const [, setVersion] = useState(0)
+  const reread = useCallback(() => setVersion((n) => n + 1), [])
+  const markEnded = useCallback(() => {
+    setEnded(true)
+    reread()
+  }, [reread])
   const { user, remote, signedOut, signOut, forgetRemote, leave } = useAccount(account)
   const emptyAll = useCallback(() => {
-    clearTurns()
     forgetRemote()
-  }, [clearTurns, forgetRemote])
+    reread()
+  }, [forgetRemote, reread])
   const dropAccount = useCallback(() => {
-    clearTurns()
     leave()
-  }, [clearTurns, leave])
+    reread()
+  }, [leave, reread])
   const sessionErase = useErase(
     user && account ? account.historyEraser : eraser,
     onErased,
@@ -121,34 +132,58 @@ export function CheckPage({
   )
   const accountErase = useErase(account?.accountEraser ?? eraser, onErased, dropAccount)
   const { confirming, setConfirming, ask, erased, erase } = sessionErase
-  const shownTurns = withAccountTurns(turns, remote)
+  const question = withAccountTurns(conversationTurns(checkId), remote).find(
+    (turn) => turn.checkId === checkId,
+  )?.question
   const accept = useCallback(
-    (checkId: string, question: string) => {
-      rememberQuestion(checkId, question)
-      onAccepted(checkId)
+    (id: string, asked: string) => {
+      rememberQuestion(id, asked)
+      onAccepted(id)
     },
     [onAccepted],
   )
   const { sending, refusal, send } = useSend(sender, accept)
   const attachments = useAttachments({ audio: uploader, image: imageUploader }, sender, accept)
-  const pick = useCallback((claim: string) => send({ channel: 'web', text: claim }), [send])
   const busy = sending || attachments.busy
+  const link = question?.trim()
 
   return (
-    // the empty page widens to two columns from 1024 px (data-wide, read by the layout)
-    <div className="grid min-w-0 gap-10" data-wide={shownTurns.length === 0 ? '' : undefined}>
-      <h1 className="sr-only">{activeCheckId ? t.result.page_title : t.form.title}</h1>
-      {shownTurns.length === 0 ? (
-        <Welcome onPick={pick} disabled={busy} />
-      ) : (
-        <Thread
-          turns={shownTurns}
-          activeCheckId={activeCheckId}
-          reader={reader}
-          progress={progress}
-          handoff={handoff}
-          archives={archives}
-        />
+    <div className="grid min-w-0 content-start gap-10">
+      <Heading question={question} />
+      {archives && link && LINK_QUESTION.test(link) && (
+        <PageArchive url={link} archives={archives} />
+      )}
+      <ResultPage
+        checkId={checkId}
+        reader={reader}
+        progress={progress}
+        handoff={handoff}
+        focusOnAnswer
+        onEnded={markEnded}
+      />
+      {ended && (
+        <section aria-labelledby="sprawdz-kolejna" className="grid min-w-0 gap-3 pt-4">
+          <h2 id="sprawdz-kolejna" className="text-body font-semibold">
+            {t.check_page.next}
+          </h2>
+          <div aria-live="polite" className="min-w-0 empty:hidden *:mb-3">
+            {attachments.messages}
+          </div>
+          <Composer
+            value={value}
+            onValueChange={setValue}
+            onSubmit={send}
+            pending={busy}
+            serverError={refusal}
+            tools={attachments.tools}
+            attachment={attachments.attachment}
+            onSendAttachment={attachments.onSend}
+            placeholder={t.conversation.next_placeholder}
+            // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
+            // row ran out; this reaches into it until the design system lets it shrink
+            className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
+          />
+        </section>
       )}
       <div className="grid gap-1.5 text-small text-muted-foreground text-pretty">
         {notice}
@@ -160,14 +195,14 @@ export function CheckPage({
               <button
                 type="button"
                 onClick={ask}
-                className="py-3 text-foreground underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="cursor-pointer py-3 text-foreground underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 {t.form.delete_session}
               </button>
             </>
           )}
         </p>
-        <p className="text-meta">{user ? t.history.account_note : t.history.session_note}</p>
+        {user && <p className="text-meta">{t.history.account_note}</p>}
         {account && (
           <AccountSection
             account={account}
@@ -183,27 +218,17 @@ export function CheckPage({
             (erased ? t.channel_privacy.deleted : t.extension.popup_delete_failed)}
         </p>
       </div>
-      <div className="sticky bottom-0 z-10 -mx-4 grid bg-background px-4 pt-2 pb-3 sm:pb-4">
-        <div aria-live="polite" className="min-w-0 *:mb-3">
-          {attachments.messages}
-        </div>
-        <Composer
-          value={value}
-          onValueChange={setValue}
-          onSubmit={send}
-          pending={busy}
-          serverError={refusal}
-          tools={attachments.tools}
-          attachment={attachments.attachment}
-          onSendAttachment={attachments.onSend}
-          placeholder={
-            shownTurns.length > 0 ? t.conversation.next_placeholder : t.form.input_placeholder
-          }
-          // shortcut: at 150% on 320 px the synced Composer sized to its placeholder and its send
-          // row ran out; this reaches into it until the design system lets it shrink
-          className="*:min-w-0 [&_textarea]:min-w-0 [&_div:has(>button[type=submit])]:flex-wrap"
-        />
-      </div>
+      {rail(
+        <CheckHistory
+          items={historyItems(remote)}
+          onOpen={onOpen}
+          onNew={onNew}
+          // shortcut: CheckHistory says „only in this browser” unless it gets its own account
+          // buttons, which AccountSection already has; hide its note while signed in until the
+          // design system takes the signed-in state on its own
+          className={user ? '[&>p:last-child]:hidden' : ''}
+        />,
+      )}
       <DeleteChecksDialog open={confirming} onOpenChange={setConfirming} onConfirm={erase} />
       <DeleteChecksDialog
         account

@@ -67,16 +67,17 @@ function renderPage(checkId = 'c_01', pollMs = 1, focusOnAnswer = false) {
 test('the page reads GET /api/v1/checks/{id} and shows the result card', async (t) => {
   const fetch = fakeApi(t, finished)
   renderPage()
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.equal(requestPath(sentRequest(fetch.mock.calls[0]?.arguments[0])), '/api/v1/checks/c_01')
 })
 
 test('the result is inside a polite aria-live region that exists before it arrives', async (t) => {
   fakeApi(t, running, finished)
   renderPage()
-  const live = document.querySelector('[aria-live="polite"]')
+  // the result region is the last polite one; the progress bar has its own above it
+  const live = [...document.querySelectorAll('[aria-live="polite"]')].at(-1)
   assert.ok(live)
-  const badge = await screen.findByText(pl.verdict.false)
+  const [badge = null] = await screen.findAllByText(pl.verdict.false)
   assert.equal(live.contains(badge), true)
 })
 
@@ -84,7 +85,7 @@ test('while the check runs the page shows its steps, then the card', async (t) =
   const fetch = fakeApi(t, running, running, finished)
   renderPage()
   assert.ok(await screen.findByText(pl.analysis.steps.search_corpus))
-  assert.ok(await screen.findByText(pl.verdict.confirmed))
+  assert.ok((await screen.findAllByText(pl.verdict.confirmed))[0])
   assert.equal(screen.queryByText(pl.analysis.steps.search_corpus), null)
   assert.equal(fetch.mock.callCount(), 3)
 })
@@ -106,7 +107,7 @@ test('a lost connection says so and the page keeps asking until the result comes
   fakeApi(t, 'network down', finished)
   renderPage('c_01', 200)
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.equal(screen.queryByRole('alert'), null)
 })
 
@@ -127,7 +128,7 @@ test('a server error shows the busy message', async (t) => {
 test('the check id is encoded into the path', async (t) => {
   const fetch = fakeApi(t, finished)
   renderPage('a/b')
-  await screen.findByText(pl.verdict.false)
+  await screen.findAllByText(pl.verdict.false)
   assert.equal(requestPath(sentRequest(fetch.mock.calls[0]?.arguments[0])), '/api/v1/checks/a%2Fb')
 })
 

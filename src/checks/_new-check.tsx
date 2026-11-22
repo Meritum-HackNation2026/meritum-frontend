@@ -5,7 +5,7 @@ import { useAccount } from './_account'
 import { useAttachments } from './_attachments'
 import { rememberQuestion, savedChecks } from './_history'
 import { useSend } from './_send'
-import { conversationTurns, withAccountTurns } from './_thread'
+import { conversationTurns, withAccountTurns } from './_turns'
 import type {
   AccountCheck,
   AudioUploader,
@@ -109,18 +109,33 @@ export function NewCheckPage({
   )
 }
 
-/** This tab's checks (and a signed-in account's), newest first, as the rail lists them. */
-function historyItems(remote: AccountCheck[]): HistoryItem[] {
+/**
+ * This tab's checks (and a signed-in account's), newest first, as the rail lists them: the
+ * verdict of the main claim once the tab keeps the result, otherwise a check this tab sent is
+ * named as running.
+ *
+ * @param remote - The signed-in account's checks; empty without an account.
+ * @returns The rail's items.
+ * @feature US-SPR-09, US-SPR-10, F-20, F-31
+ */
+export function historyItems(remote: AccountCheck[]): HistoryItem[] {
   const results = new Map(savedChecks().map(({ result }) => [result.check_id, result]))
+  const fromAccount = new Set(remote.map(({ checkId }) => checkId))
   return withAccountTurns(conversationTurns(), remote)
     .map(({ checkId, at, question, answeredAt }) => {
-      const main = results.get(checkId)?.claims?.[0]
+      const result = results.get(checkId)
+      const main = result?.claims?.[0]
       const item: HistoryItem = {
         checkId,
         label: question ?? main?.claim ?? '',
         at: answeredAt ?? at,
       }
-      return main ? { ...item, verdict: main.verdict } : item
+      if (main) {
+        return { ...item, verdict: main.verdict }
+      }
+      // shortcut: a run that ended without a kept result still reads as running here; the
+      // account API sends no status, so its checks get no word at all
+      return result || fromAccount.has(checkId) ? item : { ...item, pending: true }
     })
     .reverse()
 }

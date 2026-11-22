@@ -19,6 +19,7 @@ import { CheckPage, type ProgressSource } from '@/checks'
 import { rememberQuestion } from '@/checks/_history'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
+import { finishedCheck } from './finished-check'
 
 const uuid = /^[0-9a-f-]{36}$/
 const copiedTabs = /w kartach z niej otwartych/
@@ -31,10 +32,7 @@ function fakeApi(t: TestContext, status = 202) {
 }
 
 /** Renders the form and records the check ids it hands on after the API accepted them. */
-function renderPage(
-  progress: ProgressSource = apiProgressSource,
-  activeCheckId?: string,
-): string[] {
+function renderPage(progress: ProgressSource = apiProgressSource): string[] {
   const opened: string[] = []
   const onAccepted = opened.push.bind(opened)
   render(
@@ -47,7 +45,7 @@ function renderPage(
       progress={progress}
       handoff={apiHandoff}
       onAccepted={onAccepted}
-      {...(activeCheckId ? { activeCheckId } : {})}
+      {...finishedCheck()}
     />,
   )
   return opened
@@ -162,32 +160,25 @@ test('the note under the history says it also shows in tabs opened from this one
 
 const placeholder = () => screen.getByLabelText(pl.form.input_label).getAttribute('placeholder')
 
-test('an empty tab keeps the example placeholder', (t) => {
+test('the field under an ended check asks for the next claim', (t) => {
   fakeApi(t)
   renderPage()
-  assert.equal(placeholder(), pl.form.input_placeholder)
-})
-
-test('once a check is in the thread the field asks for the next claim', (t) => {
-  fakeApi(t)
-  rememberQuestion('c_01', 'Pytanie')
-  renderPage({ watch: () => () => undefined })
   assert.equal(placeholder(), pl.conversation.next_placeholder)
 })
 
-test('the result address has its own h1, the empty page keeps the form title', (t) => {
+test('the question of the check is the page’s only h1, in quotes', (t) => {
   fakeApi(t)
-  rememberQuestion('c_01', 'Pytanie')
-  renderPage({ watch: () => () => undefined }, 'c_01')
+  rememberQuestion('c_03', 'Pytanie')
+  renderPage({ watch: () => () => undefined })
   const headings = screen.getAllByRole('heading', { level: 1 })
   assert.deepEqual(
     headings.map((h) => h.textContent),
-    [pl.result.page_title],
+    ['„Pytanie”'],
   )
 })
 
-test('the check page without a result address is named after the form', (t) => {
+test('a check opened by link without its question is titled „Wynik sprawdzenia”', (t) => {
   fakeApi(t)
   renderPage()
-  assert.equal(screen.getByRole('heading', { level: 1 }).textContent, pl.form.title)
+  assert.equal(screen.getByRole('heading', { level: 1 }).textContent, pl.result.page_title)
 })

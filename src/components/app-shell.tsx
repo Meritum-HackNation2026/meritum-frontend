@@ -29,7 +29,7 @@ export function Rail({ children }: { children: ReactNode }) {
  * Layout of every page: the „Przejdź do treści” link (WCAG 2.4.1), the sticky top bar, the main
  * region with a column up to 720 px from the bar's left edge and a rail slot of 320 px inside a
  * container up to 1152 px (DESIGN_SYSTEM.md 5), and the one-row footer. A page that holds
- * [data-wide] (the empty conversation) takes the whole container. Hints get one TooltipProvider,
+ * [data-wide] (the home page) takes the whole container. Hints get one TooltipProvider,
  * the pages get this tab's notifications inbox, and the tab title follows the page's h1.
  *
  * @returns The page frame around the current route.

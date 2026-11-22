@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { fill, formatDate } from '@/components/meritum'
 import pl from '@/copy/pl.json'
 import { base, citation, hasText, renderClaim } from './chain-fixtures'
@@ -23,6 +23,8 @@ test('old evidence shows the newest source date and the claim date with a warnin
     strength: { level: 'weak', premises: { ...premises, validity: 'expires' } },
     citations: [stale],
   })
+  // the strength label holds the dates in its note, which opens on focus (design-system#148)
+  fireEvent.focus(screen.getByRole('button', { name: new RegExp(pl.strength.weak) }))
   const newest = fill(pl.result.newest, {
     source_date: formatDate('2025-01-25T00:00:00Z'),
     claim_date: formatDate('2026-03-01'),

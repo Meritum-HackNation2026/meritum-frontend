@@ -73,10 +73,6 @@ async function startCheck(fake: ReturnType<typeof fakeSource>, reader = running)
   return page
 }
 
-function stepText(code: AnalysisStep['code']): string {
-  return screen.getByText(pl.analysis.steps[code]).closest('li')?.textContent ?? ''
-}
-
 function shownVerdicts(): string[] {
   return Object.values(pl.verdict).filter((word) => screen.queryAllByText(word).length > 0)
 }
@@ -95,30 +91,21 @@ test('the result page subscribes to the progress of its check id', async () => {
   assert.deepEqual(fake.calls.watched, ['c_01'])
 })
 
-test('three research steps reported as active show as active at once', async () => {
+test('the steps the stream reports show in the bar of the page', async () => {
   const fake = fakeSource()
   await startCheck(fake)
   fake.emit(recorded)
-  for (const code of ['search_corpus', 'search_web', 'search_fact_checks'] as const) {
-    assert.equal(stepText(code), `${pl.analysis.steps[code]}, w toku`)
-  }
-})
-
-test('a skipped link download is struck through and named "pominięte" for screen readers', async () => {
-  const fake = fakeSource()
-  await startCheck(fake)
-  fake.emit(recorded)
-  assert.equal(stepText('fetch_url'), `${pl.analysis.steps.fetch_url}, pominięte`)
-  const name = screen.getByText(pl.analysis.steps.fetch_url)
-  assert.equal(name.classList.contains('line-through'), true)
+  assert.ok(screen.getByRole('progressbar'))
+  assert.ok(screen.getByText(pl.analysis.steps.search_corpus))
 })
 
 test('a streamed answer shows no verdict until verify_citations is done', async () => {
   const fake = fakeSource()
   await startCheck(fake)
-  fake.emit(withVerify('active'))
+  fake.emit({ ...withVerify('active'), draft: 'Wstępna odpowiedź bez werdyktu' })
   assert.deepEqual(shownVerdicts(), [])
   assert.equal(screen.queryAllByText(pl.analysis.draft).length, 1)
+  assert.ok(screen.getByText('Wstępna odpowiedź bez werdyktu'))
   fake.emit(withVerify('done'))
   assert.deepEqual(shownVerdicts().sort(), [pl.verdict.confirmed, pl.verdict.false].sort())
   assert.equal(screen.queryAllByText(pl.analysis.draft).length, 0)
@@ -145,7 +132,8 @@ test('the result is announced in a polite live region', async () => {
   await startCheck(fake)
   fake.emit(withVerify('done'))
   fake.end()
-  const badge = screen.getByText(pl.verdict.false)
+  const [badge] = screen.getAllByText(pl.verdict.false)
+  assert.ok(badge)
   assert.equal(badge.closest('[aria-live]')?.getAttribute('aria-live'), 'polite')
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
@@ -173,7 +161,7 @@ test('a stream that ends early still shows the result the API has by then', asyn
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.search_corpus)
   fake.end()
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
 
@@ -211,7 +199,7 @@ test('a failed read after the stream ended shows its own message and the page as
   await screen.findByText(pl.analysis.steps.search_corpus)
   fake.end()
   assert.equal((await screen.findByRole('alert')).textContent, pl.errors.offline)
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
 })
 
 test('a stream that drops while the check still runs keeps the page reading until the result', async () => {
@@ -229,7 +217,7 @@ test('a stream that drops while the check still runs keeps the page reading unti
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
   await screen.findByText(pl.analysis.steps.search_corpus)
   fake.end()
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })
 
@@ -243,8 +231,8 @@ test('a check still in the queue when the stream drops keeps the page reading un
   const later: ResultReader = { read: () => Promise.resolve(answers[call++] ?? queued) }
   render(resultPage(later, fake.source, 20))
   await waitFor(() => assert.equal(fake.calls.watched.length, 1))
-  await screen.findByText(pl.analysis.steps.receive)
+  await screen.findByText(pl.analysis.step_of.replace('{n}', '1').replace('{of}', '1'))
   fake.end()
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   assert.deepEqual(screen.queryAllByRole('alert'), [])
 })

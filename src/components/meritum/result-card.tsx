@@ -1,54 +1,75 @@
-import type { ReactNode } from "react"
+import { BookOpenIcon, ChevronDownIcon, FlagIcon, ListChecksIcon } from "lucide-react"
 
-import type { CheckResult, ClaimResult } from "@/contracts/meritum"
+import { Accordion } from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import type { CheckResult, ClaimResult, Verdict } from "@/contracts/meritum"
 import { cn } from "@/lib/utils"
 
-import { CitationItem } from "./citation-item"
-import { fill, formatDate, t } from "./copy"
-import { InfoButton } from "./hint"
+import { ClaimRow } from "./claim-row"
+import { fill, plural, t } from "./copy"
 import { MeritumLabel } from "./meritum-mark"
-import { StrengthMeter } from "./strength-meter"
 import { VerdictBadge } from "./verdict-badge"
 
 /**
- * Result card (DESIGN_SYSTEM.md 6.4): one card per check, one block per claim.
- * Same component on the web form and under a post in the extension; the frame takes the host skin via `data-host`.
- * A non-verdict status (clarify, out of scope, technical failure) gets an icon and a line of text, never a badge.
- * `message` is never shown: the status line and the limitations come from contract codes through copy/pl.json
- * (the API's limitation texts only when it sent no codes).
+ * Result card (DESIGN_SYSTEM.md 6.4): a summary of the claims and their verdicts, then a list of claims on shadcn
+ * `Accordion` with every row open, then one toggle for the limitations and the AI note, the escalation state and
+ * the actions. On the web page the result has no frame; under a platform skin (`data-host`) it gets the card
+ * background, a 1 px border and the host radius. A non-verdict status (clarify, out of scope, technical failure)
+ * gets an icon and a line of text, never a badge. `message` is never shown: the status line and the limitations
+ * come from contract codes through copy/pl.json (the API's limitation texts only when it sent no codes).
+ *
+ * @param props.result - The check result from the API.
+ * @param props.onReportError - Opens the error report; without it the „Zgłoś błąd” button is left out.
+ * @param props.howItWorksHref - Link of the „Jak działa Meritum” page; without it the button is left out.
+ * @param props.className - Extra classes for the card.
+ * @returns The result section.
+ * @feature US-SPR-04, US-SPR-05, US-ZRD-01, US-ZRD-02, US-ZRD-03, F-17
  */
-export function ResultCard({ result, className }: { result: CheckResult; className?: string }) {
-  const limitations = limitationTexts(result)
+export function ResultCard({
+  result,
+  onReportError,
+  howItWorksHref,
+  className,
+}: {
+  result: CheckResult
+  onReportError?: () => void
+  howItWorksHref?: string
+  className?: string
+}) {
+  const claims = result.claims ?? []
   return (
     <section
       aria-label="Meritum: wynik sprawdzenia"
       className={cn(
-        "animate-rise min-w-0 border border-border bg-[var(--host-card,var(--card))] in-data-reply:border-transparent font-[family-name:var(--host-font,var(--font-sans))] text-card-foreground",
+        "animate-rise grid min-w-0 gap-4 border border-transparent in-data-host:border-border in-data-reply:border-transparent bg-[var(--host-card,var(--card))] font-[family-name:var(--host-font,var(--font-sans))] text-card-foreground",
         "rounded-[var(--host-radius,var(--radius))]",
         className,
       )}
     >
-      <header className="flex items-center px-3.5 pt-3 in-data-reply:hidden">
+      <header className="flex items-center px-4 pt-3 in-data-reply:hidden">
         <MeritumLabel />
       </header>
 
       {result.status === "done" ? (
         <>
           {result.source_warning && (
-            <Note className="mx-3.5">
+            <p className="flex flex-wrap items-center gap-x-1.5 px-4 text-small text-pretty">
               {fill(t.source_warning.eu_sanctioned_entity, { entity: result.source_warning.entity })}{" "}
-              <a href={result.source_warning.basis_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-3">
+              <a href={result.source_warning.basis_url} target="_blank" rel="noopener noreferrer" className="text-[var(--host-link,var(--link))] underline underline-offset-3">
                 {t.source_warning.basis_link}
               </a>
-            </Note>
+            </p>
           )}
-          <h2 className="sr-only">{t.result.claims_title}</h2>
-          {(result.claims ?? []).map((c) => (
-            <ClaimBlock key={c.claim} claim={c} />
-          ))}
+          <Summary claims={claims} />
+          <Accordion type="multiple" defaultValue={claims.map((c) => c.claim)} className="@container grid gap-1">
+            {claims.map((c) => (
+              <ClaimRow key={c.claim} claim={c} />
+            ))}
+          </Accordion>
         </>
       ) : (
-        <div className="flex items-start gap-2.5 px-3.5 pt-2.5">
+        <div className="flex items-start gap-2.5 px-4">
           <StatusIcon />
           <div>
             <h2 className="font-sans text-body font-bold">{t.status[result.status]}</h2>
@@ -57,27 +78,87 @@ export function ResultCard({ result, className }: { result: CheckResult; classNa
         </div>
       )}
 
-      <footer className="mt-1 grid gap-1.5 px-3.5 pt-2.5 pb-3.5 text-meta text-muted-foreground">
+      <footer className="grid gap-4 px-4 pb-4 text-small text-muted-foreground">
         {result.escalation && (
-          <p className="text-small text-foreground">
+          <p className="text-foreground">
             {result.escalation.state === "recommended"
               ? t.escalation.recommended
               : fill(t.escalation[result.escalation.state], { case: result.escalation.case_id ?? "" })}
           </p>
         )}
-        {limitations.length > 0 && (
-          <div>
-            <p className="font-semibold">{t.result.limitations}</p>
-            <ul className="list-disc pl-4">
-              {limitations.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <p className="in-data-reply:hidden">{t.result.ai_disclosure}</p>
+        <Limits limitations={limitationTexts(result)} />
+        <Actions onReportError={onReportError} howItWorksHref={howItWorksHref} />
       </footer>
     </section>
+  )
+}
+
+/** "Co sprawdziliśmy": the number of claims, then each verdict once with how many claims got it. */
+function Summary({ claims }: { claims: ClaimResult[] }) {
+  const counts = new Map<Verdict, number>()
+  for (const c of claims) counts.set(c.verdict, (counts.get(c.verdict) ?? 0) + 1)
+  return (
+    <div className="grid gap-2 px-4">
+      <h2 className="flex items-center gap-2 text-small font-semibold">
+        <ListChecksIcon aria-hidden="true" className="size-4 shrink-0" />
+        {t.result.claims_title}: {plural(t.result.claims_count, claims.length)}
+      </h2>
+      <ul className="flex flex-wrap gap-x-3 gap-y-2">
+        {[...counts].map(([verdict, count]) => (
+          <li key={verdict} className="flex items-center gap-1.5 text-small tabular-nums text-muted-foreground">
+            {count} ×
+            <VerdictBadge verdict={verdict} size="sm" explain />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/** Limitations and the AI note under one toggle; in a reply with no limitations the thread carries the AI note. */
+function Limits({ limitations }: { limitations: string[] }) {
+  const count = limitations.length > 0 ? ` (${limitations.length})` : ""
+  return (
+    <Collapsible className={cn(limitations.length === 0 && "in-data-reply:hidden")}>
+      <CollapsibleTrigger className="group flex cursor-pointer items-center gap-1.5 rounded-md font-semibold transition-colors duration-150 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        {t.result.limitations}
+        {count}
+        <ChevronDownIcon aria-hidden="true" className="size-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="grid gap-2 pt-2 text-pretty">
+        {limitations.length > 0 && (
+          <ul className="list-disc pl-4">
+            {limitations.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        )}
+        <p className="in-data-reply:hidden">{t.result.ai_disclosure}</p>
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+/** „Zgłoś błąd” and „Jak działa Meritum” as buttons with Lucide icons; each only when the app wires it. */
+function Actions({ onReportError, howItWorksHref }: { onReportError?: (() => void) | undefined; howItWorksHref?: string | undefined }) {
+  if (!onReportError && !howItWorksHref) return null
+  return (
+    <div className="flex flex-wrap gap-2">
+      {onReportError && (
+        <Button type="button" variant="outline" className="h-9 gap-2 rounded-pill px-4 text-small" onClick={onReportError}>
+          <FlagIcon aria-hidden="true" />
+          {t.result.report_error}
+        </Button>
+      )}
+      {howItWorksHref && (
+        <Button asChild variant="ghost" className="h-9 gap-2 rounded-pill px-4 text-small">
+          <a href={howItWorksHref}>
+            <BookOpenIcon aria-hidden="true" />
+            {t.result.how_it_works}
+          </a>
+        </Button>
+      )}
+    </div>
   )
 }
 
@@ -93,91 +174,6 @@ function statusText(result: CheckResult): string {
 function limitationTexts(result: CheckResult): string[] {
   const codes = result.limitation_codes ?? []
   return codes.length > 0 ? codes.map((code) => t.limitation_code[code]) : (result.limitations ?? [])
-}
-
-function ClaimBlock({ claim: c }: { claim: ClaimResult }) {
-  const citations = c.citations ?? []
-  const conflict = c.verdict === "insufficient_evidence" && citations.length > 0
-  return (
-    <article className="border-t border-border/70 px-3.5 py-4 first-of-type:border-t-0">
-      <h3 className="grid gap-1">
-        <VerdictBadge verdict={c.verdict} size="lg" />
-        <span className="font-sans text-body font-semibold text-pretty">
-          <span className="sr-only">{t.result.claim}: </span>„{c.claim}”
-        </span>
-      </h3>
-      <p className="mt-1 text-small text-muted-foreground">{t.verdict_hint[c.verdict]}</p>
-
-      <div className="mt-3">
-        <h4 className="sr-only">{t.result.explanation}</h4>
-        <p className="text-body text-pretty">{c.explanation}</p>
-      </div>
-
-      {conflict ? (
-        <div className="mt-4">
-          <p className="text-small text-pretty">{fill(t.result.conflict, { difference: c.unresolved ?? "" })}</p>
-          <div className="mt-1 grid gap-x-4 sm:grid-cols-2">
-            {(["supports", "refutes"] as const).map((side) => (
-              <div key={side}>
-                <h4 className="mt-2 text-meta font-semibold text-muted-foreground">{side === "supports" ? "Źródła potwierdzające" : "Źródła przeczące"}</h4>
-                <ul className="grid gap-1">
-                {citations
-                  .filter((x) => x.stance === side)
-                  .map((x) => (
-                    <CitationItem key={x.source.id + x.fragment} citation={x} />
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        citations.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-small font-semibold text-muted-foreground">{t.result.sources_title}</h4>
-            <ul className="grid gap-1">
-              {citations.map((x) => (
-                <CitationItem key={x.source.id + x.fragment} citation={x} />
-              ))}
-            </ul>
-          </div>
-        )
-      )}
-
-      {c.strength && <StrengthMeter className="mt-2" strength={c.strength} claimDate={c.claim_date} claimDateSource={c.claim_date_source} />}
-
-      {c.unresolved && !conflict && (
-        <div className="mt-2.5">
-          <h4 className="text-meta font-semibold text-muted-foreground">{t.result.unresolved}</h4>
-          <p className="text-small text-pretty">{c.unresolved}</p>
-        </div>
-      )}
-
-      {c.archival && <Note>{t.result.archival}</Note>}
-      {c.incident && (
-        <Note>
-          {fill(c.incident.matched_on === "domain" ? t.result.incident_domain : t.result.incident, {
-            title: c.incident.title,
-            date: formatDate(c.incident.date),
-          })}{" "}
-          <a href={c.incident.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-3">
-            {t.result.incident_link}
-          </a>
-        </Note>
-      )}
-      {c.technique && (
-        <Note>
-          Technika: {t.techniques[c.technique].name}
-          <InfoButton text={t.techniques[c.technique].how_to_spot} label={`Jak rozpoznać: ${t.techniques[c.technique].name}`} />
-        </Note>
-      )}
-    </article>
-  )
-}
-
-/** Warnings and context lines: neutral, one per row, never red and never a verdict. */
-function Note({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn("mt-3 flex flex-wrap items-center gap-x-1.5 text-small text-pretty", className)}>{children}</p>
 }
 
 function StatusIcon() {

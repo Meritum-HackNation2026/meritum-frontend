@@ -114,8 +114,8 @@ test('a done result with a verdict and an opinion shows two claims', async () =>
   renderResult({ ...done, claims: [claim, opinion] })
   const claims = await screen.findAllByRole('article')
   assert.equal(claims.length, 2)
-  assert.ok(screen.getByText(pl.verdict[claim.verdict]))
-  assert.ok(screen.getByText(pl.verdict.not_verifiable))
+  assert.ok(screen.getAllByText(pl.verdict[claim.verdict])[0])
+  assert.ok(screen.getAllByText(pl.verdict.not_verifiable)[0])
   assert.equal(screen.queryByText(pl.status.technical_failure), null)
 })
 

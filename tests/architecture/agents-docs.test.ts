@@ -34,7 +34,8 @@ test('AGENTS.md keeps the rule groups issue #52 asks for', () => {
 
 test('AGENTS.md lists the component sources in order', () => {
   const order = ['src/components/meritum/', 'shadcn/ui', '@shadcnblocks/']
-  const line = agents.split('\n').find((l) => l.includes('Kolejność źródeł komponentów')) ?? ''
+  // the section „Components: Meritum first” says the order once, as a numbered list
+  const line = agents.split('## Components')[1]?.split('\n## ')[0] ?? ''
   const at = order.map((s) => line.indexOf(s))
   assert.ok(
     at.every((i) => i >= 0),

@@ -19,6 +19,7 @@ import {
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
 import { requestPath, sentRequest } from '../fetch-request'
+import { finishedCheck } from './finished-check'
 
 type Answer = { status: number; body: unknown }
 
@@ -51,6 +52,7 @@ function renderPage(): string[] {
       progress={apiProgressSource}
       handoff={apiHandoff}
       onAccepted={onAccepted}
+      {...finishedCheck()}
     />,
   )
   return opened
@@ -146,7 +148,9 @@ test('an unsupported format ends as out of scope, saying what can be sent', asyn
   fakeApi(t, rejected(415, 'status_hint.out_of_scope_audio_format'))
   const opened = renderPage()
   chooseAndCheck(new File(['%PDF'], 'skan.pdf', { type: 'application/pdf' }))
-  const card = await screen.findByRole('region', { name: pl.result.label })
+  // the page's own ended check is a state card too; the refusal is the one under the field
+  const field = screen.getByRole('region', { name: pl.check_page.next })
+  const card = await within(field).findByRole('region', { name: pl.result.label })
   const text = card.textContent ?? ''
   assert.ok(text.includes(pl.status.out_of_scope))
   assert.ok(text.includes(pl.out_of_scope_code.audio))
