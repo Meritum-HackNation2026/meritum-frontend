@@ -7,15 +7,18 @@ import { fill, formatDate, t } from "./copy"
  * One source as evidence (6.4): the verbatim fragment first, set as a quote with its opening „ hanging in the margin,
  * then the attribution under it: linked title, publisher and date, kind and tier. No box: the quote mark is the frame.
  * `showDate={false}` is for the evidence timeline, which shows the date itself: the attribution then names the
- * publisher only (no "data publikacji nieznana" either).
+ * publisher only (no "data publikacji nieznana" either). `disclaimer` is the catalogue's note on the publisher
+ * (`CatalogEntry.disclaimer`, e.g. EUvsDisinfo), shown as one calm line under the attribution.
  */
 export function CitationItem({
   citation,
   showDate = true,
+  disclaimer,
   className,
 }: {
   citation: Citation
   showDate?: boolean
+  disclaimer?: string | null
   className?: string
 }) {
   const { source: s, fragment } = citation
@@ -46,6 +49,7 @@ export function CitationItem({
         {meta}. {capitalize(t.source_kind[s.kind])}, {t.source_tier[s.tier]}
         {s.via === "web_search" && <>, {t.result.via_web}</>}.
       </p>
+      {disclaimer && <p className="text-meta text-muted-foreground text-pretty">{disclaimer}</p>}
     </li>
   )
 }

@@ -1915,6 +1915,19 @@
           ],
           "default": null,
           "title": "Exclusion Reason"
+        },
+        "disclaimer": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disclaimer"
         }
       },
       "required": [

@@ -686,5 +686,31 @@
         "Po hackathonie planujemy też model językowy na własnym serwerze, żeby mniej zależeć od dostawców spoza EOG."
       ]
     }
+  },
+  "archive": {
+    "$comment": "Archiving one public page on a citizen's request and the copy's view (meritum-frontend#103, US-KOR-07, F-38). Refusal keys are the worker's ArchiveRefusal codes.",
+    "action": "Zarchiwizuj stronę",
+    "action_hint": "Zapiszemy kopię tekstu tej strony na 30 dni. Zobaczysz ją tylko Ty i moderatorzy.",
+    "pending": "Zapisujemy kopię strony…",
+    "title": "Kopia strony",
+    "url": "Adres strony",
+    "sha256": "Skrót SHA-256",
+    "sha256_hint": "Skrót zmieni się, jeśli w kopii zmieni się choć jeden znak.",
+    "archived_at": "Zapisano",
+    "expires_at": "Usuniemy ją",
+    "download": "Pobierz kopię",
+    "copy_hash": "Kopiuj skrót",
+    "copied": "Skopiowano skrót.",
+    "delete": "Usuń kopię",
+    "deleted": "Usunęliśmy kopię.",
+    "not_in_sources": "Kopia nie trafia do źródeł, z których Meritum korzysta przy sprawdzaniu.",
+    "refusal": {
+      "login_wall": "Ta strona wymaga logowania albo opłaty, więc nie powstała jej kopia. Wklej tekst, który chcesz sprawdzić.",
+      "robots_or_tdm": "Właściciel strony nie zezwala na jej pobieranie, więc nie powstała kopia.",
+      "fetch_failed": "Nie udało się pobrać strony, więc nie powstała kopia.",
+      "rate_limited": "Wykorzystano limit próśb o archiwizację. Spróbuj później."
+    },
+    "failed": "Nie udało się zapisać kopii. Spróbuj jeszcze raz za chwilę.",
+    "not_found": "Nie ma takiej kopii albo nie masz do niej dostępu. Kopie znikają po 30 dniach."
   }
 }
