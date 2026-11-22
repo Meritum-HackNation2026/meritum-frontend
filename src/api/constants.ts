@@ -223,3 +223,10 @@ export const EVAL_RUNS_ENDPOINT = '/api/v1/eval/runs'
  * @feature US-OBS-05, F-28
  */
 export const EVAL_DATASETS_ENDPOINT = '/api/v1/eval/datasets'
+
+/**
+ * The analyst export of checks and cases (meritum-backend#31, US-OBS-03).
+ *
+ * @feature US-OBS-03, F-36
+ */
+export const EXPORT_ENDPOINT = '/api/v1/export'

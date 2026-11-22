@@ -137,7 +137,7 @@ test('an analyst sees evaluation in the navigation and never asks for cases', as
     within(nav)
       .getAllByRole('link')
       .map((link) => link.textContent),
-    [pl.evaluation.title],
+    [pl.evaluation.title, pl.export.title],
   )
   assert.ok(screen.getByText('analityk@example.org, rola: analityk'))
   assert.equal(paths(fetch).includes('/api/v1/moderation/cases'), false)
@@ -154,7 +154,7 @@ test('an administrator sees the cases, evaluation and administration', async (t)
     within(nav)
       .getAllByRole('link')
       .map((link) => link.textContent),
-    [pl.moderation.queue_title, pl.evaluation.title, pl.staff.admin.title],
+    [pl.moderation.queue_title, pl.evaluation.title, pl.export.title, pl.staff.admin.title],
   )
   assert.ok(screen.getByText(quietCase.summary))
 })

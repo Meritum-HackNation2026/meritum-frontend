@@ -113,3 +113,33 @@ export interface EvalApi {
    */
   compare(a: string, b: string): Promise<EvalComparison | null>
 }
+
+/**
+ * A format of the analyst export (`format` of GET /api/v1/export, backend#31).
+ *
+ * @feature US-OBS-03, F-36
+ */
+export type ExportFormat = keyof typeof copy.export.formats
+
+/**
+ * What a download gave: the file, or why not (`expired` session, `failed` API or no role).
+ *
+ * @feature US-OBS-03, F-36
+ */
+type ExportResult = { kind: 'done'; file: File } | { kind: 'expired' | 'failed' }
+
+/**
+ * The export API of meritum-backend (backend#31). Adapters never throw.
+ *
+ * @feature US-OBS-03, F-36
+ */
+export interface ExportApi {
+  /**
+   * Downloads the checks and cases of the last days.
+   *
+   * @param format - `json`, `csv` or `stix`.
+   * @param days - How far back to take checks.
+   * @returns The file named by format and period, or why it could not be made.
+   */
+  download(format: ExportFormat, days: number): Promise<ExportResult>
+}

@@ -1,5 +1,5 @@
 import copy from '@/copy/pl.json'
-import type { EvalRunStatus } from './ports'
+import type { EvalRunStatus, ExportFormat } from './ports'
 
 /**
  * Every run status, in the order of `evaluation.status` in copy/pl.json.
@@ -49,3 +49,18 @@ export const COMPARED_RUNS = 2
  * @feature US-OBS-05, F-28
  */
 export const CASE_FILE_TYPES = '.json,.csv,application/json,text/csv'
+
+/**
+ * Formats of the export, in the order of `export.formats` in copy/pl.json.
+ *
+ * @feature US-OBS-03, F-36
+ */
+export const EXPORT_FORMATS = Object.keys(copy.export.formats) as ExportFormat[]
+
+/**
+ * Periods of the export in days, as `export.periods` in copy/pl.json offers them; the first is
+ * the default (the API's own default is 7).
+ *
+ * @feature US-OBS-03, F-36
+ */
+export const EXPORT_PERIODS = Object.keys(copy.export.periods).map(Number)

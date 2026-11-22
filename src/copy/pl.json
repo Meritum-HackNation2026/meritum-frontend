@@ -531,6 +531,34 @@
       "read": "przeczytane"
     }
   },
+  "export": {
+    "$comment": "Export of checks and cases for the analyst at /panel/eksport (meritum-frontend#32, US-OBS-03, F-36). The file holds no session, user or channel identifiers; questions are masked.",
+    "title": "Eksport dla analityka",
+    "lead": "Pobierz sprawdzenia i sprawy z wybranego okresu, żeby wczytać je do własnych narzędzi.",
+    "period": "Okres",
+    "periods": {
+      "7": "Ostatnie 7 dni",
+      "30": "Ostatnie 30 dni",
+      "90": "Ostatnie 90 dni"
+    },
+    "format": "Format pliku",
+    "formats": {
+      "json": "JSON",
+      "csv": "CSV",
+      "stix": "STIX 2.1"
+    },
+    "format_hints": {
+      "json": "Sprawdzenia i sprawy w jednym pliku.",
+      "csv": "Jeden wiersz na sprawdzenie, do arkusza.",
+      "stix": "Paczka do importu w OpenCTI."
+    },
+    "disarm_notice": "Kody technik DISARM w paczce są propozycją systemu. Przed użyciem w raporcie potwierdź je jako analityk.",
+    "privacy_note": "W pliku nie ma identyfikatorów sesji, kont ani skrótów użytkowników. Pytania są zamaskowane.",
+    "download": "Pobierz plik",
+    "preparing": "Przygotowujemy plik…",
+    "done": "Pobrano plik {file}.",
+    "error": "Nie udało się przygotować pliku. Spróbuj jeszcze raz za chwilę."
+  },
   "evaluation": {
     "title": "Ewaluacja",
     "golden_set": "golden set (zestaw deweloperski)",
