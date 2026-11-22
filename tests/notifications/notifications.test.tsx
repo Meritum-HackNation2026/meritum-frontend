@@ -41,6 +41,9 @@ beforeEach(() => {
   saved = []
   Object.assign(globalThis, { EventSource: FakeEventSource })
   globalThis.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    if (input instanceof Request && new URL(input.url).pathname === '/api/v1/auth/me') {
+      return Promise.resolve(new Response(null, { status: 401 })) // nobody is signed in
+    }
     requests.push(`${init?.method ?? 'GET'} ${String(input)}`)
     return Promise.resolve(Response.json(saved))
   }

@@ -125,3 +125,58 @@ export interface AudioUploader {
    */
   upload(file: Blob): Promise<UploadOutcome>
 }
+
+/**
+ * The signed-in citizen as the page shows them: the address of the account, when the provider
+ * gave one.
+ *
+ * @feature US-SPR-10, F-31
+ */
+export type AccountSession = { email: string | null }
+
+/**
+ * One check of the account's server history: its id, when it was sent (ISO 8601) and the
+ * question with personal data masked.
+ *
+ * @feature US-SPR-10, F-31
+ */
+export type AccountCheck = { checkId: string; at: string; question: string }
+
+/**
+ * The optional citizen account (Google or Microsoft sign-in): history across devices, sign-out
+ * and deleting the history or the account. Never required: a check works without it.
+ *
+ * @feature US-SPR-10, US-BEZ-05, F-31
+ */
+export interface CitizenAccount {
+  /**
+   * Reads who is signed in; never throws.
+   *
+   * @returns The account, or null when nobody is signed in or the API cannot be reached.
+   */
+  session(): Promise<AccountSession | null>
+  /**
+   * Reads the account's checks, newest first; never throws.
+   *
+   * @returns The checks; empty when the API cannot be reached.
+   */
+  history(): Promise<AccountCheck[]>
+  /**
+   * The address that starts the sign-in with one provider and brings the citizen back.
+   *
+   * @param provider - The sign-in provider.
+   * @param returnTo - The path on this site to open after sign-in.
+   * @returns The login address on the API.
+   */
+  loginUrl(provider: 'google' | 'microsoft', returnTo: string): string
+  /**
+   * Ends the session; never throws.
+   *
+   * @returns True once the API ended it.
+   */
+  signOut(): Promise<boolean>
+  /** „Usuń moją historię”: deletes the account's checks and notifications, the account stays. */
+  historyEraser: SessionEraser
+  /** „Usuń konto”: deletes the account's history, notifications and session. */
+  accountEraser: SessionEraser
+}

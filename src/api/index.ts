@@ -1,4 +1,5 @@
 export { type ApiSchemas, meritumQueries } from './_client.ts'
+export { apiAccount } from './account.ts'
 export { apiAdmin } from './admin.ts'
 export { apiAnswers } from './answers.ts'
 export { apiAskerAnswer } from './asker-answer.ts'

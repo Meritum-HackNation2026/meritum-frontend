@@ -3,7 +3,7 @@ import { Question, Reply, t } from '@/components/meritum'
 import type { Handoff } from '@/moderation'
 import { askedChecks, savedChecks } from './_history'
 import { ResultPage } from './_result-page'
-import type { ProgressSource, ResultReader } from './ports'
+import type { AccountCheck, ProgressSource, ResultReader } from './ports'
 
 /** One turn of the conversation: a check, when it was asked and, if this tab sent it, its question. */
 type Turn = { checkId: string; at: string; question?: string; answeredAt?: string | undefined }
@@ -30,6 +30,25 @@ export function conversationTurns(activeCheckId?: string): Turn[] {
     .sort((a, b) => a.at.localeCompare(b.at))
   const isActiveMissing = activeCheckId && !turns.some(({ checkId }) => checkId === activeCheckId)
   return isActiveMissing ? [...turns, { checkId: activeCheckId, at: '' }] : turns
+}
+
+/**
+ * This tab's turns with the signed-in account's checks from other devices, oldest first; a
+ * check both know keeps the tab's own question and answer time.
+ *
+ * @param turns - This tab's turns.
+ * @param remote - The account's checks from the server.
+ * @returns The turns to show.
+ * @feature US-SPR-10, F-31
+ */
+export function withAccountTurns(turns: Turn[], remote: AccountCheck[]): Turn[] {
+  const known = new Set(turns.map(({ checkId }) => checkId))
+  const others = remote
+    .filter(({ checkId }) => !known.has(checkId))
+    .map(({ checkId, at, question }) => ({ checkId, at, question }))
+  // a turn with no time (the opened address, not yet kept) stays last
+  const timeless = (turn: Turn) => (turn.at ? 0 : 1)
+  return [...others, ...turns].sort((a, b) => timeless(a) - timeless(b) || a.at.localeCompare(b.at))
 }
 
 /**

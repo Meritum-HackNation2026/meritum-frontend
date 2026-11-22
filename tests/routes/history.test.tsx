@@ -29,6 +29,9 @@ function fakeApi(t: TestContext, deleteStatus = 202) {
     if (path.startsWith('/api/v1/sessions/')) {
       return Promise.resolve(new Response(JSON.stringify({ deleted: 2 }), { status: deleteStatus }))
     }
+    if (path === '/api/v1/auth/me') {
+      return Promise.resolve(new Response(null, { status: 401 })) // nobody is signed in
+    }
     const body = methodOf(input, init) === 'GET' ? [notification] : null
     return Promise.resolve(new Response(JSON.stringify(body)))
   })
