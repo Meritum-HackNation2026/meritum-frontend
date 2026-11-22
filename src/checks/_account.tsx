@@ -104,7 +104,7 @@ export function AccountSection({
             <Button
               size="lg"
               variant="outline"
-              className="h-11 rounded-pill px-4 text-body"
+              className="h-auto min-h-11 rounded-pill px-4 max-w-full text-body whitespace-normal"
               onClick={onDeleteHistory}
             >
               {t.history.delete}
@@ -112,7 +112,7 @@ export function AccountSection({
             <Button
               size="lg"
               variant="outline"
-              className="h-11 rounded-pill px-4 text-body"
+              className="h-auto min-h-11 rounded-pill px-4 max-w-full text-body whitespace-normal"
               onClick={onSignOut}
             >
               {t.account.sign_out}
@@ -120,13 +120,15 @@ export function AccountSection({
             <Button
               size="lg"
               variant="ghost"
-              className="h-11 rounded-pill px-4 text-body underline underline-offset-3"
+              className="h-auto min-h-11 rounded-pill px-4 max-w-full text-body whitespace-normal underline underline-offset-3"
               onClick={onDeleteAccount}
             >
               {t.account.delete_account}
             </Button>
           </div>
-          <p className="text-small text-muted-foreground text-pretty">{t.account.stored}</p>
+          <p className="text-small text-muted-foreground text-pretty">
+            {user.isDemo ? t.account.stored_demo : t.account.stored}
+          </p>
         </>
       ) : (
         <>
@@ -138,7 +140,7 @@ export function AccountSection({
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-11 rounded-pill px-4 text-body"
+                className="h-auto min-h-11 rounded-pill px-4 max-w-full text-body whitespace-normal"
               >
                 <a href={account.loginUrl(provider, returnTo)}>{labels[provider]}</a>
               </Button>

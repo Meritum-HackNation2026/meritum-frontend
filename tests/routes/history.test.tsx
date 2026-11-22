@@ -1,5 +1,5 @@
 /**
- * This tab's checks as the conversation thread (scenario „powrót do wyniku”) and
+ * This tab's checks in the rail of the check page (scenario „powrót do wyniku”) and
  * „Usuń moje sprawdzenia” (scenario „usunięcie sprawdzeń”), behind a fake `fetch`.
  *
  * @feature US-SPR-09, US-BEZ-05, F-01, F-20
@@ -52,13 +52,16 @@ function renderAt(path: string) {
   return router
 }
 
-test('powrót do wyniku: a kept check shows its card in the thread without asking the API', async (t) => {
+const rail = () => within(screen.getByRole('complementary'))
+const mainClaim = done.claims?.[0]?.claim ?? ''
+
+test('powrót do wyniku: a kept check shows its result without asking the API', async (t) => {
   const fetch = fakeApi(t)
   saveCheck(done)
-  const router = renderAt('/')
-  const thread = await screen.findByRole('list', { name: pl.conversation.label })
-  assert.ok(within(thread).getByText(done.claims?.[0]?.claim ?? ''))
-  assert.ok(within(thread).getByText(pl.verdict.false))
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
+  const result = await screen.findByRole('region', { name: pl.result.label })
+  assert.ok(within(result).getByText(mainClaim))
+  assert.ok(within(result).getAllByText(pl.verdict.false).length > 0)
   assert.ok(!calls(fetch).some((call) => call.includes('/api/v1/checks')))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
@@ -74,7 +77,7 @@ test('usunięcie sprawdzeń: the API, sessionStorage and the inbox are emptied',
   const fetch = fakeApi(t)
   rememberQuestion(done.check_id, 'Czy prezydent może rządzić trzy kadencje?')
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.channel_privacy.deleted))
   // the citizen's own questions go too, or they would come back as turns on reload
@@ -83,14 +86,14 @@ test('usunięcie sprawdzeń: the API, sessionStorage and the inbox are emptied',
   assert.ok(calls(fetch).includes(`DELETE /api/v1/sessions/${session}/checks`))
   assert.ok(calls(fetch).includes('DELETE /api/v1/notifications'))
   assert.deepEqual(savedChecks(), [])
-  assert.ok(screen.getByText(pl.brand.taglines[0] ?? ''))
+  await waitFor(() => assert.ok(rail().getByText(pl.history.empty)))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
 
 test('„Anuluj” closes the dialog and deletes nothing', async (t) => {
   const fetch = fakeApi(t)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   await confirmDelete(pl.form.delete_session_cancel)
   await waitFor(() => assert.equal(screen.queryByRole('alertdialog'), null))
   assert.ok(!calls(fetch).some((call) => call.startsWith('DELETE')))
@@ -101,30 +104,30 @@ test('„Anuluj” closes the dialog and deletes nothing', async (t) => {
 test('a refused deletion says so and keeps the history to try again', async (t) => {
   const fetch = fakeApi(t, 503)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.extension.popup_delete_failed))
   assert.ok(!calls(fetch).includes('DELETE /api/v1/notifications'))
   assert.equal(savedChecks().length, 1)
-  assert.ok(screen.getByRole('list', { name: pl.conversation.label }))
+  assert.ok(rail().getByText(mainClaim))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
 
-test('deleting on a result address empties the thread there and says so', async (t) => {
+test('deleting on a check page empties the rail there and says so', async (t) => {
   fakeApi(t)
   saveCheck(done)
   const router = renderAt('/sprawdzenie/c_01')
   await confirmDelete(pl.form.delete_session_yes)
   assert.ok(await screen.findByText(pl.channel_privacy.deleted))
   assert.equal(router.state.location.pathname, '/sprawdzenie/c_01')
-  assert.equal(screen.queryByRole('list', { name: pl.conversation.label }), null)
+  await waitFor(() => assert.ok(rail().getByText(pl.history.empty)))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })
 
 test('Esc closes the dialog and gives focus back to „Usuń moje sprawdzenia”', async (t) => {
   fakeApi(t)
   saveCheck(done)
-  const router = renderAt('/')
+  const router = renderAt(`/sprawdzenie/${done.check_id}`)
   const trigger = await screen.findByRole('button', { name: pl.form.delete_session })
   trigger.focus()
   fireEvent.click(trigger)
@@ -137,7 +140,7 @@ test('Esc closes the dialog and gives focus back to „Usuń moje sprawdzenia”
 
 test('the tab title names the page', async (t) => {
   fakeApi(t)
-  const router = renderAt('/')
+  const router = renderAt('/sprawdz')
   await waitFor(() => assert.equal(document.title, `${pl.form.title} · ${pl.brand.name}`))
   await waitFor(() => assert.equal(router.state.status, 'idle'))
 })

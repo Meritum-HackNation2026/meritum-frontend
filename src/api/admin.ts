@@ -26,9 +26,6 @@ async function write<Extra extends string = never>(
   }
 }
 
-// The token is the last segment of the link's address.
-const tokenOf = (url: string) => url.split('/').pop() ?? ''
-
 async function list<T>(call: () => Promise<{ data?: T[] | undefined }>): Promise<T[] | null> {
   try {
     const { data } = await call()
@@ -56,6 +53,17 @@ export const apiAdmin: AdminApi = {
   topics: () => list(() => fetchClient.GET('/api/v1/moderation/topics')),
   saveTopic: (topic) =>
     write((headers) => fetchClient.POST('/api/v1/moderation/topics', { headers, body: topic })),
+  async demoLinks() {
+    try {
+      const { data, response } = await fetchClient.GET('/api/v1/staff/demo-links')
+      if (data) {
+        return data.map(({ id, account, expires_at }) => ({ id, account, expiresAt: expires_at }))
+      }
+      return response.status === HTTP_NOT_FOUND ? 'unavailable' : 'failed'
+    } catch {
+      return 'failed'
+    }
+  },
   async issueDemoLink(account, expiresAt) {
     try {
       const headers = await csrfHeaders()
@@ -67,7 +75,7 @@ export const apiAdmin: AdminApi = {
         body: { account, expires_at: expiresAt },
       })
       if (data) {
-        return { link: { url: data.url, expiresAt: data.expires_at } }
+        return { link: { id: data.id, url: data.url, expiresAt: data.expires_at } }
       }
       if (response.status === HTTP_NOT_FOUND) {
         return 'unavailable'
@@ -78,12 +86,12 @@ export const apiAdmin: AdminApi = {
       return 'failed'
     }
   },
-  revokeDemoLink: (account, url): Promise<DemoRevokeOutcome> =>
+  revokeDemoLink: (id): Promise<DemoRevokeOutcome> =>
     write(
       (headers) =>
         fetchClient.POST('/api/v1/staff/demo-links/revoke', {
           headers,
-          body: { account, token: tokenOf(url) },
+          body: { id },
         }),
       { [HTTP_NOT_FOUND]: 'not_found' as const },
     ),

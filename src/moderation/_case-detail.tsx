@@ -4,6 +4,7 @@ import { plural, t } from '@/components/meritum'
 import type { ModeratorCase } from '@/contracts/meritum'
 import { AnswerForm } from './_answer-form'
 import { AnswerSent } from './_answer-sent'
+import { CloseForm } from './_close-form'
 import { DEFAULT_DISTINCT_ASKERS } from './constants'
 import type { AnswerApi, AnswerDraft, AnswerSource } from './ports'
 
@@ -17,22 +18,26 @@ const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
  * count is in the queue row). Shows only contract fields, so no channel ids or their hashes.
  *
  * An open case also has the moderator's answer form when an answer API is given; after a send
- * the form gives way to the sent answer.
+ * the form gives way to the sent answer. An open case can also be closed without an answer
+ * („Zamknij bez odpowiedzi”); then neither form is shown, only a note.
  *
  * @param props.moderatorCase - The open case.
  * @param props.answers - Reads the catalogue and sends the answer; without it there is no form.
  * @param props.onAnswered - Told the case id once the answer was sent, so the panel can mark the case answered.
+ * @param props.onClosed - Told the case id once it was closed without an answer.
  * @returns The case detail.
- * @feature US-MOD-05, US-MOD-02, US-MOD-07, F-25, F-39
+ * @feature US-MOD-05, US-MOD-02, US-MOD-07, US-MOD-01, F-25, F-39
  */
 export function CaseDetail({
   moderatorCase: c,
   answers,
   onAnswered,
+  onClosed,
 }: {
   moderatorCase: ModeratorCase
   answers?: AnswerApi | undefined
   onAnswered?: (caseId: string) => void
+  onClosed?: (caseId: string) => void
 }) {
   const [sent, setSent] = useState<{ draft: AnswerDraft; sources: AnswerSource[] } | null>(null)
   const markSent = useCallback(
@@ -42,10 +47,16 @@ export function CaseDetail({
     },
     [c.id, onAnswered],
   )
+  const [closed, setClosed] = useState(false)
+  const markClosed = useCallback(() => {
+    setClosed(true)
+    onClosed?.(c.id)
+  }, [c.id, onClosed])
+  const actions = !(sent || closed) && c.state === 'open' ? answers : undefined
   const checkIds = c.claims.flatMap((claim) => claim.check_ids)
   const titleId = `case-${c.id}`
   return (
-    <article aria-labelledby={titleId} className="grid gap-4 rounded-lg border bg-card p-5">
+    <article aria-labelledby={titleId} className="grid gap-4">
       <header className="grid gap-1">
         <p className="flex flex-wrap items-center gap-2 text-small text-muted-foreground">
           <span className="font-mono">{c.id}</span>
@@ -77,7 +88,7 @@ export function CaseDetail({
       </p>
       <ol className="grid gap-3">
         {c.claims.map((claim) => (
-          <li key={claim.claim} className="grid gap-1 border-t pt-3">
+          <li key={claim.claim} className="grid gap-1">
             <p className="text-body">{claim.claim}</p>
             <ul className="flex flex-wrap gap-x-3 text-small">
               {claim.check_ids.map((checkId) => (
@@ -96,9 +107,9 @@ export function CaseDetail({
         ))}
       </ol>
       {sent && <AnswerSent draft={sent.draft} sources={sent.sources} />}
-      {!sent && answers && c.state === 'open' && (
-        <AnswerForm caseId={c.id} checkIds={checkIds} api={answers} onSent={markSent} />
-      )}
+      {closed && <p className="border-t pt-4 text-body text-pretty">{copy.close.closed_note}</p>}
+      {actions && <AnswerForm caseId={c.id} checkIds={checkIds} api={actions} onSent={markSent} />}
+      {actions && <CloseForm caseId={c.id} api={actions} onClosed={markClosed} />}
     </article>
   )
 }

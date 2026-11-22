@@ -37,7 +37,7 @@
           "health"
         ],
         "summary": "Health",
-        "description": "Readiness: database, the API's variables and the worker's report.\n\nLists only names of missing variables and unavailable providers, never values.\n\nArgs:\n    probe: the readiness probe.\n\nReturns:\n    200 when nothing is missing, otherwise 503 with what is missing.\n\nFeatures:\n    US-WDR-08, US-BEZ-03, F-30",
+        "description": "Readiness: database, the API's variables and the worker's report.\n\nLists only names of missing variables and unavailable providers, never values.\n\nArgs:\n    probe: the readiness probe.\n\nReturns:\n    200 when required dependencies are ready, even if health is degraded\n    by optional providers. Otherwise 503 with the same report.\n\nFeatures:\n    US-WDR-08, US-BEZ-03, F-30",
         "operationId": "health_api_v1_health_get",
         "responses": {
           "200": {
@@ -977,7 +977,72 @@
         }
       }
     },
+    "/api/v1/auth/demo/{token}": {
+      "get": {
+        "tags": [
+          "jury"
+        ],
+        "summary": "Open Demo Link",
+        "description": "Sign the visitor in as the technical account the link was issued for.\n\nArgs:\n    token: the raw token from the link.\n    request: the request holding the session.\n    origin: the client address used for rate limiting.\n    store: link store.\n    settings: environment.\n\nReturns:\n    A redirect to the account's landing page, without the token.\n\nRaises:\n    HTTPException: 404 outside dev or for an unknown or malformed link,\n        410 when expired, 429 when rate limited, 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "operationId": "open_demo_link_api_v1_auth_demo__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/staff/demo-links": {
+      "get": {
+        "tags": [
+          "jury"
+        ],
+        "summary": "List Demo Links",
+        "description": "List the demo links that can still be opened.\n\nArgs:\n    response: outgoing response with caching disabled.\n    _admin: the signed-in administrator.\n    store: link store.\n    settings: environment.\n\nReturns:\n    Demo link metadata, newest first.\n\nRaises:\n    HTTPException: 404 outside dev or 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "operationId": "list_demo_links_api_v1_staff_demo_links_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DemoLink"
+                  },
+                  "type": "array",
+                  "title": "Response List Demo Links Api V1 Staff Demo Links Get"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "jury"
@@ -1025,13 +1090,21 @@
           "jury"
         ],
         "summary": "Revoke Demo Link",
-        "description": "Revoke a demo link so it stops working at once.\n\nArgs:\n    body: the account and token of the link.\n    _admin: the signed-in administrator (not a demo session).\n    _csrf: the account, CSRF checked.\n    store: link store.\n\nRaises:\n    HTTPException: 404 when no such link exists, 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
+        "description": "Revoke a demo link so it stops working at once.\n\nArgs:\n    body: the link identifier, or the original account and token.\n    _admin: the signed-in administrator (not a demo session).\n    _csrf: the account, CSRF checked.\n    store: link store.\n    settings: environment.\n\nRaises:\n    HTTPException: 404 when no such link exists, 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
         "operationId": "revoke_demo_link_api_v1_staff_demo_links_revoke_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DemoLinkRevocation"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DemoLinkRevocation"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DemoLinkId"
+                  }
+                ],
+                "title": "Body"
               }
             }
           },
@@ -1040,47 +1113,6 @@
         "responses": {
           "204": {
             "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/auth/demo/{token}": {
-      "get": {
-        "tags": [
-          "jury"
-        ],
-        "summary": "Open Demo Link",
-        "description": "Sign the visitor in as the technical account the link was issued for.\n\nArgs:\n    token: the raw token from the link.\n    request: the request holding the session.\n    origin: the client address used for rate limiting.\n    store: link store.\n    settings: environment.\n\nReturns:\n    A redirect to the account's landing page, without the token.\n\nRaises:\n    HTTPException: 404 outside dev or for an unknown or malformed link,\n        410 when expired, 429 when rate limited, 503 on storage failure.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25",
-        "operationId": "open_demo_link_api_v1_auth_demo__token__get",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Token"
-            }
-          }
-        ],
-        "responses": {
-          "303": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
           },
           "422": {
             "description": "Validation Error",
@@ -1433,6 +1465,110 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Answer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/cases/{case_id}/close": {
+      "post": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "Close Case",
+        "description": "Close an open case without sending an answer or a notification.\n\n``open_case`` answers 404 for an unknown case and 409 for one not open.\n\nArgs:\n    case_id: the case id, e.g. ``#S-12``.\n    draft: the reason.\n    member: the signed-in moderator, recorded as the closer.\n    _csrf: the account, CSRF checked.\n    cases: the case repository.\n    closures: where the close is kept.\n\nReturns:\n    The close as recorded.\n\nFeatures:\n    US-MOD-01, US-MOD-07, F-25, F-39",
+        "operationId": "close_case_api_v1_moderation_cases__case_id__close_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^#S-\\d+$",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClosureDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseClosure"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "case not found"
+          },
+          "409": {
+            "description": "case is not open"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/cases/{case_id}/closure": {
+      "get": {
+        "tags": [
+          "moderation"
+        ],
+        "summary": "Read Closure",
+        "description": "Who closed the case without an answer, and why.\n\nArgs:\n    case_id: the case id.\n    _member: a signed-in moderator or administrator.\n    closures: where the close is kept.\n\nReturns:\n    The close.\n\nRaises:\n    HTTPException: 404 when the case was not closed this way.\n\nFeatures:\n    US-MOD-01, F-25",
+        "operationId": "read_closure_api_v1_moderation_cases__case_id__closure_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^#S-\\d+$",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseClosure"
                 }
               }
             }
@@ -2439,7 +2575,7 @@
           "export"
         ],
         "summary": "Export",
-        "description": "Export the checks of the last ``days`` days and the cases, masked.\n\nshortcut: the record port has no \"list all\", so the checks are the ones the\ncases cover; switch to a port query when core adds one.\n\nArgs:\n    _member: a signed-in analyst or administrator.\n    records: the check record store.\n    cases: the case store.\n    export_format: ``json``, ``csv`` or ``stix``.\n    days: how far back to take checks.\n\nReturns:\n    The export in the chosen format.\n\nFeatures:\n    US-OBS-03, F-36",
+        "description": "Export the checks of the last ``days`` days and the cases, masked.\n\nArgs:\n    _member: a signed-in analyst or administrator.\n    records: the check record store.\n    cases: the case store.\n    export_format: ``json``, ``csv`` or ``stix``.\n    days: how far back to take checks.\n\nReturns:\n    The export in the chosen format.\n\nRaises:\n    HTTPException: the selected period has too many records.\n\nFeatures:\n    US-OBS-03, F-36",
         "operationId": "export_api_v1_export_get",
         "parameters": [
           {
@@ -3166,6 +3302,43 @@
         ],
         "title": "CaseClaim",
         "description": "One claim in a case and the checks that asked it: unanswered (\"insufficient_evidence\"), or disputed by a user."
+      },
+      "CaseClosure": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "closed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "closed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Closed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "closed_by",
+          "reason",
+          "closed_at"
+        ],
+        "title": "CaseClosure",
+        "description": "What the panel keeps about a close; the askers are not told.\n\nAttributes:\n    case_id: the closed case.\n    closed_by: the moderator's address.\n    reason: why the case was closed.\n    closed_at: when it was closed.\n\nFeatures:\n    US-MOD-01, US-MOD-07, F-25"
       },
       "CaseVerdict": {
         "properties": {
@@ -3901,6 +4074,22 @@
         "title": "ClaimReviewPremise",
         "description": "A fact-checker's ClaimReview rating used as a premise of the verdict, next to the citations (ADR-34).\n\nFound through Google Fact Check Tools API. It has no page fragment: the rating, title,\ndate and link are the evidence. Only publishers the catalogue lists as IFCN or EFCSN\nsignatories qualify; the pipeline copies `signatory_of` from their catalogue entry.\nCounted per publisher like a secondary-tier citation."
       },
+      "ClosureDraft": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ClosureDraft",
+        "description": "Body of a close: the moderator's reason, e.g. a test or groundless case.\n\nAttributes:\n    reason: why the case is closed.\n\nFeatures:\n    US-MOD-01, F-25"
+      },
       "Comparison": {
         "properties": {
           "metrics": {
@@ -3965,6 +4154,51 @@
           "obywatel",
           "admin"
         ]
+      },
+      "DemoLink": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "account": {
+            "$ref": "#/components/schemas/DemoAccount"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "account",
+          "issued_at",
+          "expires_at"
+        ],
+        "title": "DemoLink",
+        "description": "Metadata of a demo link, suitable for listing without its URL.\n\nAttributes:\n    id: hex digest used only to identify a link for management.\n    account: technical account opened by the link.\n    issued_at: when the administrator issued it.\n    expires_at: link deadline.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+      },
+      "DemoLinkId": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "DemoLinkId",
+        "description": "Identify a demo link without its URL.\n\nAttributes:\n    id: the identifier returned by the staff API.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
       },
       "DemoLinkRequest": {
         "properties": {
@@ -4363,6 +4597,10 @@
       },
       "IssuedDemoLink": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "url": {
             "type": "string",
             "title": "Url"
@@ -4375,11 +4613,12 @@
         },
         "type": "object",
         "required": [
+          "id",
           "url",
           "expires_at"
         ],
         "title": "IssuedDemoLink",
-        "description": "The administrator's only copy of the link.\n\nAttributes:\n    url: backend address that signs the visitor in.\n    expires_at: last moment the link works.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
+        "description": "The administrator's only copy of the link.\n\nAttributes:\n    id: identifier for managing the link.\n    url: backend address that signs the visitor in.\n    expires_at: last moment the link works.\n\nFeatures:\n    US-OBS-06, US-MOD-05, F-28, F-25"
       },
       "IssuedJuryLink": {
         "properties": {

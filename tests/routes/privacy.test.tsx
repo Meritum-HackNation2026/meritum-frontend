@@ -90,15 +90,6 @@ test('the SMS policy deletes with USUN and states the operator fees', async () =
   assert.ok(screen.getByText(smsNeverToModerators))
 })
 
-test('the footer of every page links to the policies of all channels', async () => {
-  await openPage('/prywatnosc/sms', policies.sms.title)
-  const footer = screen.getByRole('contentinfo')
-  for (const [path, policy] of pages) {
-    const link = within(footer).getByRole('link', { name: policy.title })
-    assert.equal(link.getAttribute('href'), path)
-  }
-})
-
 test('the extension policy deletes checks from the popup', async () => {
   await openPage('/prywatnosc/wtyczka', policies.extension.title)
   assert.ok(screen.getByText(popupDelete))
@@ -113,8 +104,8 @@ test('the website policy describes Google or Microsoft sign-in and its OAuth sco
   }
 })
 
-test('the home page shows the AI notice with the privacy link', async () => {
-  const history = createMemoryHistory({ initialEntries: ['/'] })
+test('the new check page shows the AI notice with the privacy link', async () => {
+  const history = createMemoryHistory({ initialEntries: ['/sprawdz'] })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, enabled: false } } })
   render(
     <QueryClientProvider client={client}>

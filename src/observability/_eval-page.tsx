@@ -39,13 +39,17 @@ function RunActions({ onOutcome, api }: { onOutcome: (o: EvalOutcome) => void; a
   )
   return (
     <div className="flex flex-wrap gap-2">
-      <Button className="h-10 rounded-pill px-5" disabled={pending} onClick={startGolden}>
+      <Button
+        className="h-auto min-h-10 max-w-full rounded-pill px-5 whitespace-normal"
+        disabled={pending}
+        onClick={startGolden}
+      >
         {t.evaluation.new_run}
       </Button>
       <label
         className={cn(
           buttonVariants({ variant: 'outline' }),
-          'h-10 cursor-pointer rounded-pill px-5 focus-within:outline-2 focus-within:outline-ring',
+          'h-auto min-h-10 max-w-full cursor-pointer rounded-pill px-5 whitespace-normal focus-within:outline-2 focus-within:outline-ring',
           pending && 'pointer-events-none opacity-50',
         )}
       >
@@ -136,7 +140,7 @@ export function EvalPage(props: { runs: EvalRun[] | null; api: EvalApi; readOnly
           <Button
             variant="outline"
             size="sm"
-            className="rounded-pill"
+            className="h-auto min-h-8 max-w-full rounded-pill whitespace-normal"
             disabled={picked.length !== COMPARED_RUNS}
             onClick={compare}
           >
@@ -145,7 +149,7 @@ export function EvalPage(props: { runs: EvalRun[] | null; api: EvalApi; readOnly
         </div>
         {runs === null && <p className="text-small">{t.errors.offline}</p>}
         {runs?.length === 0 && <p className="text-small">{t.method.metrics.no_run}</p>}
-        <ul className="grid gap-2 empty:hidden">
+        <ul className="grid gap-6 empty:hidden">
           {runs?.map((run) => (
             <RunItem
               key={run.id}

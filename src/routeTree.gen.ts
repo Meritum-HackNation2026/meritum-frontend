@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JakDzialaRouteImport } from './routes/jak-dziala'
+import { Route as SprawdzRouteImport } from './routes/sprawdz'
 import { Route as OdpowiedziCaseIdRouteImport } from './routes/odpowiedzi/$caseId'
 import { Route as PanelIndexRouteImport } from './routes/panel/index'
 import { Route as PanelAdministracjaRouteImport } from './routes/panel/administracja'
@@ -21,6 +22,7 @@ import { Route as PrywatnoscDiscordRouteImport } from './routes/prywatnosc/disco
 import { Route as PrywatnoscSmsRouteImport } from './routes/prywatnosc/sms'
 import { Route as PrywatnoscWtyczkaRouteImport } from './routes/prywatnosc/wtyczka'
 import { Route as SprawdzenieCheckIdRouteImport } from './routes/sprawdzenie/$checkId'
+import { Route as PanelSprawyCaseIdRouteImport } from './routes/panel/sprawy/$caseId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const JakDzialaRoute = JakDzialaRouteImport.update({
   id: '/jak-dziala',
   path: '/jak-dziala',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SprawdzRoute = SprawdzRouteImport.update({
+  id: '/sprawdz',
+  path: '/sprawdz',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OdpowiedziCaseIdRoute = OdpowiedziCaseIdRouteImport.update({
@@ -82,10 +89,16 @@ const SprawdzenieCheckIdRoute = SprawdzenieCheckIdRouteImport.update({
   path: '/sprawdzenie/$checkId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PanelSprawyCaseIdRoute = PanelSprawyCaseIdRouteImport.update({
+  id: '/panel/sprawy/$caseId',
+  path: '/panel/sprawy/$caseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/sprawdz': typeof SprawdzRoute
   '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
   '/panel/eksport': typeof PanelEksportRoute
@@ -96,10 +109,12 @@ export interface FileRoutesByFullPath {
   '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
   '/panel/': typeof PanelIndexRoute
   '/prywatnosc/': typeof PrywatnoscIndexRoute
+  '/panel/sprawy/$caseId': typeof PanelSprawyCaseIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/sprawdz': typeof SprawdzRoute
   '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
   '/panel/eksport': typeof PanelEksportRoute
@@ -110,11 +125,13 @@ export interface FileRoutesByTo {
   '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
   '/panel': typeof PanelIndexRoute
   '/prywatnosc': typeof PrywatnoscIndexRoute
+  '/panel/sprawy/$caseId': typeof PanelSprawyCaseIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/jak-dziala': typeof JakDzialaRoute
+  '/sprawdz': typeof SprawdzRoute
   '/odpowiedzi/$caseId': typeof OdpowiedziCaseIdRoute
   '/panel/administracja': typeof PanelAdministracjaRoute
   '/panel/eksport': typeof PanelEksportRoute
@@ -125,12 +142,14 @@ export interface FileRoutesById {
   '/sprawdzenie/$checkId': typeof SprawdzenieCheckIdRoute
   '/panel/': typeof PanelIndexRoute
   '/prywatnosc/': typeof PrywatnoscIndexRoute
+  '/panel/sprawy/$caseId': typeof PanelSprawyCaseIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/jak-dziala'
+    | '/sprawdz'
     | '/odpowiedzi/$caseId'
     | '/panel/administracja'
     | '/panel/eksport'
@@ -141,10 +160,12 @@ export interface FileRouteTypes {
     | '/sprawdzenie/$checkId'
     | '/panel/'
     | '/prywatnosc/'
+    | '/panel/sprawy/$caseId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/jak-dziala'
+    | '/sprawdz'
     | '/odpowiedzi/$caseId'
     | '/panel/administracja'
     | '/panel/eksport'
@@ -155,10 +176,12 @@ export interface FileRouteTypes {
     | '/sprawdzenie/$checkId'
     | '/panel'
     | '/prywatnosc'
+    | '/panel/sprawy/$caseId'
   id:
     | '__root__'
     | '/'
     | '/jak-dziala'
+    | '/sprawdz'
     | '/odpowiedzi/$caseId'
     | '/panel/administracja'
     | '/panel/eksport'
@@ -169,11 +192,13 @@ export interface FileRouteTypes {
     | '/sprawdzenie/$checkId'
     | '/panel/'
     | '/prywatnosc/'
+    | '/panel/sprawy/$caseId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JakDzialaRoute: typeof JakDzialaRoute
+  SprawdzRoute: typeof SprawdzRoute
   OdpowiedziCaseIdRoute: typeof OdpowiedziCaseIdRoute
   PanelAdministracjaRoute: typeof PanelAdministracjaRoute
   PanelEksportRoute: typeof PanelEksportRoute
@@ -184,6 +209,7 @@ export interface RootRouteChildren {
   SprawdzenieCheckIdRoute: typeof SprawdzenieCheckIdRoute
   PanelIndexRoute: typeof PanelIndexRoute
   PrywatnoscIndexRoute: typeof PrywatnoscIndexRoute
+  PanelSprawyCaseIdRoute: typeof PanelSprawyCaseIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -200,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/jak-dziala'
       fullPath: '/jak-dziala'
       preLoaderRoute: typeof JakDzialaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sprawdz': {
+      id: '/sprawdz'
+      path: '/sprawdz'
+      fullPath: '/sprawdz'
+      preLoaderRoute: typeof SprawdzRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/odpowiedzi/$caseId': {
@@ -272,12 +305,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SprawdzenieCheckIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/panel/sprawy/$caseId': {
+      id: '/panel/sprawy/$caseId'
+      path: '/panel/sprawy/$caseId'
+      fullPath: '/panel/sprawy/$caseId'
+      preLoaderRoute: typeof PanelSprawyCaseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JakDzialaRoute: JakDzialaRoute,
+  SprawdzRoute: SprawdzRoute,
   OdpowiedziCaseIdRoute: OdpowiedziCaseIdRoute,
   PanelAdministracjaRoute: PanelAdministracjaRoute,
   PanelEksportRoute: PanelEksportRoute,
@@ -288,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   SprawdzenieCheckIdRoute: SprawdzenieCheckIdRoute,
   PanelIndexRoute: PanelIndexRoute,
   PrywatnoscIndexRoute: PrywatnoscIndexRoute,
+  PanelSprawyCaseIdRoute: PanelSprawyCaseIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

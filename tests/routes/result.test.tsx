@@ -42,7 +42,7 @@ test('/sprawdzenie/c_01 shows the card of check c_01', async (t) => {
   const history = createMemoryHistory({ initialEntries: ['/sprawdzenie/c_01'] })
   const router = createRouter({ routeTree, history })
   render(<RouterProvider router={router} />)
-  assert.ok(await screen.findByText(pl.verdict.false))
+  assert.ok((await screen.findAllByText(pl.verdict.false))[0])
   const urls = fetch.mock.calls.map((call) => requestPath(call.arguments[0]))
   assert.ok(urls.includes('/api/v1/checks/c_01'))
   // the router finishes its own async work, so nothing outlives the test
@@ -66,7 +66,7 @@ test('an accepted check from the form opens /sprawdzenie/{id}', async (t) => {
   t.after(() => {
     globalThis.EventSource = original
   })
-  const history = createMemoryHistory({ initialEntries: ['/'] })
+  const history = createMemoryHistory({ initialEntries: ['/sprawdz'] })
   const router = createRouter({ routeTree, history })
   render(<RouterProvider router={router} />)
   fireEvent.change(await screen.findByLabelText(pl.form.input_label), {

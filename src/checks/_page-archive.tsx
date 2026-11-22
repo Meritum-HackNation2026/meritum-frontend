@@ -12,11 +12,44 @@ function save(blob: Blob, name: string) {
   URL.revokeObjectURL(href)
 }
 
+// The copy's number with a button that puts it on the clipboard and says so.
+function ArchiveId({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false)
+  const copy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(id)
+      setCopied(true)
+    } catch {
+      // no clipboard (insecure context, denied): the number stays selectable on screen
+    }
+  }, [id])
+  return (
+    <div className="grid gap-0.5">
+      <dt className="text-muted-foreground">{t.archive.id}</dt>
+      <dd className="flex flex-wrap items-center gap-x-3">
+        <span className="font-mono break-all text-foreground">{id}</span>
+        <button
+          type="button"
+          className="py-2 text-small text-foreground underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          onClick={copy}
+        >
+          {t.archive.copy_id}
+        </button>
+        <span role="status" className="text-muted-foreground empty:hidden">
+          {copied && t.archive.copied_id}
+        </span>
+      </dd>
+    </div>
+  )
+}
+
 function Copy({
+  id,
   state,
   onDownload,
   onDelete,
 }: {
+  id: string
   state: Extract<ArchiveState, { status: 'done' }>
   onDownload: () => void
   onDelete: () => void
@@ -25,6 +58,7 @@ function Copy({
     <div className="grid min-w-0 gap-3 rounded-xl bg-secondary px-4 py-4 text-left text-secondary-foreground">
       <p className="text-body font-semibold">{t.archive.title}</p>
       <dl className="grid min-w-0 gap-2 text-small">
+        <ArchiveId id={id} />
         <div className="grid gap-0.5">
           <dt className="text-muted-foreground">{t.archive.sha256}</dt>
           {/* the hash is an identifier, so it is set in Azeret Mono and wraps anywhere */}
@@ -155,7 +189,9 @@ export function PageArchive({
           </p>
         </div>
       )}
-      {done && <Copy state={done} onDownload={download} onDelete={remove} />}
+      {done && archiveId !== null && (
+        <Copy id={archiveId} state={done} onDownload={download} onDelete={remove} />
+      )}
       <div aria-live="polite" className="text-small text-muted-foreground">
         <Status phase={phase} />
       </div>

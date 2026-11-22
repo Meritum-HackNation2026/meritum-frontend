@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { formatDate } from '@/components/meritum'
 import examples from '@/contracts/examples.json'
 import type { CheckResult, ClaimResult, Verdict } from '@/contracts/meritum'
@@ -22,12 +22,23 @@ const [falseClaim] = done.claims ?? []
 // formatDate uses the machine's time zone; expected dates follow it, so CI on UTC agrees.
 const sourceDate = formatDate('1997-07-16T00:00:00+02:00')
 const claimDate = formatDate('2026-11-21')
-const premises = /Niezależne źródła: 1, w tym urzędowe lub pierwotne: 1\. Źródła są zgodne\./
+const quotedClaim = /„/
 const verdicts = Object.keys(pl.verdict).filter((key) => key !== '$comment') as Verdict[]
 
 function renderClaim(claim: ClaimResult) {
   render(<CheckResultCard result={{ ...done, claims: [claim] }} handoff={handoff} />)
   return within(screen.getByRole('article'))
+}
+
+/** Opens the strength note (design-system#148: it explains itself on focus) and returns it. */
+function openStrength(claim: ReturnType<typeof within>, level: string) {
+  fireEvent.focus(claim.getByRole('button', { name: new RegExp(level) }))
+  return within(screen.getByRole('tooltip'))
+}
+
+/** Opens the toggle with the limitations and the AI line, closed at first. */
+function openLimits() {
+  fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${pl.result.limitations}`) }))
 }
 
 function claimWith(changes: Partial<ClaimResult>): ClaimResult {
@@ -54,12 +65,18 @@ test('a citation shows title as a link, publisher, date and the verbatim fragmen
   )
 })
 
-test('strength "umiarkowana" comes with its premises', () => {
+test('strength "umiarkowana" opens its premises from the label', () => {
   const claim = renderClaim(claimWith({}))
-  assert.ok(claim.getByText(`${pl.result.strength_title}: ${pl.strength.moderate}`))
-  assert.ok(claim.getByText(premises))
+  assert.ok(claim.getByText(pl.result.strength_title))
+  assert.ok(claim.getByText(pl.strength.moderate))
+  const note = openStrength(claim, pl.strength.moderate)
+  assert.ok(note.getByText(pl.strength_hint.moderate))
+  assert.ok(note.getByText(pl.result.agreement.consistent))
+  for (const fact of [pl.result.strength_facts.independent, pl.result.strength_facts.primary]) {
+    assert.equal(note.getByText(fact).nextElementSibling?.textContent, '1')
+  }
   assert.ok(
-    claim.getByText((text) =>
+    note.getByText((text) =>
       text.includes(`Najnowsze źródło jest z ${sourceDate}, a twierdzenie dotyczy ${claimDate}`),
     ),
   )
@@ -67,6 +84,7 @@ test('strength "umiarkowana" comes with its premises', () => {
 
 test('the explanation stands in its own block without a per-claim AI note; the card has the AI line once', () => {
   const claim = renderClaim(claimWith({}))
+  openLimits()
   const block = claim.getByRole('heading', { name: pl.result.explanation }).parentElement
   assert.ok(block)
   assert.equal(within(block).getByText(falseClaim?.explanation ?? '').tagName, 'P')
@@ -90,13 +108,13 @@ test('a claim reads from its verdict: the verdict word comes before the claim, t
     order.map(at),
     [...order.map(at)].sort((a, b) => a - b),
   )
-  assert.ok(claim.getByRole('heading', { level: 3, name: new RegExp(`^${pl.verdict.false}`) }))
+  assert.ok(claim.getByRole('heading', { level: 3, name: new RegExp(falseClaim?.claim ?? '') }))
 })
 
 test('strength is ink-coloured with three level bars, two of them filled for "moderate"', () => {
   const claim = renderClaim(claimWith({}))
-  const title = claim.getByText(`${pl.result.strength_title}: ${pl.strength.moderate}`)
-  const bars = [...(title.querySelector('[aria-hidden="true"]')?.children ?? [])]
+  const label = claim.getByRole('button', { name: new RegExp(pl.strength.moderate) })
+  const bars = [...(label.querySelector('[aria-hidden="true"]')?.children ?? [])]
   assert.equal(bars.length, 3)
   assert.deepEqual(
     bars.map((bar) => bar.className.includes('bg-foreground')),
@@ -129,17 +147,18 @@ test('a technique shows its name and one "how to spot" sentence', () => {
 
 test('the limitations of the check are listed', () => {
   render(<CheckResultCard result={done} handoff={handoff} />)
-  assert.ok(screen.getByText(pl.result.limitations))
+  openLimits()
   assert.ok(screen.getByText(pl.limitation_code.corpus_scope))
   assert.equal(screen.getAllByRole('article').length, 2)
 })
 
 for (const verdict of verdicts) {
-  test(`verdict "${verdict}" shows its full word "${pl.verdict[verdict]}" and its hint`, () => {
+  test(`verdict "${verdict}" shows its full word "${pl.verdict[verdict]}" and its hint on the label`, () => {
     const claim = renderClaim(claimWith({ verdict }))
     const badge = claim.getByText(pl.verdict[verdict])
     assert.equal(badge.textContent, pl.verdict[verdict])
-    assert.ok(claim.getByText(pl.verdict_hint[verdict]))
+    fireEvent.focus(claim.getByRole('button', { name: pl.verdict[verdict] }))
+    assert.equal(screen.getByRole('tooltip').textContent, pl.verdict_hint[verdict])
     assert.equal(badge.className.includes('scam'), verdict === 'false')
   })
 }
@@ -153,23 +172,50 @@ for (const [verdict, shown] of [
 ] as const) {
   test(`strength is ${shown ? 'shown' : 'hidden'} for "${verdict}"`, () => {
     const claim = renderClaim(claimWith({ verdict }))
-    const strength = claim.queryByText(new RegExp(`^${pl.result.strength_title}:`))
+    const strength = claim.queryByText(pl.result.strength_title)
     assert.equal(strength !== null, shown)
   })
 }
 
-test('the long label "Brak wystarczających dowodów" is whole and heads the claim on its own line', () => {
+test('the long label "Brak wystarczających dowodów" is whole, may wrap and stands before the claim', () => {
   const claim = renderClaim(claimWith({ verdict: 'insufficient_evidence', strength: null }))
   const badge = claim.getByText('Brak wystarczających dowodów')
   assert.equal(badge.textContent, 'Brak wystarczających dowodów')
-  assert.equal(badge.parentElement?.className.includes('block'), true)
-  assert.equal(badge.parentElement?.parentElement?.tagName, 'H3')
+  assert.equal(badge.className.includes('whitespace-normal'), true)
+  const heading = claim.getByRole('heading', { level: 3 })
+  assert.ok(badge.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING)
+})
+
+test('the summary counts the claims and names each verdict once with its count', () => {
+  render(<CheckResultCard result={done} handoff={handoff} />)
+  const title = screen.getByRole('heading', { level: 2, name: new RegExp(pl.result.claims_title) })
+  assert.equal(
+    title.textContent?.endsWith(pl.result.claims_count.few.replace('{count}', '2')),
+    true,
+  )
+  const counts = within(title.nextElementSibling as HTMLElement).getAllByRole('listitem')
+  assert.deepEqual(
+    counts.map((item) => item.textContent),
+    [`1 ×${pl.verdict.false}`, `1 ×${pl.verdict.confirmed}`],
+  )
+})
+
+test('every claim row starts open', () => {
+  render(<CheckResultCard result={done} handoff={handoff} />)
+  const rows = screen.getAllByRole('article')
+  for (const row of rows) {
+    assert.equal(
+      within(row).getByRole('button', { name: quotedClaim }).getAttribute('aria-expanded'),
+      'true',
+    )
+  }
 })
 
 const claimReview = examples['CheckResult.claim_review'] as CheckResult
 
 test('limitation codes are worded from copy, in place of the limitation texts', () => {
   render(<CheckResultCard result={claimReview} handoff={handoff} />)
+  openLimits()
   assert.ok(screen.getByText(pl.limitation_code.image_search_not_run))
   assert.equal(screen.queryByText(claimReview.limitations?.[0] ?? ''), null)
 })

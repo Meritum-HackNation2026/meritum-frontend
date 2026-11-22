@@ -17,6 +17,7 @@ import {
 } from '@/api'
 import { CheckPage, type CitizenAccount, type ProgressSource, type SessionEraser } from '@/checks'
 import pl from '@/copy/pl.json'
+import { finishedCheck } from './finished-check'
 
 // the page reads the history's results over SSE; this fake stream never speaks
 const quietProgress: ProgressSource = { watch: () => () => undefined }
@@ -26,7 +27,7 @@ const googleLogin = /^\/login\/google/
 
 const delay = () => new Promise((resolve) => setTimeout(resolve, 0))
 
-function fakeAccount(signedIn: boolean, deleted: string[] = []): CitizenAccount {
+function fakeAccount(signedIn: boolean, deleted: string[] = [], isDemo = false): CitizenAccount {
   const eraser = (name: string): SessionEraser => ({
     erase: () => {
       deleted.push(name)
@@ -34,7 +35,8 @@ function fakeAccount(signedIn: boolean, deleted: string[] = []): CitizenAccount 
     },
   })
   return {
-    session: () => Promise.resolve(signedIn ? { email: 'ola@example.com' } : null),
+    session: () =>
+      Promise.resolve(signedIn ? { email: isDemo ? null : 'ola@example.com', isDemo } : null),
     history: () =>
       Promise.resolve([
         { checkId: 'c_phone', at: '2026-11-22T10:00:00Z', question: 'Pytanie z telefonu' },
@@ -61,6 +63,7 @@ function renderPage(account: CitizenAccount) {
       handoff={apiHandoff}
       account={account}
       onAccepted={noop}
+      {...finishedCheck()}
     />,
   )
 }
@@ -132,7 +135,21 @@ test('without an account port the page works as before, with no sign-in', () => 
       progress={quietProgress}
       handoff={apiHandoff}
       onAccepted={noop}
+      {...finishedCheck()}
     />,
   )
   assert.equal(screen.queryByRole('link', { name: pl.account.sign_in_google }), null)
+})
+
+test('a demo account sees its own note, not the one about Google and Microsoft data', async (t) => {
+  t.mock.method(globalThis, 'fetch', () => Promise.resolve(new Response('{}', { status: 404 })))
+  renderPage(fakeAccount(true, [], true))
+  assert.ok(await screen.findByText(pl.account.stored_demo))
+  assert.equal(screen.queryByText(pl.account.stored), null)
+})
+
+test('a signed-in citizen keeps the note about the data from the provider', async (t) => {
+  t.mock.method(globalThis, 'fetch', () => Promise.resolve(new Response('{}', { status: 404 })))
+  renderPage(fakeAccount(true))
+  assert.ok(await screen.findByText(pl.account.stored))
 })

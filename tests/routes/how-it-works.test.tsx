@@ -7,8 +7,9 @@
 import assert from 'node:assert/strict'
 import { type TestContext, test } from 'node:test'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import pl from '@/copy/pl.json'
+import { CATALOG_SECTION_ID } from '@/evidence'
 import { routeTree } from '@/routeTree.gen'
 
 function openPage(path: string) {
@@ -53,4 +54,39 @@ test('the footer of every page links to /jak-dziala', async () => {
   openPage('/prywatnosc')
   const link = await screen.findByRole('link', { name: pl.result.how_it_works })
   assert.equal(link.getAttribute('href'), '/jak-dziala')
+})
+
+test('the table of contents in the rail scrolls to the catalogue', async (t) => {
+  fakeApi(t, { detail: 'not found' }, 404)
+  const scrolled: { id: string; options: unknown }[] = []
+  t.mock.method(Element.prototype, 'scrollIntoView', function (this: Element, options: unknown) {
+    scrolled.push({ id: this.id, options })
+  })
+  openPage('/jak-dziala')
+  const rail = await screen.findByRole('complementary')
+  const toc = within(rail).getByRole('navigation', { name: pl.nav.on_page })
+  fireEvent.click(within(toc).getByRole('button', { name: pl.method.catalog.title }))
+  const target = document.getElementById(CATALOG_SECTION_ID)
+  assert.ok(target?.querySelector('h2')?.textContent === pl.method.catalog.title)
+  // the heading clears the sticky bar through scroll-padding-top on html (tests/routes/app-bar)
+  assert.deepEqual(scrolled, [
+    { id: CATALOG_SECTION_ID, options: { behavior: 'smooth', block: 'start' } },
+  ])
+})
+
+test('with reduced motion the table of contents jumps without smooth scrolling', async (t) => {
+  fakeApi(t, { detail: 'not found' }, 404)
+  const realMatchMedia = window.matchMedia.bind(window)
+  // only the reduced-motion query answers yes; the rest (theme, toasts) stays real
+  t.mock.method(window, 'matchMedia', (query: string) =>
+    query.includes('reduce') ? { matches: true } : realMatchMedia(query),
+  )
+  const behaviors: unknown[] = []
+  t.mock.method(Element.prototype, 'scrollIntoView', (options: { behavior: string }) => {
+    behaviors.push(options.behavior)
+  })
+  openPage('/jak-dziala')
+  const rail = await screen.findByRole('complementary')
+  fireEvent.click(within(rail).getByRole('button', { name: pl.method.metrics.title }))
+  assert.deepEqual(behaviors, ['auto'])
 })

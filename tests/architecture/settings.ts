@@ -15,6 +15,7 @@ export const settings = {
     // pnpm sync copies (scripts/sync.sh), documented and line-limited in their source
     // repo; tests/synced-copies.test.ts checks their sums:
     'src/styles/meritum.css', // design-system tokens/meritum.css
+    'src/styles/display.css', // design-system tokens/display.css
     'src/components/meritum/', // design-system components/meritum/
     'src/contracts/', // design-system contracts/ (from meritum-core) and core's catalog.json
     'src/copy/', // design-system copy/pl.json and copy/privacy.json

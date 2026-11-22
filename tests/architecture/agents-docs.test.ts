@@ -4,6 +4,7 @@ import { test } from 'node:test'
 
 const agents = readFileSync('AGENTS.md', 'utf8')
 const importLine = /^@AGENTS\.md$/m
+const otherRegistry = /@reui|@originui/
 
 test('CLAUDE.md imports AGENTS.md', () => {
   assert.match(readFileSync('CLAUDE.md', 'utf8'), importLine)
@@ -32,8 +33,9 @@ test('AGENTS.md keeps the rule groups issue #52 asks for', () => {
 })
 
 test('AGENTS.md lists the component sources in order', () => {
-  const order = ['src/components/meritum/', '@shadcnblocks/', '@reui/', '@originui/', 'shadcn/ui']
-  const line = agents.split('\n').find((l) => l.includes('Kolejność źródeł komponentów')) ?? ''
+  const order = ['src/components/meritum/', 'shadcn/ui', '@shadcnblocks/']
+  // the section „Components: Meritum first” says the order once, as a numbered list
+  const line = agents.split('## Components')[1]?.split('\n## ')[0] ?? ''
   const at = order.map((s) => line.indexOf(s))
   assert.ok(
     at.every((i) => i >= 0),
@@ -43,4 +45,10 @@ test('AGENTS.md lists the component sources in order', () => {
     at,
     [...at].sort((a, b) => a - b),
   )
+  assert.ok(!otherRegistry.test(line), `other registries in: ${line}`)
+})
+
+test('components.json names only the shadcnblocks registry', () => {
+  const config = JSON.parse(readFileSync('components.json', 'utf8'))
+  assert.deepEqual(Object.keys(config.registries), ['@shadcnblocks'])
 })

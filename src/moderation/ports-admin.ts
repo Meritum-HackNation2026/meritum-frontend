@@ -34,7 +34,14 @@ export type DemoAccount = 'obywatel' | 'admin'
  *
  * @feature US-OBS-06, US-MOD-05, F-28
  */
-export type DemoLink = { url: string; expiresAt: string }
+type DemoLink = { id: string; url: string; expiresAt: string }
+
+/**
+ * Metadata of an active demo link.
+ *
+ * @feature US-OBS-06, US-MOD-05, F-28
+ */
+export type ActiveDemoLink = { id: string; account: DemoAccount; expiresAt: string }
 
 /**
  * What issuing a demo link gave: the link, `unavailable` outside the dev environment (404), or
@@ -89,10 +96,11 @@ export interface AdminApi {
    * @returns The issued link, or why there is none.
    */
   issueDemoLink(account: DemoAccount, expiresAt: string): Promise<DemoIssueOutcome>
+  /** @returns Active demo links, or why the list could not be loaded. */
+  demoLinks(): Promise<ActiveDemoLink[] | 'unavailable' | 'failed'>
   /**
-   * @param account - The account the link opens.
-   * @param url - The address of the link; its last segment is the token.
+   * @param id - The demo link identifier.
    * @returns What the API did.
    */
-  revokeDemoLink(account: DemoAccount, url: string): Promise<DemoRevokeOutcome>
+  revokeDemoLink(id: string): Promise<DemoRevokeOutcome>
 }

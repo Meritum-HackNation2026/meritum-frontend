@@ -1,5 +1,6 @@
 export { AdminPage } from './_admin'
 export { AskerAnswer } from './_asker-answer'
+export { caseIdOf, caseParam } from './_case-address'
 export { CaseDetail } from './_case-detail'
 export { EscalationLine } from './_escalation'
 export { Panel } from './_panel'
@@ -12,6 +13,7 @@ export type {
   AnswerOutcome,
   AnswerSource,
   AskerAnswerReader,
+  CloseOutcome,
   Handoff,
   HandoffOutcome,
   StaffApi,

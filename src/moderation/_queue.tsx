@@ -44,6 +44,8 @@ export function CaseQueue(props: {
   const sorted = table.getRowModel().rows.map((row) => row.original)
   return (
     <ModerationQueue
+      // shortcut: the synced queue draws a rule between rows; drop it here until design-system does
+      className="[&_tbody_tr]:border-t-0"
       cases={sorted}
       onOpen={props.onOpen}
       {...(props.selectedId ? { selectedId: props.selectedId } : {})}

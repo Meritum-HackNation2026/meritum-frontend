@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { t } from '@/components/meritum'
 import {
   AlertDialog,
@@ -10,6 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { forgetChecks } from './_history'
+import type { SessionEraser } from './ports'
 
 /**
  * The confirmation of „Usuń moje sprawdzenia” (or, with `account`, of „Usuń konto i historię”): a modal alert dialog with the page's own title
@@ -67,4 +69,36 @@ export function DeleteChecksDialog({
       </AlertDialogContent>
     </AlertDialog>
   )
+}
+
+/**
+ * „Usuń moje sprawdzenia” (or the account's history or the account): the confirmation, the
+ * deletion and its outcome. The tab's copies go only after the server deleted its records.
+ *
+ * @param eraser - Deletes the records on the server.
+ * @param onErased - Called after the deletion; empties the inbox.
+ * @param onEmptied - Clears what the page shows of the history.
+ * @returns Whether the dialog is open and its setter, `ask`, the outcome and `erase`.
+ * @feature US-BEZ-05, US-SPR-10, F-20, F-31
+ */
+export function useErase(
+  eraser: SessionEraser,
+  onErased: () => Promise<void> | void,
+  onEmptied: () => void,
+) {
+  const [confirming, setConfirming] = useState(false)
+  const [erased, setErased] = useState<boolean | null>(null)
+  const erase = useCallback(async () => {
+    setErased(null)
+    const ok = await eraser.erase()
+    // the local copies go only once the server deleted its records, so a failure can be retried
+    if (ok) {
+      forgetChecks()
+      onEmptied()
+      await onErased()
+    }
+    setErased(ok)
+  }, [eraser, onErased, onEmptied])
+  const ask = useCallback(() => setConfirming(true), [])
+  return { confirming, setConfirming, ask, erased, erase }
 }

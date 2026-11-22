@@ -19,8 +19,8 @@ function fakeApi(t: TestContext, routes: Record<string, [number, unknown]>) {
   })
 }
 
-async function openPanel() {
-  const history = createMemoryHistory({ initialEntries: ['/panel'] })
+async function openPanel(path = '/panel') {
+  const history = createMemoryHistory({ initialEntries: [path] })
   const router = createRouter({ routeTree, history })
   render(<RouterProvider router={router} />)
   await waitFor(() => assert.equal(router.state.status, 'idle'))
@@ -113,7 +113,8 @@ test('a case with a paraphrase counts 2 questions and shows both claims (scenari
   // on a phone the count carries its own „Pytania:” label (design-system#134)
   assert.equal(cell?.childNodes[1]?.textContent, '2')
   fireEvent.click(open)
-  const detail = screen.getByRole('article', { name: dieselCase.summary })
+  // the row goes to /panel/sprawy/S-12, which loads before the detail shows
+  const detail = await screen.findByRole('article', { name: dieselCase.summary })
   const text = detail.textContent ?? ''
   for (const { claim } of dieselCase.claims) {
     assert.ok(text.includes(claim))
@@ -133,7 +134,7 @@ test('an analyst sees evaluation in the navigation and never asks for cases', as
     '/api/v1/staff/me': [200, { email: 'analityk@example.org', role: 'analyst' }],
   })
   await openPanel()
-  const nav = await screen.findByRole('navigation')
+  const nav = await within(await screen.findByRole('main')).findByRole('navigation')
   assert.deepEqual(
     within(nav)
       .getAllByRole('link')
@@ -150,7 +151,7 @@ test('an administrator sees the cases, evaluation and administration', async (t)
     '/api/v1/moderation/cases': [200, [quietCase]],
   })
   await openPanel()
-  const nav = await screen.findByRole('navigation')
+  const nav = await within(await screen.findByRole('main')).findByRole('navigation')
   assert.deepEqual(
     within(nav)
       .getAllByRole('link')
@@ -210,4 +211,26 @@ test('a moderator whose role was taken away meanwhile is told to ask the adminis
   })
   await openPanel()
   assert.ok(await screen.findByText(pl.staff.sign_in.no_access))
+})
+
+test('opening a case row changes the address to the case', async (t) => {
+  fakeApi(t, {
+    '/api/v1/staff/me': [200, moderator],
+    '/api/v1/moderation/cases': [200, [quietCase, dieselCase]],
+  })
+  const router = await openPanel()
+  fireEvent.click(await screen.findByRole('button', { name: dieselCaseButton }))
+  await waitFor(() => assert.equal(router.state.location.pathname, '/panel/sprawy/S-12'))
+  assert.ok(await screen.findByRole('article', { name: dieselCase.summary }))
+})
+
+test('a link to a case opens the panel with that case', async (t) => {
+  fakeApi(t, {
+    '/api/v1/staff/me': [200, moderator],
+    '/api/v1/moderation/cases': [200, [quietCase, dieselCase]],
+  })
+  await openPanel('/panel/sprawy/S-7')
+  assert.ok(await screen.findByRole('region', { name: pl.moderation.queue_title }))
+  assert.ok(await screen.findByRole('article', { name: quietCase.summary }))
+  assert.equal(screen.queryByRole('article', { name: dieselCase.summary }), null)
 })

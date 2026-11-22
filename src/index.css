@@ -1,20 +1,33 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-/* Archivo (wdth 75..125, wght 400..800) and Azeret Mono, self-hosted: no request to Google Fonts. */
+/* Schibsted Grotesk (wght 400..900) for the interface, Archivo (wdth 75..125) for the logotype only
+   and Azeret Mono, self-hosted: no request to Google Fonts. */
+@import "@fontsource-variable/schibsted-grotesk/wght.css";
 @import "@fontsource-variable/archivo/wdth.css";
 @import "@fontsource/azeret-mono/400.css";
 @import "@fontsource/azeret-mono/500.css";
 @import "@fontsource/azeret-mono/600.css";
 @import "./styles/meritum.css";
+/* after meritum.css: the display settings override its tokens (tokens/display.css) */
+@import "./styles/display.css";
 
-/* a page that holds [data-wide] (the empty conversation, DESIGN_SYSTEM.md 6.8) widens the layout */
+/* a page that holds [data-wide] (the home page) widens the layout */
 @custom-variant has-wide (&:has([data-wide]));
 
 @theme inline {
-  /* Fontsource names the variable family "Archivo Variable". */
-  --font-sans: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, sans-serif;
+  /* Fontsource names the variable families "Schibsted Grotesk Variable" and "Archivo Variable". */
+  --font-sans:
+    "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-logo: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-sans);
+}
+
+/* page frame (DESIGN_SYSTEM.md 5, 6.9): the sticky bar's height, the column and its rail */
+@theme {
+  --spacing-bar: 4rem;
+  --container-column: 45rem;
+  --container-rail: 20rem;
 }
 
 @layer base {
@@ -22,11 +35,92 @@
     @apply border-border outline-ring/50;
   }
   html {
-    /* the docked message field (DESIGN_SYSTEM.md 6.8) never covers the focused element: 12rem is
-       the docked bar with a two-line field on a phone, plus a margin */
-    @apply scroll-pb-48 font-sans;
+    @apply font-sans;
+    /* the sticky bar never covers the focused element (WCAG 2.4.11), with a margin for the ring */
+    scroll-padding-top: calc(var(--spacing-bar) + --spacing(4));
   }
   body {
     @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Everything clickable says so (DESIGN_SYSTEM.md 9): a pointer and a 0.15 s colour fade. Under reduced
+   motion the colour changes at once. */
+@layer base {
+  :is(a[href], button, [role="button"], [role="menuitem"], summary) {
+    cursor: pointer;
+    transition-property: color, background-color, border-color, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out-meritum);
+  }
+  :is(button, [role="button"]):disabled {
+    cursor: default;
+  }
+  /* the theme button keeps its three icons in one cell and shows the current one (display-menu) */
+  :is(a[href], button) svg[data-theme-icon]:not([data-current]) {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :is(a[href], button, [role="button"], [role="menuitem"], summary) {
+      transition: none;
+    }
+  }
+}
+
+/* Icons in links and buttons answer the pointer (frontend#141): they grow a little on hover and on
+   keyboard focus, arrows and chevrons move 2-3 px the way they lead, and a pressed icon dips to 0.82.
+   The icon moves, never its control, so nothing shifts around it. Hover needs a device that can
+   hover, so a tap leaves nothing behind; reduced motion skips the whole block. */
+@layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    :is(a[href], button) svg {
+      transition-property: transform, opacity, scale;
+      transition-duration: 150ms;
+      transition-timing-function: var(--ease-out-meritum);
+    }
+    :is(a[href], button) svg[data-theme-icon] {
+      transition-duration: 200ms;
+    }
+    :is(a[href], button) svg[data-theme-icon]:not([data-current]) {
+      scale: 0.6;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      :is(a[href], button):not(:disabled):hover svg {
+        transform: scale(1.08);
+      }
+      :is(a[href], button):not(:disabled):hover :is(.lucide-arrow-right, .lucide-chevron-right) {
+        transform: translateX(3px);
+      }
+      :is(a[href], button):not(:disabled):hover .lucide-chevron-down {
+        transform: translateY(2px);
+      }
+      :is(a[href], button):not(:disabled):hover .lucide-chevron-up {
+        transform: translateY(-2px);
+      }
+    }
+    :is(a[href], button):focus-visible svg {
+      transform: scale(1.08);
+    }
+    :is(a[href], button):focus-visible :is(.lucide-arrow-right, .lucide-chevron-right) {
+      transform: translateX(3px);
+    }
+    :is(a[href], button):focus-visible .lucide-chevron-down {
+      transform: translateY(2px);
+    }
+    :is(a[href], button):focus-visible .lucide-chevron-up {
+      transform: translateY(-2px);
+    }
+    :is(a[href], button):not(:disabled):active svg {
+      transform: scale(0.82);
+    }
+    :is(a[href], button):not(:disabled):active :is(.lucide-arrow-right, .lucide-chevron-right) {
+      transform: translateX(3px) scale(0.82);
+    }
+    :is(a[href], button):not(:disabled):active .lucide-chevron-down {
+      transform: translateY(2px) scale(0.82);
+    }
+    :is(a[href], button):not(:disabled):active .lucide-chevron-up {
+      transform: translateY(-2px) scale(0.82);
+    }
   }
 }

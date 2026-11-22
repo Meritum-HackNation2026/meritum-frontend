@@ -136,7 +136,7 @@ test('a moderator sees neither runs nor the run button, and runs are never read'
     'GET /api/v1/staff/me': [200, { email: 'moderator@example.org', role: 'moderator' }],
   })
   await openEval()
-  assert.ok(await screen.findByRole('navigation'))
+  assert.ok(await within(await screen.findByRole('main')).findByRole('navigation'))
   assert.equal(screen.queryAllByRole('region', { name: pl.evaluation.runs }).length, 0)
   assert.equal(screen.queryAllByRole('button', { name: pl.evaluation.new_run }).length, 0)
   assert.equal(calls(fetch).includes(runsRoute), false)

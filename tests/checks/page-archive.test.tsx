@@ -72,3 +72,30 @@ test('deleting the copy says it is gone', async () => {
   await waitFor(() => assert.ok(screen.getByText(pl.archive.deleted)))
   assert.deepEqual(removed, ['a1'])
 })
+
+test('the copy shows its number and a button that copies it', async (t) => {
+  const written: string[] = []
+  Object.defineProperty(globalThis.navigator, 'clipboard', {
+    configurable: true,
+    value: {
+      writeText: (text: string) => {
+        written.push(text)
+        return Promise.resolve()
+      },
+    },
+  })
+  t.after(() => Reflect.deleteProperty(globalThis.navigator, 'clipboard'))
+  const done: ArchiveState = {
+    status: 'done',
+    sha256: sha,
+    archivedAt: '2026-11-22T12:00:00Z',
+    expiresAt: '2026-12-22T12:00:00Z',
+  }
+  render(<PageArchive url={urlAsked} archives={fakeArchives([done])} pollMs={0} />)
+  fireEvent.click(screen.getByRole('button', { name: pl.archive.action }))
+  await waitFor(() => assert.ok(screen.getByText('a1')))
+  assert.ok(screen.getByText(pl.archive.id))
+  fireEvent.click(screen.getByRole('button', { name: pl.archive.copy_id }))
+  await waitFor(() => assert.ok(screen.getByText(pl.archive.copied_id)))
+  assert.deepEqual(written, ['a1'])
+})

@@ -26,23 +26,23 @@ Claude does every task that changes what the user sees: components, routes, styl
 motion. Other agents take tasks with no visible change (API client, config, CI, docs) and leave
 UI issues to a Claude session.
 
-## Components: shadcnblocks first
+## Components: Meritum first
 
-1. Look for a fitting block or layout on [shadcnblocks](https://www.shadcnblocks.com) and install
-   it through the shadcn CLI registry: `pnpm dlx shadcn@latest add @shadcnblocks/<name>`.
-2. Use plain shadcn/ui (`pnpm dlx shadcn@latest add <name>`) only when no block or layout fits.
-3. Restyle what you installed with the Meritum design system (`meritum-ui`): tokens from
-   `src/styles/meritum.css`, Archivo and Azeret Mono, components from `src/components/meritum/`,
-   every text from `src/copy/pl.json`. The block keeps its structure unless it breaks accessibility or a Meritum component; its colours, fonts, images
-   and sample copy go.
+Take a component from the first source that has one (registries in `components.json`):
 
-Kolejność źródeł komponentów (rejestry w `components.json`): najpierw komponenty Meritum z `src/components/meritum/`, potem darmowe bloki shadcnblocks (`@shadcnblocks/<nazwa>`, nigdy Pro ani klucz licencyjny), ReUI (`@reui/<nazwa>`), Origin UI (`@originui/<nazwa>`), na końcu zwykły shadcn/ui. Wygląd i teksty zawsze z design systemu Meritum.
+1. Meritum components from `src/components/meritum/` (synced from the design system).
+2. Plain shadcn/ui: `pnpm dlx shadcn@latest add <name>`.
+3. Sometimes a free shadcnblocks block or layout: `pnpm dlx shadcn@latest add @shadcnblocks/<name>`.
+   Never a Pro block or a licence key. No other registries.
+
+Whatever you install is restyled with the Meritum design system (`meritum-ui`): tokens from
+`src/styles/meritum.css`, Schibsted Grotesk and Azeret Mono, every text from `src/copy/pl.json`.
+A block keeps its structure unless it breaks accessibility or a Meritum component; its colours,
+fonts, images and sample copy go.
 
 The registry needs `"@shadcnblocks": "https://www.shadcnblocks.com/r/{style}/{name}"` under
 `registries` in `components.json`; add it in the PR that installs the first block. Free blocks
-need no key. Pro blocks need the object form with the header
-`"Authorization": "Bearer ${SHADCNBLOCKS_API_KEY}"` and the key in your local environment,
-never in the repo.
+need no key.
 
 A block lands outside `src/components/ui/`, so it is app code: it passes every check in
 `docs/architecture.md` (JSDoc with `@feature`, constants in `constants.ts`, 250 lines, Biome).

@@ -55,7 +55,7 @@ function Loaded({
     <article className="grid gap-4">
       <h1 className="text-title font-bold">{copy.title}</h1>
       <p className="text-body whitespace-pre-line text-pretty">{outcome.answer.text}</p>
-      <section aria-labelledby="asker-citations" className="grid gap-2 border-t pt-4">
+      <section aria-labelledby="asker-citations" className="grid gap-2 pt-4">
         <h2 id="asker-citations" className="text-body font-bold">
           {copy.citations_title}
         </h2>

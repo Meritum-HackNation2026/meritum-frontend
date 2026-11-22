@@ -25,8 +25,8 @@ function Entry({ entry }: { entry: TimelineEntry }) {
   const { source, fragment } = entry.citation
   const disclaimer = disclaimerOf(source.publisher_id)
   return (
-    <li className="relative grid gap-1.5 py-2 before:absolute before:top-3.5 before:-left-4 before:size-2 before:rounded-full before:bg-muted-foreground">
-      <p className="text-small tabular-nums text-muted-foreground">
+    <li className="relative grid min-w-0 gap-1.5 py-2 before:absolute before:top-3.5 before:-left-4 before:size-2 before:rounded-full before:bg-muted-foreground">
+      <p className="text-small tabular-nums text-muted-foreground wrap-anywhere">
         {source.published_at ? (
           <time dateTime={source.published_at}>{formatDate(source.published_at)}</time>
         ) : (
@@ -36,7 +36,7 @@ function Entry({ entry }: { entry: TimelineEntry }) {
       {entry.isSuperseded && (
         <p className="text-small font-semibold text-pretty">{supersededText(entry)}</p>
       )}
-      <blockquote className="relative ml-6 text-body text-pretty">
+      <blockquote className="relative ml-6 text-body text-pretty wrap-anywhere">
         <span
           aria-hidden="true"
           className="absolute -top-1 -left-6 select-none font-bold text-title text-verified leading-none"
@@ -46,7 +46,7 @@ function Entry({ entry }: { entry: TimelineEntry }) {
         <span className="sr-only">{t.result.fragment}: </span>
         {fragment}”
       </blockquote>
-      <p className="ml-6 text-small text-muted-foreground">
+      <p className="ml-6 text-small text-muted-foreground wrap-anywhere">
         <a
           href={source.url}
           target="_blank"
@@ -70,7 +70,7 @@ function Group({ group, isWide }: { group: StanceGroup; isWide: boolean }) {
       <h5 className="font-semibold text-small text-muted-foreground">
         {t.result.stance[group.stance]}
       </h5>
-      <ol className="mt-1 ml-1.5 border-l border-border pl-3">
+      <ol className="mt-1 ml-1.5 min-w-0 border-l border-border pl-3">
         {group.entries.map((entry) => (
           <Entry key={entry.citation.source.id + entry.citation.fragment} entry={entry} />
         ))}

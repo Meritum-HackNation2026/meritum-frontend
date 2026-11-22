@@ -18,9 +18,11 @@ import {
 } from '@/api'
 import { CheckPage } from '@/checks'
 import pl from '@/copy/pl.json'
+import { finishedCheck } from './finished-check'
 
 class FakeRecorder {
   static native = true
+  static types = ['audio/ogg;codecs=opus']
   static last: FakeRecorder | null = null
   state = 'inactive'
   ondataavailable: ((e: { data: Blob }) => void) | null = null
@@ -30,7 +32,8 @@ class FakeRecorder {
     this.options = options
     FakeRecorder.last = this
   }
-  static isTypeSupported = (mime: string) => FakeRecorder.native && mime === 'audio/ogg;codecs=opus'
+  static isTypeSupported = (mime: string) =>
+    FakeRecorder.native && FakeRecorder.types.includes(mime)
   start() {
     this.state = 'recording'
   }
@@ -46,6 +49,7 @@ let getUserMedia: () => Promise<unknown>
 
 beforeEach(() => {
   FakeRecorder.native = true
+  FakeRecorder.types = ['audio/ogg;codecs=opus']
   getUserMedia = () => Promise.resolve({ getTracks: () => [track] })
   Object.assign(globalThis, { MediaRecorder: FakeRecorder })
   Object.defineProperty(navigator, 'mediaDevices', {
@@ -73,6 +77,7 @@ function renderPage() {
       progress={apiProgressSource}
       handoff={apiHandoff}
       onAccepted={noop}
+      {...finishedCheck()}
     />,
   )
 }
@@ -95,6 +100,26 @@ test('Nagraj, then Zatrzymaj, attaches the recording with a player and a discard
   assert.ok(document.querySelector('audio'))
   fireEvent.click(screen.getByRole('button', { name: pl.conversation.remove_audio }))
   assert.ok(screen.getByLabelText(pl.form.input_label))
+})
+
+// Chrome 157 records plain audio/mp4 as Opus in MP4, which Speech-to-Text v2 refuses (#139).
+const chromeTypes = ['audio/mp4', 'audio/mp4;codecs=opus', 'audio/mp4;codecs=mp4a.40.2']
+
+test('Chrome records M4A with AAC, not plain audio/mp4', async () => {
+  FakeRecorder.types = chromeTypes
+  renderPage()
+  start()
+  fireEvent.click(await screen.findByRole('button', { name: pl.recording.stop }))
+  assert.equal(FakeRecorder.last?.options?.mimeType, 'audio/mp4;codecs=mp4a.40.2')
+  await screen.findByText(`${pl.recording.file_name}.m4a`)
+})
+
+test('a browser with only Opus in MP4 does not record audio/mp4', async () => {
+  FakeRecorder.types = chromeTypes.filter((type) => !type.includes('mp4a'))
+  renderPage()
+  start()
+  await screen.findByRole('button', { name: pl.recording.stop })
+  assert.equal(FakeRecorder.last?.options, undefined)
 })
 
 test('a refused microphone says so and still allows a file', async () => {

@@ -26,7 +26,7 @@ export function Comparison({ comparison }: { comparison: EvalComparison }) {
     return pair ? [[key, pair] as const] : []
   })
   return (
-    <section aria-labelledby="eval-comparison" className="grid gap-4 rounded-lg border bg-card p-4">
+    <section aria-labelledby="eval-comparison" className="grid gap-4">
       <h3 id="eval-comparison" className="text-body font-bold">
         {t.evaluation.compare}
       </h3>
@@ -34,7 +34,7 @@ export function Comparison({ comparison }: { comparison: EvalComparison }) {
         {metrics.map(([key, { a, b }]) => (
           <div
             key={key}
-            className="flex flex-wrap items-baseline justify-between gap-x-4 border-b py-1.5 text-small"
+            className="flex flex-wrap items-baseline justify-between gap-x-4 py-1.5 text-small"
           >
             <dt>{t.method.metrics.names[key]}</dt>
             <dd className="inline-flex items-center gap-1.5 tabular-nums">

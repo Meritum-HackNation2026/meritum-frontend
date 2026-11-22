@@ -54,3 +54,24 @@ export const AGE_EXEMPT_VALIDITY: ReadonlySet<Validity> = new Set<Validity>([
   'updated_in_place',
   'past_event',
 ])
+
+/**
+ * Anchor of the source catalogue on „Jak działa Meritum”; the footer links to it.
+ *
+ * @feature US-ZRD-12, F-29
+ */
+export const CATALOG_SECTION_ID = 'katalog'
+
+/**
+ * Sections of „Jak działa Meritum” in page order, with their anchors and headings; the table of
+ * contents in the rail lists them.
+ *
+ * @feature US-ZRD-12, F-29
+ */
+export const METHOD_SECTIONS = [
+  { id: 'droga', title: copy.method.path.title },
+  { id: 'odpowiedzi', title: copy.method.verdicts.title },
+  { id: CATALOG_SECTION_ID, title: copy.method.catalog.title },
+  { id: 'mierniki', title: copy.method.metrics.title },
+  { id: 'zasady', title: copy.method.details.title },
+] as const

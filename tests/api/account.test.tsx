@@ -27,7 +27,10 @@ function fakeApi(t: TestContext, answers: Record<string, Response>) {
 
 test('the session is the signed-in account, or null without a session', async (t) => {
   fakeApi(t, { 'GET /api/v1/auth/me': json(me) })
-  assert.deepEqual(await apiAccount.session(), { email: 'ola@example.com' })
+  assert.deepEqual(await apiAccount.session(), { email: 'ola@example.com', isDemo: false })
+  t.mock.restoreAll()
+  fakeApi(t, { 'GET /api/v1/auth/me': json({ ...me, provider: 'demo', email: null }) })
+  assert.deepEqual(await apiAccount.session(), { email: null, isDemo: true })
   t.mock.restoreAll()
   fakeApi(t, { 'GET /api/v1/auth/me': json({}, 401) })
   assert.equal(await apiAccount.session(), null)
