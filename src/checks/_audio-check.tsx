@@ -112,10 +112,14 @@ type Recording = ReturnType<typeof useRecording>
  */
 export function RecordingButton({ recording }: { recording: Recording }) {
   const [open, setOpen] = useState(false)
-  const pick = (event: ChangeEvent<HTMLInputElement>) => {
-    recording.pick(event)
-    setOpen(false)
-  }
+  const { pick: pickFile } = recording
+  const pick = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      pickFile(event)
+      setOpen(false)
+    },
+    [pickFile],
+  )
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
