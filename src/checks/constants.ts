@@ -166,13 +166,14 @@ export const WAV_SAMPLE_RATE = 16000
 
 /**
  * Recording types tried first with `MediaRecorder`: the API reads OGG Opus and M4A from the
- * bytes. A browser that offers neither (Chrome records WebM) is converted to WAV.
+ * bytes. M4A only with AAC: Chrome records plain `audio/mp4` as Opus in MP4, which
+ * Speech-to-Text v2 refuses. A browser that offers neither is converted to WAV.
  *
  * @feature US-SPR-11, F-08
  */
 export const NATIVE_RECORDING_TYPES = [
   { mime: 'audio/ogg;codecs=opus', extension: 'ogg' },
-  { mime: 'audio/mp4', extension: 'm4a' },
+  { mime: 'audio/mp4;codecs=mp4a.40.2', extension: 'm4a' },
 ] as const
 
 /**
