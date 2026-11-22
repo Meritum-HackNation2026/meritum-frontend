@@ -131,7 +131,7 @@
         "id": "model_armor",
         "name": "Model Armor (kandydat)",
         "region": "GCP, multi-region eu",
-        "data": "Treść każdego wywołania modelu przed wysłaniem",
+        "data": "Wejście użytkownika i tekst pobranych stron, kawałkami po najwyżej 4000 znaków (najwyżej pierwsze ok. 95 tys. znaków), przed wysłaniem do modelu",
         "purpose": "Wykrywanie wstrzyknięć przed modelem"
       },
       {
@@ -216,7 +216,7 @@
         "name": "Google i Microsoft (logowanie)",
         "region": "USA",
         "data": "Imię i nazwisko, adres e-mail i identyfikator konta, tylko gdy się logujesz",
-        "purpose": "Opcjonalne logowanie, jeśli starczy czasu"
+        "purpose": "Opcjonalne logowanie obywatela (historia na serwerze) i logowanie zespołu (moderatorzy, administratorzy)"
       },
       {
         "id": "speech_to_text",

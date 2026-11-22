@@ -144,7 +144,7 @@ export function CheckPage({
   return (
     // the empty page widens to two columns from 1024 px (data-wide, read by the layout)
     <div className="grid min-w-0 gap-10" data-wide={turns.length === 0 ? '' : undefined}>
-      <h1 className="sr-only">{t.form.title}</h1>
+      <h1 className="sr-only">{activeCheckId ? t.result.page_title : t.form.title}</h1>
       {turns.length === 0 ? (
         <Welcome onPick={pick} disabled={busy} />
       ) : (
