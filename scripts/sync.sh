@@ -21,8 +21,9 @@ fetch() {
   mkdir -p "$stage/$(dirname "$4")"
   gh api -H 'Accept: application/vnd.github.raw' "repos/$1/contents/${2// /%20}?ref=$3" >"$stage/$4"
 }
-# sha256sum on Linux, shasum on older macOS; same output format.
-sums() { if command -v sha256sum >/dev/null; then sha256sum "$@"; else shasum -a 256 "$@"; fi; }
+# sha256sum on Linux and Windows, shasum on older macOS; same output format. --text
+# because Git for Windows' sha256sum defaults to binary mode ("<hash> *path").
+sums() { if command -v sha256sum >/dev/null; then sha256sum --text "$@"; else shasum -a 256 "$@"; fi; }
 
 # Parallel arrays (design-system path -> path here); quoted everywhere, so names with
 # spaces stay whole.

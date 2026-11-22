@@ -81,6 +81,16 @@ test('pnpm sync keeps names with spaces whole and sums every copy', () => {
   assert.equal(sync.has('src/contracts/catalog.json'), false)
 })
 
+test('pnpm sync writes SHA256SUMS lines in text mode on every platform', () => {
+  const sync = runSync()
+  assert.equal(sync.status, 0)
+  const lines = sync.read('SHA256SUMS').trim().split('\n')
+  assert.ok(lines.length > 0)
+  for (const line of lines) {
+    assert.match(line, sumLine)
+  }
+})
+
 test('pnpm sync copies the core catalogue once it exists and names the core commit', () => {
   const sync = runSync({ FAKE_CATALOG: 'ok' })
   assert.equal(sync.status, 0)
