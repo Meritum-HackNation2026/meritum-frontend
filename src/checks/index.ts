@@ -7,6 +7,7 @@ export { MAX_TEXT_CHARS, MAX_URL_CHARS, MIN_TEXT_CHARS } from './constants'
 export type {
   AudioUploader,
   CheckSender,
+  CitizenAccount,
   ProgressSource,
   ReadOutcome,
   ResultReader,

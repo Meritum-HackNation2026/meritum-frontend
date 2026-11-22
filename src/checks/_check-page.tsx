@@ -2,6 +2,7 @@ import { type ReactNode, useCallback, useState } from 'react'
 import { Composer, fill, t, Welcome } from '@/components/meritum'
 import type { CheckRequest } from '@/contracts/meritum'
 import type { Handoff } from '@/moderation'
+import { AccountSection, useAccount } from './_account'
 import {
   RecordingAttachment,
   RecordingButton,
@@ -13,11 +14,12 @@ import { forgetChecks, rememberQuestion } from './_history'
 import { useMicrophone } from './_microphone'
 import { MicrophoneMessage } from './_recorder'
 import { type ErrorKey, validateCheck } from './_request'
-import { conversationTurns, Thread } from './_thread'
+import { conversationTurns, Thread, withAccountTurns } from './_thread'
 import { RETENTION_DAYS } from './constants'
 import type {
   AudioUploader,
   CheckSender,
+  CitizenAccount,
   ProgressSource,
   ResultReader,
   SendOutcome,
@@ -82,6 +84,7 @@ type CheckPageProps = {
   reader: ResultReader
   progress: ProgressSource
   handoff: Handoff
+  account?: CitizenAccount
   onAccepted: (checkId: string) => void
   onErased?: () => Promise<void> | void
   activeCheckId?: string
@@ -105,12 +108,15 @@ type CheckPageProps = {
  * @param props.reader - Reads a check from the API (the `src/api` adapter in the app).
  * @param props.progress - Streams a check's steps (the `src/api` SSE adapter in the app).
  * @param props.handoff - Hands claims to the moderators (the `src/api` adapter in the app).
+ * @param props.account - The optional citizen account (Google or Microsoft sign-in): signed in, the
+ * history comes from the server and the page offers sign-out and deleting the history or the
+ * account; without it, or signed out, the history stays in sessionStorage.
  * @param props.onAccepted - Called with the id of an accepted check.
  * @param props.onErased - Called after the server deleted the records; empties the inbox.
  * @param props.activeCheckId - The check of the result address, shown as the current turn.
  * @param props.notice - The AI notice, once on the screen, above the field.
  * @returns The conversation page.
- * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, F-01, F-08, F-20, F-21
+ * @feature US-SPR-01, US-SPR-09, US-SPR-11, US-BEZ-05, US-BEZ-07, US-DST-01, US-SPR-10, F-01, F-08, F-20, F-21, F-31
  */
 export function CheckPage({
   sender,
@@ -119,6 +125,7 @@ export function CheckPage({
   reader,
   progress,
   handoff,
+  account,
   onAccepted,
   onErased = () => undefined,
   activeCheckId,
@@ -127,7 +134,23 @@ export function CheckPage({
   const [turns, setTurns] = useState(() => conversationTurns(activeCheckId))
   const [value, setValue] = useState('')
   const clearTurns = useCallback(() => setTurns([]), [])
-  const { confirming, setConfirming, ask, erased, erase } = useErase(eraser, onErased, clearTurns)
+  const { user, remote, signedOut, signOut, forgetRemote, leave } = useAccount(account)
+  const emptyAll = useCallback(() => {
+    clearTurns()
+    forgetRemote()
+  }, [clearTurns, forgetRemote])
+  const dropAccount = useCallback(() => {
+    clearTurns()
+    leave()
+  }, [clearTurns, leave])
+  const sessionErase = useErase(
+    user && account ? account.historyEraser : eraser,
+    onErased,
+    emptyAll,
+  )
+  const accountErase = useErase(account?.accountEraser ?? eraser, onErased, dropAccount)
+  const { confirming, setConfirming, ask, erased, erase } = sessionErase
+  const shownTurns = withAccountTurns(turns, remote)
   const accept = useCallback(
     (checkId: string, question: string) => {
       rememberQuestion(checkId, question)
@@ -143,13 +166,13 @@ export function CheckPage({
 
   return (
     // the empty page widens to two columns from 1024 px (data-wide, read by the layout)
-    <div className="grid min-w-0 gap-10" data-wide={turns.length === 0 ? '' : undefined}>
+    <div className="grid min-w-0 gap-10" data-wide={shownTurns.length === 0 ? '' : undefined}>
       <h1 className="sr-only">{activeCheckId ? t.result.page_title : t.form.title}</h1>
-      {turns.length === 0 ? (
+      {shownTurns.length === 0 ? (
         <Welcome onPick={pick} disabled={busy} />
       ) : (
         <Thread
-          turns={turns}
+          turns={shownTurns}
           activeCheckId={activeCheckId}
           reader={reader}
           progress={progress}
@@ -159,16 +182,31 @@ export function CheckPage({
       <div className="grid gap-1.5 text-small text-muted-foreground text-pretty">
         {notice}
         <p>
-          {fill(t.form.privacy, { days: RETENTION_DAYS })}{' '}
-          <button
-            type="button"
-            onClick={ask}
-            className="py-3 text-foreground underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            {t.form.delete_session}
-          </button>
+          {fill(t.form.privacy, { days: RETENTION_DAYS })}
+          {!user && (
+            <>
+              {' '}
+              <button
+                type="button"
+                onClick={ask}
+                className="py-3 text-foreground underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                {t.form.delete_session}
+              </button>
+            </>
+          )}
         </p>
-        <p className="text-meta">{t.history.session_note}</p>
+        <p className="text-meta">{user ? t.history.account_note : t.history.session_note}</p>
+        {account && (
+          <AccountSection
+            account={account}
+            user={user}
+            signedOut={signedOut}
+            onSignOut={signOut}
+            onDeleteHistory={ask}
+            onDeleteAccount={accountErase.ask}
+          />
+        )}
         <p role="status" className="text-foreground empty:hidden">
           {erased !== null &&
             (erased ? t.channel_privacy.deleted : t.extension.popup_delete_failed)}
@@ -189,11 +227,16 @@ export function CheckPage({
           attachment={recording.file ? <RecordingAttachment recording={recording} /> : undefined}
           onSendAttachment={recording.send}
           placeholder={
-            turns.length > 0 ? t.conversation.next_placeholder : t.form.input_placeholder
+            shownTurns.length > 0 ? t.conversation.next_placeholder : t.form.input_placeholder
           }
         />
       </div>
       <DeleteChecksDialog open={confirming} onOpenChange={setConfirming} onConfirm={erase} />
+      <DeleteChecksDialog
+        open={accountErase.confirming}
+        onOpenChange={accountErase.setConfirming}
+        onConfirm={accountErase.erase}
+      />
     </div>
   )
 }

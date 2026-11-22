@@ -207,3 +207,10 @@ export const WAV_INT16_MIN = 0x8000
  */
 export const RECORDER_BUTTON =
   'inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-pill px-4 font-semibold transition-transform duration-150 ease-out-meritum active:scale-97 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
+
+/**
+ * The sign-in providers of the optional citizen account (backend#29), in the order shown.
+ *
+ * @feature US-SPR-10, F-31
+ */
+export const LOGIN_PROVIDERS = ['google', 'microsoft'] as const

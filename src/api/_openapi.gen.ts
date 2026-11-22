@@ -335,6 +335,7 @@ export interface paths {
          *         readiness: the readiness probe; a service that is not ready refuses checks.
          *         cache: the result cache; a hit starts no `check` workflow.
          *         records: where a hit's CheckRecord goes.
+         *         account: the signed-in citizen, if any; their checks form the history.
          *         settings: the app settings (the channel user hash salt).
          *         session: the random browser session id; no sign-in needed.
          *
@@ -390,6 +391,55 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Checks
+         * @description List the checks sent while signed in with this account, newest first.
+         *
+         *     Args:
+         *         account: the signed-in account (401 without a session).
+         *         records: the check records repository.
+         *
+         *     Returns:
+         *         The account's checks, on any device that signed in with it.
+         *
+         *     Features:
+         *         US-SPR-10, US-BEZ-05, F-31
+         */
+        get: operations["my_checks_api_v1_me_checks_get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete My History
+         * @description Delete the signed-in citizen's history („Usuń moją historię”).
+         *
+         *     Same path as the browser session's deletion: records, notifications and
+         *     case links now, DBOS data and files in the ``delete_subject`` workflow.
+         *     The account stays signed in.
+         *
+         *     Args:
+         *         account: the signed-in account (CSRF token checked).
+         *         jobs: the job queue port.
+         *         eraser: the app's SubjectEraser.
+         *
+         *     Returns:
+         *         How many records and notifications were deleted right away.
+         *
+         *     Features:
+         *         US-SPR-10, US-BEZ-05, F-31, ADR-13
+         */
+        delete: operations["delete_my_history_api_v1_me_checks_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1013,6 +1063,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Image
+         * @description Store a screenshot or photo for the check record's retention, return its id.
+         *
+         *     The bytes decide the format (core's ``inspect_image``), not the MIME type.
+         *     Public, so limited per client address (429 above IMAGE_UPLOAD_LIMIT).
+         *
+         *     Args:
+         *         request: the request; its body is the file (PNG, JPEG or WebP).
+         *         blobs: the blob store port.
+         *
+         *     Returns:
+         *         The image id, or ImageRejected: 413 over MAX_IMAGE_BYTES, 415 for any
+         *         other file.
+         *
+         *     Raises:
+         *         HTTPException: 503 when the store fails.
+         *
+         *     Features:
+         *         US-SPR-08, F-33, ADR-13, ADR-31
+         */
+        post: operations["upload_image_api_v1_images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sessions/{session_id}/checks": {
         parameters: {
             query?: never;
@@ -1051,6 +1138,41 @@ export interface paths {
          *         US-BEZ-05, US-BEZ-06, US-POW-04, F-20
          */
         delete: operations["delete_session_checks_api_v1_sessions__session_id__checks_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete My Account
+         * @description Delete the account („Usuń konto”): its history, notifications and session.
+         *
+         *     Meritum keeps no account row, only the provider's id on the account's
+         *     records, so deleting those and ending the session removes the account.
+         *
+         *     Args:
+         *         request: the request whose session is cleared.
+         *         account: the signed-in account (CSRF token checked).
+         *         jobs: the job queue port.
+         *         eraser: the app's SubjectEraser.
+         *
+         *     Returns:
+         *         How many records and notifications were deleted right away.
+         *
+         *     Features:
+         *         US-SPR-10, US-BEZ-05, F-31, ADR-13
+         */
+        delete: operations["delete_my_account_api_v1_me_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1289,6 +1411,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/eval/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Dataset
+         * @description Store a case file (CSV or JSON, at least 30 cases) to run on later.
+         *
+         *     Args:
+         *         file: the uploaded file.
+         *         _member: the analyst or administrator.
+         *         _csrf: the account, CSRF checked (rejects a read-only session).
+         *         store: the run index.
+         *         blobs: the shared blob store.
+         *
+         *     Returns:
+         *         The dataset id and its case count.
+         *
+         *     Raises:
+         *         HTTPException: 413 above the size limit, 422 for an invalid file.
+         *
+         *     Features:
+         *         US-OBS-05, F-26
+         */
+        post: operations["upload_dataset_api_v1_eval_datasets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/eval/runs": {
         parameters: {
             query?: never;
@@ -1440,35 +1598,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/eval/datasets": {
+    "/api/v1/export": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * Upload Dataset
-         * @description Store a case file (CSV or JSON, at least 30 cases) to run on later.
+         * Export
+         * @description Export the checks of the last ``days`` days and the cases, masked.
+         *
+         *     shortcut: the record port has no "list all", so the checks are the ones the
+         *     cases cover; switch to a port query when core adds one.
          *
          *     Args:
-         *         file: the uploaded file.
-         *         _member: the analyst or administrator.
-         *         _csrf: the account, CSRF checked (rejects a read-only session).
-         *         store: the run index.
+         *         _member: a signed-in analyst or administrator.
+         *         records: the check record store.
+         *         cases: the case store.
+         *         export_format: ``json``, ``csv`` or ``stix``.
+         *         days: how far back to take checks.
          *
          *     Returns:
-         *         The dataset id and its case count.
-         *
-         *     Raises:
-         *         HTTPException: 413 above the size limit, 422 for an invalid file.
+         *         The export in the chosen format.
          *
          *     Features:
-         *         US-OBS-05, F-26
+         *         US-OBS-03, F-36
          */
-        post: operations["upload_dataset_api_v1_eval_datasets_post"];
+        get: operations["export_api_v1_export_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1721,6 +1880,11 @@ export interface components {
              */
             audio_id?: string | null;
             /**
+             * Image Id
+             * @description Uploaded screenshot or photo with text; read by OCR in an EU region, then checked like text. Excludes text, url and audio_id.
+             */
+            image_id?: string | null;
+            /**
              * Channel User Id
              * @description Discord, SMS and MCP only: user id, phone number or MCP client id. The API hashes it with a salt into channel_user_hash and never stores it.
              */
@@ -1776,7 +1940,7 @@ export interface components {
              * @description Codes of the limitations the channel words from copy/pl.json; they never set the status, though the audio codes explain an out_of_scope recording. Paired with limitations by index: one code per text, same order.
              * @default []
              */
-            limitation_codes: ("fact_check_unavailable" | "image_search_not_run" | "audio_format_unsupported" | "audio_too_long" | "corpus_scope" | "no_publications")[];
+            limitation_codes: ("fact_check_unavailable" | "image_search_not_run" | "audio_format_unsupported" | "audio_too_long" | "image_format_unsupported" | "image_too_large" | "corpus_scope" | "no_publications")[];
             /**
              * Transcript
              * @description Audio input only: the automatic transcript, with personal data masked.
@@ -2103,6 +2267,15 @@ export interface components {
             level: "strong" | "moderate" | "weak";
             premises: components["schemas"]["Premises"];
         };
+        /**
+         * ExportFormat
+         * @description Formats of the export.
+         *
+         *     Features:
+         *         US-OBS-03, F-36
+         * @enum {string}
+         */
+        ExportFormat: "json" | "csv" | "stix";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2144,6 +2317,94 @@ export interface components {
             name: string;
             /** Keywords */
             keywords: string[];
+        };
+        /**
+         * HistoryItem
+         * @description One past check as the citizen sees it (no audit fields).
+         *
+         *     Attributes:
+         *         check_id: the id of the check (opens its result).
+         *         channel: the channel the check came through.
+         *         received_at: when the question arrived.
+         *         question_masked: the question with personal data masked.
+         *         status: the check's status.
+         *         verdicts: the verdict of each claim.
+         *
+         *     Features:
+         *         US-SPR-10, F-31
+         */
+        HistoryItem: {
+            /** Check Id */
+            check_id: string;
+            /** Channel */
+            channel: string;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Question Masked */
+            question_masked: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "done" | "needs_clarification" | "out_of_scope" | "technical_failure";
+            /** Verdicts */
+            verdicts: ("confirmed" | "false" | "misleading" | "insufficient_evidence" | "not_verifiable")[];
+        };
+        /**
+         * ImageAccepted
+         * @description 201 answer: the image is stored.
+         *
+         *     Attributes:
+         *         image_id: the id to send as ``image_id`` to POST /api/v1/checks.
+         *
+         *     Features:
+         *         US-SPR-08, F-33
+         */
+        ImageAccepted: {
+            /** Image Id */
+            image_id: string;
+        };
+        /**
+         * ImageRejected
+         * @description 413 or 415 answer: no image to check, so no verdict.
+         *
+         *     Attributes:
+         *         status: always ``out_of_scope``, as core's UnsupportedImageError.
+         *         message_key: out_of_scope_code.image (copy/pl.json).
+         *         formats: the formats that can be sent.
+         *         max_mb: the size limit.
+         *
+         *     Features:
+         *         US-SPR-08, F-33
+         */
+        ImageRejected: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "done" | "needs_clarification" | "out_of_scope" | "technical_failure";
+            /**
+             * Message Key
+             * @default out_of_scope_code.image
+             */
+            message_key: string;
+            /**
+             * Formats
+             * @default [
+             *       "PNG",
+             *       "JPEG",
+             *       "WebP"
+             *     ]
+             */
+            formats: string[];
+            /**
+             * Max Mb
+             * @default 10
+             */
+            max_mb: number;
         };
         /**
          * IncidentMatch
@@ -2503,7 +2764,7 @@ export interface components {
         PingInput: {
             /**
              * Contract Version
-             * @default 4
+             * @default 5
              */
             contract_version: number;
             /**
@@ -3199,6 +3460,46 @@ export interface operations {
             };
         };
     };
+    my_checks_api_v1_me_checks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryItem"][];
+                };
+            };
+        };
+    };
+    delete_my_history_api_v1_me_checks_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedChecks"];
+                };
+            };
+        };
+    };
     read_target_api_v1_staff_notifications_get: {
         parameters: {
             query?: never;
@@ -3834,6 +4135,48 @@ export interface operations {
             };
         };
     };
+    upload_image_api_v1_images_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "image/*": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageAccepted"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageRejected"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageRejected"];
+                };
+            };
+        };
+    };
     delete_session_checks_api_v1_sessions__session_id__checks_delete: {
         parameters: {
             query?: never;
@@ -3863,6 +4206,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_account_api_v1_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedChecks"];
                 };
             };
         };
@@ -4126,6 +4489,39 @@ export interface operations {
             };
         };
     };
+    upload_dataset_api_v1_eval_datasets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_dataset_api_v1_eval_datasets_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetSaved"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_runs_api_v1_eval_runs_get: {
         parameters: {
             query?: never;
@@ -4264,26 +4660,25 @@ export interface operations {
             };
         };
     };
-    upload_dataset_api_v1_eval_datasets_post: {
+    export_api_v1_export_get: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: components["schemas"]["ExportFormat"];
+                days?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_dataset_api_v1_eval_datasets_post"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DatasetSaved"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
